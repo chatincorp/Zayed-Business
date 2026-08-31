@@ -63,13 +63,13 @@ export default function Footer() {
 
             {/* Contact */}
             <div className="space-y-2">
-              <a href="tel:+44114712989" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
+              <a href="tel:+254114712989" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
                 <Phone className="w-4 h-4" />
-                0114 712 989
+                +254 114 712 989
               </a>
-              <a href="tel:+254711625144" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
+              <a href="tel:+254717227012" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
                 <Phone className="w-4 h-4" />
-                0711625144
+                +254 717 227 012
               </a>
               <a href="mailto:info@yasirzayed.com" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
                 <Mail className="w-4 h-4" />

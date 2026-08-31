@@ -61,18 +61,18 @@ export default function FinalCTASection() {
             className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto"
           >
             <a
-              href="tel:+44114712989"
+              href="tel:+254114712989"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all"
             >
               <Phone className="w-5 h-5 text-electric" />
-              <span className="text-white/80 text-sm font-medium">0114 712 989</span>
+              <span className="text-white/80 text-sm font-medium">+254 114 712 989</span>
             </a>
             <a
-              href="tel:+254711625144"
+              href="tel:+254717227012"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all"
             >
               <Phone className="w-5 h-5 text-electric" />
-              <span className="text-white/80 text-sm font-medium">0711625144</span>
+              <span className="text-white/80 text-sm font-medium">+254 717 227 012</span>
             </a>
             <a
               href="mailto:info@yasirzayed.com"
