@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   LayoutDashboard,
   FileText,
@@ -649,8 +651,7 @@ function AdminProjectsContent() {
   const handleCreate = async () => {
     if (!newTitle.trim()) return;
     // For demo, use first user as client
-    const users = await (await import("../../convex/_generated/api"))?.api?.projects?.list ?? null;
-    void users;
+
     await createProject({
       clientId: "" as any, // Will be set properly in production
       title: newTitle,

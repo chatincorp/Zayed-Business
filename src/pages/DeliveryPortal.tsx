@@ -8,10 +8,10 @@
  *  - Paystack-powered subscription activation
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
@@ -29,47 +29,6 @@ import {
   ArrowLeft,
   Shield,
 } from "lucide-react";
-
-type ProjectDoc = {
-  _id: Id<"projects">;
-  clientId: Id<"users">;
-  title: string;
-  description?: string;
-  service?: string;
-  status: "planning" | "in_progress" | "review" | "completed" | "delivered" | "on_hold";
-  projectType: "completed" | "phased";
-  phases?: Array<{
-    id: string;
-    name: string;
-    status: "pending" | "in_progress" | "review" | "completed";
-    description?: string;
-    dueDate?: number;
-    completedAt?: number;
-  }>;
-  deliverables?: Array<{
-    id: string;
-    name: string;
-    fileUrl?: string;
-    fileSize?: number;
-    fileType?: string;
-    phaseId?: string;
-    uploadedAt: number;
-  }>;
-  tracking?: Array<{
-    id: string;
-    title: string;
-    description?: string;
-    status: "info" | "warning" | "success" | "update";
-    createdAt: number;
-    author: string;
-  }>;
-  budget?: string;
-  startDate?: number;
-  estimatedCompletion?: number;
-  completedAt?: number;
-  createdAt: number;
-  updatedAt: number;
-};
 
 const STATUS_COLORS: Record<string, string> = {
   planning: "bg-slate-500/10 text-slate-400 border-slate-500/20",
@@ -117,6 +76,7 @@ export default function DeliveryPortal() {
     api.projects.checkDownload,
     selectedProject ? { projectId: selectedProject } : "skip",
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const downloadRecord = useQuery(
     api.projects.getDownloadRecord,
     selectedProject ? { projectId: selectedProject } : "skip",
@@ -149,7 +109,7 @@ export default function DeliveryPortal() {
         email: "client@yasirzayed.com",
         amount: 150000, // KES 1,500 in cents
         currency: "KES",
-        reference: `yz-delivery-${Date.now()}`,
+        ref: `yz-delivery-${Date.now()}`,
         onSuccess: async () => {
           await activateSub({ projectId: selectedProject });
           setPaying(false);
@@ -213,7 +173,7 @@ export default function DeliveryPortal() {
             </div>
           ) : (
             <div className="space-y-3">
-              {projects.map((p, i) => (
+              {projects.map((p: { _id: Id<"projects">; title: string; status: string; service?: string; description?: string; createdAt: number }, i: number) => (
                 <motion.button
                   key={p._id}
                   initial={{ opacity: 0, y: 15 }}
@@ -236,11 +196,11 @@ export default function DeliveryPortal() {
                         <p className="text-white/30 text-xs truncate mb-2">{p.description}</p>
                       )}
                       <div className="flex items-center gap-4 text-[11px] text-white/25">
-                        <span>{p.projectType === "phased" ? "Multi-phase" : "Single delivery"}</span>
+                        <span>{(p as Record<string, unknown>).projectType === "phased" ? "Multi-phase" : "Single delivery"}</span>
                         <span>·</span>
-                        <span>{(p.deliverables ?? []).length} deliverables</span>
+                        <span>{((p as Record<string, unknown>).deliverables as unknown[] ?? []).length} deliverables</span>
                         <span>·</span>
-                        <span>{(p.tracking ?? []).length} updates</span>
+                        <span>{((p as Record<string, unknown>).tracking as unknown[] ?? []).length} updates</span>
                         <span>·</span>
                         <span>Created {formatDate(p.createdAt)}</span>
                       </div>
@@ -260,9 +220,9 @@ export default function DeliveryPortal() {
   const phases = selected.phases ?? [];
   const deliverables = selected.deliverables ?? [];
   const tracking = [...(selected.tracking ?? [])].reverse();
-  const isCompleted = selected.status === "completed" || selected.status === "delivered";
   const isPhased = selected.projectType === "phased";
   const canDownload = downloadCheck?.allowed ?? false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const downloadFee = downloadCheck?.fee ?? 0;
   const downloadReason = downloadCheck?.reason ?? "";
 
@@ -322,7 +282,7 @@ export default function DeliveryPortal() {
                   Project Phases
                 </h2>
                 <div className="space-y-2">
-                  {phases.map((phase) => {
+                  {phases.map((phase: { id: string; name: string; status: string; description?: string; dueDate?: number; completedAt?: number }) => {
                     const isExpanded = expandedPhases.has(phase.id);
                     const phaseDeliverables = phasedDeliverables.get(phase.id) ?? [];
                     return (
@@ -350,7 +310,7 @@ export default function DeliveryPortal() {
                                 {phase.description && <p className="text-white/30 text-xs mt-3 mb-2">{phase.description}</p>}
                                 {phaseDeliverables.length > 0 ? (
                                   <div className="space-y-1.5 mt-3">
-                                    {phaseDeliverables.map((d) => (
+                                    {phaseDeliverables.map((d: { id: string; name: string; fileUrl?: string; fileSize?: number; fileType?: string; uploadedAt: number }) => (
                                       <div key={d.id} className="flex items-center justify-between p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                                         <div className="flex items-center gap-2 min-w-0">
                                           <FileText className="w-4 h-4 text-white/30 shrink-0" />
@@ -396,7 +356,7 @@ export default function DeliveryPortal() {
                 <p className="text-white/20 text-xs py-4">No tracking updates yet.</p>
               ) : (
                 <div className="relative ml-3 border-l border-white/[0.06] space-y-0">
-                  {tracking.map((t, i) => {
+                  {tracking.map((t) => {
                     const Icon = TRACKING_ICONS[t.status] ?? Info;
                     return (
                       <div key={t.id} className="relative pl-6 pb-5">
@@ -484,7 +444,7 @@ export default function DeliveryPortal() {
                 <p className="text-white/20 text-xs py-4">No deliverables uploaded yet.</p>
               ) : (
                 <div className="space-y-2">
-                  {(isPhased ? deliverables : unphasedDeliverables).map((d) => (
+                  {(isPhased ? deliverables : unphasedDeliverables).map((d: { id: string; name: string; fileUrl?: string; fileSize?: number; fileType?: string; uploadedAt: number }) => (
                     <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <FileText className="w-4 h-4 text-white/30 shrink-0" />
