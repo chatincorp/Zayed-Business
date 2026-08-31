@@ -87,7 +87,7 @@ function LogoCard({ partner }: { partner: Partner }) {
 
 export default function PartnerLogosCarousel() {
   return (
-    <section className="py-10 border-t border-white/5">
+    <section className="py-6 border-t border-white/5">
       <p className="text-center text-[11px] font-medium uppercase tracking-[0.3em] text-white/30 mb-8 select-none">
         Technology &amp; Supplier Partners
       </p>

@@ -110,8 +110,15 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Partner / Supplier Logos Carousel */}
-        <PartnerLogosCarousel />
+        {/* Partner / Supplier Logos Carousel — below nav columns, right of brand */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-8">
+          {/* Empty spacer matching brand column width */}
+          <div className="hidden lg:block lg:col-span-4" />
+          {/* Carousel spans the remaining 8 columns (nav + CTA area) */}
+          <div className="lg:col-span-8">
+            <PartnerLogosCarousel />
+          </div>
+        </div>
 
         {/* Bottom bar */}
         <div className="py-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
