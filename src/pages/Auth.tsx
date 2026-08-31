@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ArrowRight, Loader2, Mail, ArrowLeft } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router";
+import PolicyConsent from "@/components/PolicyConsent";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -41,10 +42,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
-  const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
+  const [step, setStep] = useState<"signIn" | "policyConsent" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [policyAccepted, setPolicyAccepted] = useState(() => {
+    return localStorage.getItem("yz-policy-accepted") === "true";
+  });
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -54,6 +59,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Show policy consent before allowing registration/sign-in
+    if (!policyAccepted) {
+      setStep("policyConsent");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -70,6 +82,16 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       );
       setIsLoading(false);
     }
+  };
+
+  const handlePolicyAccept = () => {
+    localStorage.setItem("yz-policy-accepted", "true");
+    setPolicyAccepted(true);
+    setStep("signIn");
+  };
+
+  const handlePolicyDecline = () => {
+    setStep("signIn");
   };
 
   const handleOtpSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -122,8 +144,16 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             </Link>
           </div>
 
+          {/* Policy Consent Modal */}
+          {step === "policyConsent" && (
+            <PolicyConsent
+              onAccept={handlePolicyAccept}
+              onDecline={handlePolicyDecline}
+            />
+          )}
+
           <Card className="w-full border-white/10 bg-card/50 backdrop-blur-xl shadow-2xl shadow-black/20">
-            {step === "signIn" ? (
+            {step === "signIn" || step === "policyConsent" ? (
               <>
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl font-display">
@@ -177,12 +207,12 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   <CardTitle className="text-xl font-display">Check Your Email</CardTitle>
                   <CardDescription>
                     We sent a 6-digit code to{" "}
-                    <span className="font-medium text-foreground">{step.email}</span>
+                    <span className="font-medium text-foreground">{(step as { email: string }).email}</span>
                   </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleOtpSubmit}>
                   <CardContent className="pb-4">
-                    <input type="hidden" name="email" value={step.email} />
+                    <input type="hidden" name="email" value={(step as { email: string }).email} />
                     <input type="hidden" name="code" value={otp} />
 
                     <div className="flex justify-center mb-4">

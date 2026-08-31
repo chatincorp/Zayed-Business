@@ -416,7 +416,7 @@ This code expires in 15 minutes. If you didn't request this, you can safely igno
 
 export const sendVerificationEmail = action({
   args: {
-    to: Email(),
+    to: v.string(),
     code: v.string(),
     purpose: v.string(),
     appName: v.optional(v.string()),
@@ -451,4 +451,3 @@ export const sendVerificationEmail = action({
 // ─── Imports for action ────────────────────────────────────────────
 
 import { v } from "convex/values";
-import { Email } from "convex/values";

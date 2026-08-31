@@ -264,7 +264,7 @@ export default function Admin() {
             {activeSection === "ai-assistant" && <PlaceholderContent key="ai-assist" title="AI Assistant" description="AI-powered content assistance for writing, rewriting, improving and generating content." />}
             {activeSection === "yasir-verify" && <PlaceholderContent key="verify" title="YASIR VERIFY™" description="Configure human verification, risk thresholds and bot protection settings." />}
             {activeSection === "users" && <PlaceholderContent key="users" title="User Management" description="Manage users, roles, permissions and access controls." />}
-            {activeSection === "global-settings" && <PlaceholderContent key="settings" title="Global Settings" description="Brand, contact, social, navigation, footer, SEO, email and security settings." />}
+            {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
             {!["dashboard", "homepage", "services", "leads", "security", "pages", "media", "tabloid", "seo-dashboard", "ai-assistant", "yasir-verify", "users", "global-settings"].includes(activeSection) && (
               <PlaceholderContent key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
@@ -439,6 +439,174 @@ function PlaceholderContent({ title, description }: { title: string; description
         <p className="text-muted-foreground text-sm max-w-sm mx-auto">
           This section will be connected to the Convex backend for full content management capabilities.
         </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function GlobalSettingsContent() {
+  const [brandName, setBrandName] = useState("YASIR ZAYED");
+  const [nameStyle, setNameStyle] = useState("uppercase");
+  const [tagline, setTagline] = useState("Business Development • Consultancy • Security • Technology");
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationBg, setNotificationBg] = useState("electric");
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setLogoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const inputClass = "w-full px-4 py-3 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric transition-all";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+    >
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-foreground">Global Settings</h1>
+        <p className="text-muted-foreground text-sm mt-1">Brand, logo, name style, notification bar, and site-wide configuration.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Logo & Brand */}
+        <div className="rounded-xl bg-card border border-border p-6">
+          <h3 className="font-semibold text-foreground text-sm mb-4">Logo & Brand Identity</h3>
+          <div className="flex items-start gap-6">
+            <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border overflow-hidden shrink-0">
+              {logoPreview ? (
+                <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
+              ) : (
+                <Image className="w-7 h-7 text-muted-foreground/30" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-muted-foreground text-xs mb-2">Upload your company logo (PNG, SVG, or JPG)</p>
+              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-medium cursor-pointer hover:bg-muted/80 transition-colors">
+                <Plus className="w-3.5 h-3.5" />
+                Choose File
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Brand Name</label>
+              <input type="text" value={brandName} onChange={(e) => setBrandName(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Tagline</label>
+              <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Name Display Style</label>
+              <select value={nameStyle} onChange={(e) => setNameStyle(e.target.value)} className={inputClass}>
+                <option value="uppercase">UPPERCASE — YASIR ZAYED</option>
+                <option value="titlecase">Title Case — Yasir Zayed</option>
+                <option value="lowercase">lowercase — yasir zayed</option>
+                <option value="bold">Bold Caps — <strong>YASIR ZAYED</strong></option>
+                <option value="light">Light Weight — <em>Yasir Zayed</em></option>
+              </select>
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="mt-6 p-4 rounded-xl bg-navy-dark flex items-center gap-3">
+            {logoPreview && <img src={logoPreview} alt="Logo" className="w-8 h-8 rounded object-contain" />}
+            <div>
+              <span className="text-white font-bold text-sm" style={{
+                textTransform: nameStyle === "uppercase" ? "uppercase" : nameStyle === "lowercase" ? "lowercase" : "none",
+                fontWeight: nameStyle === "bold" ? 900 : nameStyle === "light" ? 300 : 700,
+                letterSpacing: nameStyle === "bold" ? "0.1em" : "normal",
+              }}>
+                {brandName}
+              </span>
+              <p className="text-white/40 text-[10px]">{tagline}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Notification Bar */}
+        <div className="rounded-xl bg-card border border-border p-6">
+          <h3 className="font-semibold text-foreground text-sm mb-4">Promotional Notification Bar</h3>
+          <p className="text-muted-foreground text-xs mb-4">Display a site-wide promotional banner at the top of the website.</p>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Enable Notification Bar</label>
+              <div
+                onClick={() => setNotificationEnabled(!notificationEnabled)}
+                className={`w-11 h-6 rounded-full transition-all cursor-pointer relative ${
+                  notificationEnabled ? "bg-electric" : "bg-muted border border-border"
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-all ${
+                  notificationEnabled ? "left-[22px]" : "left-0.5"
+                }`} />
+              </div>
+            </div>
+
+            {notificationEnabled && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Promotional Message</label>
+                  <textarea
+                    rows={3}
+                    value={notificationMessage}
+                    onChange={(e) => setNotificationMessage(e.target.value)}
+                    className={`${inputClass} resize-none`}
+                    placeholder="e.g., 🎉 New: AI-Powered Business Intelligence — 20% off for early adopters"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Banner Color</label>
+                  <select value={notificationBg} onChange={(e) => setNotificationBg(e.target.value)} className={inputClass}>
+                    <option value="electric">Electric Blue</option>
+                    <option value="emerald">Emerald Green</option>
+                    <option value="violet">Violet</option>
+                    <option value="amber">Amber/Gold</option>
+                    <option value="rose">Rose</option>
+                    <option value="navy">Navy (Default)</option>
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Preview */}
+          <div className="mt-6 rounded-xl overflow-hidden border border-border">
+            <div className={`px-4 py-2 text-center text-xs font-medium ${
+              !notificationEnabled ? "bg-muted text-muted-foreground" :
+              notificationBg === "electric" ? "bg-electric text-white" :
+              notificationBg === "emerald" ? "bg-emerald-500 text-white" :
+              notificationBg === "violet" ? "bg-violet-500 text-white" :
+              notificationBg === "amber" ? "bg-amber-500 text-white" :
+              notificationBg === "rose" ? "bg-rose-500 text-white" :
+              "bg-navy text-white"
+            }`}>
+              {notificationEnabled && notificationMessage
+                ? notificationMessage
+                : notificationEnabled
+                ? "Your promotional message will appear here"
+                : "Notification bar is disabled"
+              }
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 rounded-xl bg-muted/50">
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              The notification bar is displayed at the very top of the website. Use it for promotions, announcements, event reminders, seasonal offers or urgent notices.
+            </p>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

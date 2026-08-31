@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Check, ArrowRight, Zap, Shield, Crown } from "lucide-react";
+import { Check, ArrowRight, Zap, Shield, Crown, CreditCard } from "lucide-react";
+import PaystackCheckout from "@/components/PaystackCheckout";
 
 const plans = [
   {
@@ -225,16 +226,21 @@ export default function Pricing() {
                     {plan.description}
                   </p>
 
-                  <Link
-                    to={plan.id === "enterprise" ? "/contact" : "/contact"}
-                    className={`block w-full text-center py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      plan.popular
-                        ? "bg-electric text-white hover:bg-electric-dark shadow-lg shadow-electric/20"
-                        : "bg-foreground text-primary-foreground hover:opacity-90"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
+                  {plan.id === "enterprise" ? (
+                    <Link
+                      to="/contact"
+                      className="block w-full text-center py-3 rounded-lg text-sm font-semibold transition-all duration-200 bg-foreground text-primary-foreground hover:opacity-90"
+                    >
+                      {plan.cta}
+                    </Link>
+                  ) : (
+                    <PaystackCheckout
+                      planName={`${plan.name} Plan`}
+                      amount={annual ? Math.round(plan.price! * 0.8 * 12) : plan.price! * 12}
+                      description={`${plan.name} plan — ${annual ? "Annual" : "Monthly"} billing`}
+                      variant={plan.popular ? "primary" : "secondary"}
+                    />
+                  )}
 
                   <ul className="mt-8 space-y-3">
                     {plan.features.map((f) => (

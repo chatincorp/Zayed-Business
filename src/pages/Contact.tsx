@@ -227,6 +227,27 @@ function ContactForm({
         </h2>
       </div>
 
+      {/* Subject (all tabs) */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-1.5">
+          Subject <span className="text-destructive">*</span>
+        </label>
+        <input
+          type="text"
+          required
+          className={inputClass}
+          placeholder={
+            type === "appointment"
+              ? "e.g., Business Growth Consultation"
+              : type === "meeting"
+              ? "e.g., Q3 Strategy Review Meeting"
+              : type === "inquiry"
+              ? "e.g., Inquiry About AI Services"
+              : "e.g., Quotation for CRM Implementation"
+          }
+        />
+      </div>
+
       {/* Personal Info (all tabs) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
