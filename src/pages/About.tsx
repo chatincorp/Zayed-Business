@@ -13,7 +13,6 @@ import {
   Bot,
   Zap,
   Pen,
-  Users,
   Rocket,
   Eye,
   ArrowRight,
@@ -483,7 +482,7 @@ export default function About() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto"
           >
-            {audiences.map((a, i) => (
+            {audiences.map((a) => (
               <span
                 key={a}
                 className="px-4 py-2 rounded-xl bg-card border border-border/60 text-sm font-medium text-foreground hover:border-electric/30 hover:bg-electric/5 transition-all cursor-default"

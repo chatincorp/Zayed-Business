@@ -189,7 +189,7 @@ export default function PolicyConsent({ onAccept, onDecline }: PolicyConsentProp
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [agreedToConsultancy, setAgreedToConsultancy] = useState(false);
-  const [showFullPolicy, setShowFullPolicy] = useState<string | null>(null);
+
 
   const handleScroll = (policyId: string, e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -200,7 +200,7 @@ export default function PolicyConsent({ onAccept, onDecline }: PolicyConsentProp
   };
 
   const allAgreed = agreedToTerms && agreedToPrivacy && agreedToConsultancy;
-  const allScrolled = policies.every((p) => scrolledToEnd[p.id]);
+
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">

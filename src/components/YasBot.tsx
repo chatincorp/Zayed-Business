@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
@@ -9,14 +10,12 @@ import {
   ChevronDown,
   Sparkles,
   Phone,
-  Mail,
   Calendar,
   Shield,
   Globe,
   Cpu,
   BarChart3,
   Target,
-  ExternalLink,
 } from "lucide-react";
 
 interface Message {
@@ -220,9 +219,24 @@ export default function YasBot() {
   const [unreadCount, setUnreadCount] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const idCounter = useRef(0);
 
+  const navigate = useNavigate();
+  const greetingSentRef = useRef(false);
+
+  // Scroll to bottom when messages change
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
+    if (messages.length > 0 || isTyping) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isTyping]);
+
+  const openChat = useCallback(() => {
+    setIsOpen(true);
+    setIsMinimized(false);
+    setUnreadCount(0);
+    if (!greetingSentRef.current) {
+      greetingSentRef.current = true;
       const greeting = knowledgeBase.greeting;
       setMessages([
         {
@@ -234,45 +248,40 @@ export default function YasBot() {
         },
       ]);
     }
-  }, [isOpen, messages.length]);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, []);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  const nextId = useCallback(() => {
+    idCounter.current += 1;
+    return idCounter.current;
+  }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      setUnreadCount(0);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [isOpen]);
-
-  const handleQuickReply = (action: string) => {
+  const handleQuickReply = useCallback((action: string) => {
     if (action === "contact_page") {
-      window.location.href = "/contact";
+      navigate("/contact");
       return;
     }
     if (action === "home") {
-      window.location.href = "/#hero";
+      navigate("/");
       return;
     }
     if (action === "view_pricing") {
-      window.location.href = "/pricing";
+      navigate("/pricing");
       return;
     }
     if (action === "whatsapp_link") {
-      window.open("https://wa.me/254717227012?text=Hello%20Yasir%20Zayed%2C%20I%27d%20like%20to%20inquire%20about%20your%20services.", "_blank");
+      window.location.assign("https://wa.me/254717227012?text=Hello%20Yasir%20Zayed%2C%20I%27d%20like%20to%20inquire%20about%20your%20services.");
       return;
     }
     if (action === "call") {
-      window.location.href = "tel:+254717227012";
+      window.location.assign("tel:+254717227012");
       return;
     }
 
     const response = knowledgeBase[action] || knowledgeBase.fallback;
 
     const userMsg: Message = {
-      id: Date.now(),
+      id: nextId(),
       sender: "user",
       text: action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
       timestamp: new Date(),
@@ -281,9 +290,10 @@ export default function YasBot() {
     setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
 
+    const delay = 800 + (idCounter.current % 600);
     setTimeout(() => {
       const botMsg: Message = {
-        id: Date.now() + 1,
+        id: nextId(),
         sender: "bot",
         text: response.text,
         timestamp: new Date(),
@@ -292,14 +302,14 @@ export default function YasBot() {
       setMessages((prev) => [...prev, botMsg]);
       setIsTyping(false);
       if (!isOpen) setUnreadCount((c) => c + 1);
-    }, 800 + Math.random() * 600);
-  };
+    }, delay);
+  }, [navigate, nextId, isOpen]);
 
-  const handleSend = () => {
+  const handleSend = useCallback(() => {
     if (!input.trim()) return;
 
     const userMsg: Message = {
-      id: Date.now(),
+      id: nextId(),
       sender: "user",
       text: input.trim(),
       timestamp: new Date(),
@@ -311,9 +321,10 @@ export default function YasBot() {
 
     const response = getResponse(input);
 
+    const delay = 800 + (idCounter.current % 800);
     setTimeout(() => {
       const botMsg: Message = {
-        id: Date.now() + 1,
+        id: nextId(),
         sender: "bot",
         text: response.text,
         timestamp: new Date(),
@@ -322,8 +333,8 @@ export default function YasBot() {
       setMessages((prev) => [...prev, botMsg]);
       setIsTyping(false);
       if (!isOpen) setUnreadCount((c) => c + 1);
-    }, 800 + Math.random() * 800);
-  };
+    }, delay);
+  }, [input, nextId, isOpen]);
 
   return (
     <>
@@ -462,8 +473,11 @@ export default function YasBot() {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1, type: "spring", stiffness: 200 }}
         onClick={() => {
-          setIsOpen(!isOpen);
-          setIsMinimized(false);
+          if (isOpen) {
+            setIsOpen(false);
+          } else {
+            openChat();
+          }
         }}
         className="fixed bottom-6 right-4 sm:right-6 z-[80] w-14 h-14 rounded-full bg-gradient-to-br from-electric to-electric-dark text-white shadow-xl shadow-electric/30 flex items-center justify-center hover:shadow-electric/50 hover:scale-105 transition-all duration-200"
         aria-label="Open YasBot chat"

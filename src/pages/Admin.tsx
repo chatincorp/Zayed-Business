@@ -30,15 +30,11 @@ import {
   AlertTriangle,
   Zap,
   Plus,
-  Eye,
-  Edit3,
-  Trash2,
   Calendar,
   HelpCircle,
   FileSearch,
   Map,
   Gauge,
-  ArrowRight,
 } from "lucide-react";
 
 const sidebarSections = [

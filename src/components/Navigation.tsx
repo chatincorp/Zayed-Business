@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -12,15 +12,7 @@ const navLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-const scrollToSection = (href: string) => {
-  if (href.startsWith("/#")) {
-    const id = href.slice(2);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  }
-};
+
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);

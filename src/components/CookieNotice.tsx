@@ -5,7 +5,7 @@ import { Shield, X, Settings, CheckCircle2 } from "lucide-react";
 export default function CookieNotice() {
   const [visible, setVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [cookieless, setCookieless] = useState(true);
+  const [cookieless] = useState(true);
   const [analyticsConsent, setAnalyticsConsent] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Megaphone } from "lucide-react";
 
@@ -6,15 +6,14 @@ const PROMO_MESSAGE = "🎉 New: AI-Powered Business Intelligence — Get 20% of
 
 const PROMO_BG_CLASS = "bg-electric";
 
-export default function NotificationBar() {
-  const [visible, setVisible] = useState(false);
+function getInitialVisible(): boolean {
+  if (typeof window === "undefined") return false;
+  const dismissed = localStorage.getItem("yz-notification-dismissed");
+  return !dismissed && PROMO_MESSAGE.length > 0;
+}
 
-  useEffect(() => {
-    const dismissed = localStorage.getItem("yz-notification-dismissed");
-    if (!dismissed && PROMO_MESSAGE) {
-      setVisible(true);
-    }
-  }, []);
+export default function NotificationBar() {
+  const [visible, setVisible] = useState(getInitialVisible);
 
   const handleDismiss = () => {
     localStorage.setItem("yz-notification-dismissed", "true");
