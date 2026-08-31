@@ -337,6 +337,73 @@ const schema = defineSchema(
     })
       .index("by_timestamp", ["timestamp"])
       .index("by_event", ["eventType"]),
+
+    // --- Projects (Delivery Portal + Tracking) ---
+    projects: defineTable({
+      clientId: v.id("users"),
+      title: v.string(),
+      description: v.optional(v.string()),
+      service: v.optional(v.string()),
+      // "planning" | "in_progress" | "review" | "completed" | "delivered" | "on_hold"
+      status: v.union(
+        v.literal("planning"),
+        v.literal("in_progress"),
+        v.literal("review"),
+        v.literal("completed"),
+        v.literal("delivered"),
+        v.literal("on_hold"),
+      ),
+      // "completed" = single delivery, "phased" = multi-phase (no download fee)
+      projectType: v.union(v.literal("completed"), v.literal("phased")),
+      phases: v.optional(v.array(v.object({
+        id: v.string(),
+        name: v.string(),
+        status: v.union(v.literal("pending"), v.literal("in_progress"), v.literal("review"), v.literal("completed")),
+        description: v.optional(v.string()),
+        dueDate: v.optional(v.number()),
+        completedAt: v.optional(v.number()),
+      }))),
+      deliverables: v.optional(v.array(v.object({
+        id: v.string(),
+        name: v.string(),
+        fileUrl: v.optional(v.string()),
+        fileSize: v.optional(v.number()),
+        fileType: v.optional(v.string()),
+        phaseId: v.optional(v.string()),
+        uploadedAt: v.number(),
+      }))),
+      tracking: v.optional(v.array(v.object({
+        id: v.string(),
+        title: v.string(),
+        description: v.optional(v.string()),
+        status: v.union(v.literal("info"), v.literal("warning"), v.literal("success"), v.literal("update")),
+        createdAt: v.number(),
+        author: v.string(),
+      }))),
+      budget: v.optional(v.string()),
+      startDate: v.optional(v.number()),
+      estimatedCompletion: v.optional(v.number()),
+      completedAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_client", ["clientId"])
+      .index("by_status", ["status"]),
+
+    // --- Project Download Tracking ---
+    projectDownloads: defineTable({
+      projectId: v.id("projects"),
+      clientId: v.id("users"),
+      freeDownloadUsed: v.boolean(),
+      downloadCount: v.number(),
+      lastDownloadAt: v.optional(v.number()),
+      // null = no active subscription; timestamp = downloads allowed until
+      paidUntil: v.optional(v.number()),
+      createdAt: v.number(),
+    })
+      .index("by_project", ["projectId"])
+      .index("by_client", ["clientId"])
+      .index("by_project_client", ["projectId", "clientId"]),
   },
   {
     schemaValidation: false,

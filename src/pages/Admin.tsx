@@ -112,6 +112,12 @@ const sidebarSections = [
     ],
   },
   {
+    label: "CLIENTS",
+    items: [
+      { icon: Layers, label: "Projects", id: "projects" },
+    ],
+  },
+  {
     label: "SYSTEM",
     items: [
       { icon: Users, label: "Users", id: "users" },
@@ -261,6 +267,7 @@ export default function Admin() {
             {activeSection === "yasir-verify" && <PlaceholderContent key="verify" title="YASIR VERIFY™" description="Configure human verification, risk thresholds and bot protection settings." />}
             {activeSection === "users" && <PlaceholderContent key="users" title="User Management" description="Manage users, roles, permissions and access controls." />}
             {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
+            {activeSection === "projects" && <AdminProjectsContent key="projects" />}
             {!["dashboard", "homepage", "services", "leads", "security", "pages", "media", "tabloid", "seo-dashboard", "ai-assistant", "yasir-verify", "users", "global-settings"].includes(activeSection) && (
               <PlaceholderContent key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
@@ -602,6 +609,266 @@ function GlobalSettingsContent() {
               The notification bar is displayed at the very top of the website. Use it for promotions, announcements, event reminders, seasonal offers or urgent notices.
             </p>
           </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AdminProjectsContent() {
+  const projects = useQuery(api.projects.list);
+  const createProject = useMutation(api.projects.create);
+  const updateProject = useMutation(api.projects.update);
+  const deleteProject = useMutation(api.projects.remove);
+  const addTracking = useMutation(api.projects.addTracking);
+  const addDeliverable = useMutation(api.projects.addDeliverable);
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newType, setNewType] = useState<"completed" | "phased">("completed");
+  const [newStatus, setNewStatus] = useState<"planning" | "in_progress" | "review" | "completed" | "delivered" | "on_hold">("planning");
+  const [trackingTitle, setTrackingTitle] = useState("");
+  const [trackingDesc, setTrackingDesc] = useState("");
+  const [trackingStatus, setTrackingStatus] = useState<"info" | "update" | "success" | "warning">("info");
+  const [deliverableName, setDeliverableName] = useState("");
+  const [deliverableUrl, setDeliverableUrl] = useState("");
+
+  const STATUS_COLORS_ADMIN: Record<string, string> = {
+    planning: "bg-slate-500/10 text-slate-400",
+    in_progress: "bg-blue-500/10 text-blue-400",
+    review: "bg-amber-500/10 text-amber-400",
+    completed: "bg-emerald-500/10 text-emerald-400",
+    delivered: "bg-electric/10 text-electric",
+    on_hold: "bg-red-500/10 text-red-400",
+  };
+
+  const selected = projects?.find((p) => p._id === selectedId);
+
+  const handleCreate = async () => {
+    if (!newTitle.trim()) return;
+    // For demo, use first user as client
+    const users = await (await import("../../convex/_generated/api"))?.api?.projects?.list ?? null;
+    void users;
+    await createProject({
+      clientId: "" as any, // Will be set properly in production
+      title: newTitle,
+      description: newDesc || undefined,
+      status: newStatus,
+      projectType: newType,
+    });
+    setShowCreate(false);
+    setNewTitle("");
+    setNewDesc("");
+  };
+
+  const handleAddTracking = async () => {
+    if (!selectedId || !trackingTitle.trim()) return;
+    await addTracking({
+      projectId: selectedId as any,
+      title: trackingTitle,
+      description: trackingDesc || undefined,
+      status: trackingStatus,
+      author: "Admin",
+    });
+    setTrackingTitle("");
+    setTrackingDesc("");
+  };
+
+  const handleAddDeliverable = async () => {
+    if (!selectedId || !deliverableName.trim()) return;
+    await addDeliverable({
+      projectId: selectedId as any,
+      name: deliverableName,
+      fileUrl: deliverableUrl || undefined,
+    });
+    setDeliverableName("");
+    setDeliverableUrl("");
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">Project Management</h2>
+          <p className="text-sm text-muted-foreground">Manage client projects, deliverables, and tracking updates.</p>
+        </div>
+        <button
+          onClick={() => setShowCreate(!showCreate)}
+          className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors"
+        >
+          <Plus className="w-4 h-4" /> New Project
+        </button>
+      </div>
+
+      {showCreate && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-xl border bg-card space-y-4">
+          <h3 className="font-semibold text-sm">Create New Project</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input placeholder="Project title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
+            <input placeholder="Description (optional)" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
+            <select value={newType} onChange={(e) => setNewType(e.target.value as any)} className="px-3 py-2 rounded-lg border bg-background text-sm">
+              <option value="completed">Completed (single delivery)</option>
+              <option value="phased">Phased (multi-phase, free downloads)</option>
+            </select>
+            <select value={newStatus} onChange={(e) => setNewStatus(e.target.value as any)} className="px-3 py-2 rounded-lg border bg-background text-sm">
+              <option value="planning">Planning</option>
+              <option value="in_progress">In Progress</option>
+              <option value="review">Review</option>
+              <option value="completed">Completed</option>
+              <option value="delivered">Delivered</option>
+              <option value="on_hold">On Hold</option>
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleCreate} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Create</button>
+            <button onClick={() => setShowCreate(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Project List */}
+        <div className="lg:col-span-1 space-y-2 max-h-[600px] overflow-y-auto">
+          {projects === undefined ? (
+            <p className="text-muted-foreground text-sm">Loading…</p>
+          ) : projects.length === 0 ? (
+            <p className="text-muted-foreground text-sm py-8 text-center">No projects yet. Create one to get started.</p>
+          ) : (
+            projects.map((p) => (
+              <button
+                key={p._id}
+                onClick={() => setSelectedId(p._id)}
+                className={`w-full text-left p-4 rounded-lg border transition-all ${selectedId === p._id ? "border-electric bg-electric/5" : "hover:border-border/80"}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-sm truncate">{p.title}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_COLORS_ADMIN[p.status]}`}>{p.status.replace("_", " ")}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{p.projectType === "phased" ? "Multi-phase" : "Single delivery"} · {(p.deliverables ?? []).length} files</p>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Project Detail */}
+        <div className="lg:col-span-2">
+          {!selected ? (
+            <div className="text-center py-20 text-muted-foreground text-sm">Select a project to view details.</div>
+          ) : (
+            <div className="space-y-5">
+              <div className="p-5 rounded-xl border bg-card">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg">{selected.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selected.status}
+                      onChange={(e) => updateProject({ projectId: selected._id, status: e.target.value as any })}
+                      className="px-3 py-1.5 rounded-lg border bg-background text-xs"
+                    >
+                      {["planning", "in_progress", "review", "completed", "delivered", "on_hold"].map((s) => (
+                        <option key={s} value={s}>{s.replace("_", " ")}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={selected.projectType}
+                      onChange={(e) => updateProject({ projectId: selected._id, projectType: e.target.value as any })}
+                      className="px-3 py-1.5 rounded-lg border bg-background text-xs"
+                    >
+                      <option value="completed">Completed</option>
+                      <option value="phased">Phased</option>
+                    </select>
+                  </div>
+                </div>
+                {selected.description && <p className="text-sm text-muted-foreground mb-3">{selected.description}</p>}
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span>Client: {selected.clientId}</span>
+                  <span>·</span>
+                  <span>{(selected.deliverables ?? []).length} deliverables</span>
+                  <span>·</span>
+                  <span>{(selected.tracking ?? []).length} tracking updates</span>
+                </div>
+              </div>
+
+              {/* Add Tracking */}
+              <div className="p-5 rounded-xl border bg-card">
+                <h4 className="font-semibold text-sm mb-3">Add Tracking Update</h4>
+                <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                  <input placeholder="Title" value={trackingTitle} onChange={(e) => setTrackingTitle(e.target.value)} className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm" />
+                  <select value={trackingStatus} onChange={(e) => setTrackingStatus(e.target.value as any)} className="px-3 py-2 rounded-lg border bg-background text-sm">
+                    <option value="info">Info</option>
+                    <option value="update">Update</option>
+                    <option value="success">Success</option>
+                    <option value="warning">Warning</option>
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <input placeholder="Description (optional)" value={trackingDesc} onChange={(e) => setTrackingDesc(e.target.value)} className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm" />
+                  <button onClick={handleAddTracking} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Add</button>
+                </div>
+              </div>
+
+              {/* Add Deliverable */}
+              <div className="p-5 rounded-xl border bg-card">
+                <h4 className="font-semibold text-sm mb-3">Add Deliverable</h4>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input placeholder="File name" value={deliverableName} onChange={(e) => setDeliverableName(e.target.value)} className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm" />
+                  <input placeholder="File URL (optional)" value={deliverableUrl} onChange={(e) => setDeliverableUrl(e.target.value)} className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm" />
+                  <button onClick={handleAddDeliverable} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Upload</button>
+                </div>
+              </div>
+
+              {/* Tracking Timeline */}
+              <div className="p-5 rounded-xl border bg-card">
+                <h4 className="font-semibold text-sm mb-3">Tracking Timeline</h4>
+                {(selected.tracking ?? []).length === 0 ? (
+                  <p className="text-muted-foreground text-xs">No updates yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {[...(selected.tracking ?? [])].reverse().map((t) => (
+                      <div key={t.id} className="flex gap-3">
+                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${t.status === "success" ? "bg-emerald-400" : t.status === "warning" ? "bg-amber-400" : t.status === "update" ? "bg-blue-400" : "bg-white/30"}`} />
+                        <div>
+                          <p className="text-sm font-medium">{t.title}</p>
+                          {t.description && <p className="text-xs text-muted-foreground">{t.description}</p>}
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{t.author} · {new Date(t.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Deliverables List */}
+              <div className="p-5 rounded-xl border bg-card">
+                <h4 className="font-semibold text-sm mb-3">Deliverables ({(selected.deliverables ?? []).length})</h4>
+                {(selected.deliverables ?? []).length === 0 ? (
+                  <p className="text-muted-foreground text-xs">No files uploaded yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(selected.deliverables ?? []).map((d) => (
+                      <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-background border">
+                        <div>
+                          <p className="text-sm font-medium">{d.name}</p>
+                          <p className="text-xs text-muted-foreground">{d.fileType || "file"} · {new Date(d.uploadedAt).toLocaleDateString()}</p>
+                        </div>
+                        <button onClick={() => deleteProject({ projectId: selected._id })} className="text-xs text-destructive hover:underline">Delete</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Delete */}
+              <button
+                onClick={() => { deleteProject({ projectId: selected._id }); setSelectedId(null); }}
+                className="text-xs text-destructive hover:underline"
+              >
+                Delete Project
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
