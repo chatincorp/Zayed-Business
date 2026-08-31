@@ -4,40 +4,34 @@ import { Mail, Phone, ArrowUpRight } from "lucide-react";
 const footerNav = {
   Company: [
     { label: "About Us", href: "/#hero" },
-    { label: "Services", href: "/#services" },
-    { label: "Process", href: "/#process" },
-    { label: "Case Studies", href: "/#case-studies" },
+    { label: "Services", href: "/services" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "How We Work", href: "/#process" },
     { label: "Contact", href: "/contact" },
   ],
   Services: [
-    { label: "Business Development", href: "/#business-dev" },
-    { label: "Sales Services", href: "/#sales" },
-    { label: "Marketing Services", href: "/#marketing" },
-    { label: "Promotional Services", href: "/#promotional" },
-    { label: "Engagement Models", href: "/#engagement" },
-  ],
-  Security: [
-    { label: "CCTV Systems", href: "/#security" },
-    { label: "Access Control", href: "/#security" },
-    { label: "Intrusion Alarms", href: "/#security" },
-    { label: "Security Assessment", href: "/contact" },
+    { label: "Business Development", href: "/services/strategic-business-planning" },
+    { label: "Sales Strategy", href: "/services/sales-strategy-development" },
+    { label: "Marketing Strategy", href: "/services/marketing-strategy-planning" },
+    { label: "Security Solutions", href: "/services/cctv-surveillance-systems" },
+    { label: "AI Integration", href: "/services/ai-system-integration" },
   ],
   Technology: [
-    { label: "Web Development", href: "/#technology" },
-    { label: "WordPress Development", href: "/#technology" },
-    { label: "AI Integration", href: "/#ai" },
-    { label: "AI Chatbots", href: "/#ai" },
+    { label: "Web Development", href: "/services/custom-corporate-websites" },
+    { label: "WordPress Development", href: "/services/custom-wordpress-themes" },
+    { label: "AI Chatbots", href: "/services/custom-ai-chatbots" },
+    { label: "Workflow Automation", href: "/services/workflow-automation" },
+  ],
+  Resources: [
+    { label: "Pricing", href: "/pricing" },
+    { label: "Case Studies", href: "/#case-studies" },
+    { label: "Zayed Tabloid", href: "#" },
+    { label: "Blog", href: "#" },
+    { label: "Partner With Us", href: "/contact" },
   ],
 };
 
 export default function Footer() {
-  const scrollTo = (href: string) => {
-    if (href.startsWith("/#")) {
-      const id = href.slice(2);
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   return (
     <footer className="relative bg-navy-dark border-t border-white/5">
       <div className="absolute inset-0 bg-grid-pattern-dark opacity-30" />
@@ -61,10 +55,10 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-white/40 text-sm leading-relaxed mb-6 max-w-sm">
-              Building Stronger Businesses. Smarter Systems. Secure Futures.
+              Building stronger businesses, smarter systems and secure futures. One partnership at a time.
             </p>
             <p className="text-white/30 text-xs leading-relaxed max-w-sm mb-6">
-              From business strategy and sales growth to security infrastructure, digital experiences and artificial intelligence — helping organizations build stronger foundations for sustainable growth.
+              From business strategy and sales growth to security infrastructure, digital experiences and artificial intelligence — we help organizations build stronger foundations for sustainable growth.
             </p>
 
             {/* Contact */}
@@ -93,23 +87,13 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    {link.href.startsWith("/#") ? (
-                      <button
-                        onClick={() => scrollTo(link.href)}
-                        className="text-white/40 hover:text-electric text-sm transition-colors flex items-center gap-1 group"
-                      >
-                        {link.label}
-                        <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-                    ) : (
-                      <Link
-                        to={link.href}
-                        className="text-white/40 hover:text-electric text-sm transition-colors flex items-center gap-1 group"
-                      >
-                        {link.label}
-                        <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    )}
+                    <Link
+                      to={link.href}
+                      className="text-white/40 hover:text-electric text-sm transition-colors flex items-center gap-1 group"
+                    >
+                      {link.label}
+                      <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
                   </li>
                 ))}
               </ul>

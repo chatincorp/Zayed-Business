@@ -6,30 +6,24 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Home", href: "/#hero" },
-  {
-    label: "Services",
-    href: "/#services",
-    children: [
-      { label: "Business Development", href: "/#services" },
-      { label: "Sales Services", href: "/#sales" },
-      { label: "Marketing Services", href: "/#marketing" },
-      { label: "Promotional Services", href: "/#promotional" },
-      { label: "Security Solutions", href: "/#security" },
-      { label: "Web Development", href: "/#technology" },
-      { label: "AI & Automation", href: "/#ai" },
-    ],
-  },
-  { label: "Security", href: "/#security" },
-  { label: "Technology", href: "/#technology" },
-  { label: "AI Solutions", href: "/#ai" },
-  { label: "Process", href: "/#process" },
+  { label: "Services", href: "/services" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Contact", href: "/contact" },
 ];
+
+const scrollToSection = (href: string) => {
+  if (href.startsWith("/#")) {
+    const id = href.slice(2);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+};
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
 
   const handleScroll = useCallback(() => {
@@ -44,17 +38,6 @@ export default function Navigation() {
   useEffect(() => {
     setMobileOpen(false);
   }, [location]);
-
-  const scrollToSection = (href: string) => {
-    if (href.startsWith("/#")) {
-      const id = href.slice(2);
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-    }
-  };
 
   return (
     <>
@@ -92,73 +75,34 @@ export default function Navigation() {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => (
-                <div
+                <Link
                   key={link.label}
-                  className="relative"
-                  onMouseEnter={() => link.children && setActiveDropdown(link.label)}
-                  onMouseLeave={() => setActiveDropdown(null)}
-                >
-                  {link.href.startsWith("/#") ? (
-                    <button
-                      onClick={() => scrollToSection(link.href)}
-                      className={cn(
-                        "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-md",
-                        scrolled
-                          ? "text-white/80 hover:text-white hover:bg-white/5"
-                          : "text-white/80 hover:text-white hover:bg-white/10"
-                      )}
-                    >
-                      {link.label}
-                      {link.children && <ChevronDown className="w-3.5 h-3.5 opacity-50" />}
-                    </button>
-                  ) : (
-                    <Link
-                      to={link.href}
-                      className={cn(
-                        "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-md",
-                        scrolled
-                          ? "text-white/80 hover:text-white hover:bg-white/5"
-                          : "text-white/80 hover:text-white hover:bg-white/10"
-                      )}
-                    >
-                      {link.label}
-                      {link.children && <ChevronDown className="w-3.5 h-3.5 opacity-50" />}
-                    </Link>
+                  to={link.href}
+                  className={cn(
+                    "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-md",
+                    scrolled
+                      ? "text-white/80 hover:text-white hover:bg-white/5"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   )}
-
-                  {/* Dropdown */}
-                  <AnimatePresence>
-                    {link.children && activeDropdown === link.label && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 mt-1 w-64 py-2 bg-navy-light/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl shadow-black/30"
-                      >
-                        {link.children.map((child) => (
-                          <button
-                            key={child.label}
-                            onClick={() => scrollToSection(child.href)}
-                            className="block w-full text-left px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors"
-                          >
-                            {child.label}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                >
+                  {link.label}
+                </Link>
               ))}
             </div>
 
             {/* CTA + Mobile Toggle */}
             <div className="flex items-center gap-3">
               <Link
+                to="/auth"
+                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition-colors rounded-lg"
+              >
+                Sign In
+              </Link>
+              <Link
                 to="/contact"
                 className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-electric text-white text-sm font-semibold rounded-lg hover:bg-electric-dark transition-all duration-200 shadow-lg shadow-electric/20 hover:shadow-electric/40"
               >
-                Book a Consultation
+                Get Started
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
@@ -207,51 +151,28 @@ export default function Navigation() {
 
                 <div className="space-y-1">
                   {navLinks.map((link) => (
-                    <div key={link.label}>
-                      {link.href.startsWith("/#") ? (
-                        <button
-                          onClick={() => {
-                            scrollToSection(link.href);
-                            setMobileOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                        >
-                          {link.label}
-                        </button>
-                      ) : (
-                        <Link
-                          to={link.href}
-                          className="block px-4 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                        >
-                          {link.label}
-                        </Link>
-                      )}
-                      {link.children && (
-                        <div className="ml-4 mt-1 space-y-0.5">
-                          {link.children.map((child) => (
-                            <button
-                              key={child.label}
-                              onClick={() => {
-                                scrollToSection(child.href);
-                                setMobileOpen(false);
-                              }}
-                              className="block w-full text-left px-4 py-2 text-xs text-white/50 hover:text-white/80 hover:bg-white/5 rounded-lg transition-colors"
-                            >
-                              {child.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <Link
+                      key={link.label}
+                      to={link.href}
+                      className="block px-4 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                    >
+                      {link.label}
+                    </Link>
                   ))}
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/10">
+                <div className="mt-8 pt-6 border-t border-white/10 space-y-3">
+                  <Link
+                    to="/auth"
+                    className="flex items-center justify-center gap-2 w-full px-5 py-3 border border-white/20 text-white/80 text-sm font-medium rounded-lg hover:bg-white/5 transition-all"
+                  >
+                    Sign In
+                  </Link>
                   <Link
                     to="/contact"
                     className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-electric text-white text-sm font-semibold rounded-lg hover:bg-electric-dark transition-all duration-200"
                   >
-                    Book a Consultation
+                    Get Started
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>

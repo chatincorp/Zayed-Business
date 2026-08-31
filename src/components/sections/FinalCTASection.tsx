@@ -19,7 +19,8 @@ export default function FinalCTASection() {
             transition={{ duration: 0.7 }}
             className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6"
           >
-            Ready to Build What's Next?
+            Let's Build Something{" "}
+            <span className="text-gradient-blue">Extraordinary</span> Together
           </motion.h2>
 
           <motion.p
@@ -28,7 +29,7 @@ export default function FinalCTASection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-lg sm:text-xl text-white/50 leading-relaxed mb-10"
           >
-            Whether you need a growth strategy, stronger sales operation, professional security infrastructure, a custom digital platform or intelligent AI integration — let's build the right solution around your business.
+            Whether you're looking to sharpen your sales strategy, launch a new digital platform, lock down your security or bring AI into your workflow — we're ready to make it happen.
           </motion.p>
 
           <motion.div
@@ -45,10 +46,10 @@ export default function FinalCTASection() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              to="/#services"
+              to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 border border-white/20 text-white/80 font-medium rounded-lg hover:bg-white/5 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5 text-base"
             >
-              Explore Our Services
+              View Pricing
             </Link>
           </motion.div>
 
