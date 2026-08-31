@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import FloatingWidgets from "@/components/FloatingWidgets";
 import {
   Search,
   ArrowRight,
@@ -489,6 +490,7 @@ export default function Catalog() {
       </section>
 
       <Footer />
+      <FloatingWidgets />
     </div>
   );
 }

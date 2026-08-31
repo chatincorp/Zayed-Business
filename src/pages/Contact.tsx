@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import FloatingWidgets from "@/components/FloatingWidgets";
 import {
   Calendar,
   Users,
@@ -204,6 +204,7 @@ export default function Contact() {
       </section>
 
       <Footer />
+      <FloatingWidgets />
     </div>
   );
 }

@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Check, ArrowRight, Zap, Shield, Crown, CreditCard } from "lucide-react";
+import FloatingWidgets from "@/components/FloatingWidgets";
+import { Check, ArrowRight, Zap, Shield, Crown } from "lucide-react";
 import PaystackCheckout from "@/components/PaystackCheckout";
 
 const plans = [
@@ -367,6 +368,7 @@ export default function Pricing() {
       </section>
 
       <Footer />
+      <FloatingWidgets />
     </div>
   );
 }

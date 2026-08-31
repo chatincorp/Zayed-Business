@@ -2,25 +2,13 @@ import { useParams, Link } from "react-router";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import FloatingWidgets from "@/components/FloatingWidgets";
 import {
-  ArrowRight,
   ArrowLeft,
   Check,
   Calendar,
   MessageSquare,
-  TrendingUp,
-  BarChart3,
-  Megaphone,
-  Radio,
-  Shield,
-  Globe,
-  Bot,
-  Zap,
 } from "lucide-react";
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  TrendingUp, BarChart3, Megaphone, Radio, Shield, Globe, Bot, Zap,
-};
 
 const serviceData: Record<string, {
   title: string;
@@ -246,7 +234,6 @@ function getDefaultService(slug: string) {
 export default function ServiceDetail() {
   const { slug } = useParams<{ slug: string }>();
   const service = serviceData[slug || ""] || getDefaultService(slug || "");
-  const Icon = iconMap[service.icon] || TrendingUp;
 
   return (
     <div className="min-h-screen bg-background">
@@ -490,6 +477,7 @@ export default function ServiceDetail() {
       </div>
 
       <Footer />
+      <FloatingWidgets />
     </div>
   );
 }
