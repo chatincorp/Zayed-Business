@@ -4,7 +4,6 @@ import { useInView } from "react-intersection-observer";
 import {
   Mail,
   Database,
-  FileText,
   BarChart3,
   Users,
   MessageSquare,

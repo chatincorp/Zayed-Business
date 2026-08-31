@@ -13,13 +13,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-interface ChatMessage {
-  id: number;
-  sender: "bot" | "user";
-  text: string;
-  delay?: number;
-}
-
 const chatTabs = [
   {
     id: "sales",
@@ -98,30 +91,38 @@ export default function ChatbotDemo() {
   const currentChat = chatTabs.find((t) => t.id === activeTab)!;
   const colors = colorMap[currentChat.color];
 
+  const messagesRef = useRef(currentChat.messages);
+
   useEffect(() => {
+    messagesRef.current = currentChat.messages;
+  });
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleMessages(0);
     setIsTyping(false);
 
     let timeout: ReturnType<typeof setTimeout>;
+    const msgs = messagesRef.current;
     const showMessages = () => {
-      let i = 0;
+      let idx = 0;
       const next = () => {
-        if (i >= currentChat.messages.length) return;
-        const msg = currentChat.messages[i];
+        if (idx >= msgs.length) return;
+        const msg = msgs[idx];
         const delay = msg.sender === "user" ? 600 : 1200;
 
         if (msg.sender === "bot") {
           setIsTyping(true);
           timeout = setTimeout(() => {
             setIsTyping(false);
-            setVisibleMessages(i + 1);
-            i++;
+            setVisibleMessages(idx + 1);
+            idx++;
             timeout = setTimeout(next, 400);
           }, 800);
         } else {
           timeout = setTimeout(() => {
-            setVisibleMessages(i + 1);
-            i++;
+            setVisibleMessages(idx + 1);
+            idx++;
             timeout = setTimeout(next, delay);
           }, delay);
         }
@@ -131,7 +132,7 @@ export default function ChatbotDemo() {
 
     if (inView) showMessages();
     return () => clearTimeout(timeout);
-  }, [activeTab, inView, currentChat.messages.length]);
+  }, [activeTab, inView]);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -230,7 +231,7 @@ export default function ChatbotDemo() {
             {/* Messages */}
             <div ref={chatRef} className="h-[400px] overflow-y-auto p-4 space-y-4 scrollbar-none">
               <AnimatePresence mode="sync">
-                {currentChat.messages.slice(0, visibleMessages).map((msg, i) => (
+                {currentChat.messages.slice(0, visibleMessages).map((msg) => (
                   <motion.div
                     key={`${activeTab}-${msg.id}`}
                     initial={{ opacity: 0, y: 15, scale: 0.95 }}

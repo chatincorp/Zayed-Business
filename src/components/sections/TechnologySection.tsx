@@ -8,7 +8,6 @@ import {
   Database,
   Palette,
   Gauge,
-  Code,
   ArrowRight,
 } from "lucide-react";
 import { Link } from "react-router";

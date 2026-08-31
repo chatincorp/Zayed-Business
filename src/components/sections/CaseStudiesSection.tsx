@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import { ArrowRight, ExternalLink } from "lucide-react";
-import { Link } from "react-router";
+import { ExternalLink } from "lucide-react";
 
 const placeholders = [
   {

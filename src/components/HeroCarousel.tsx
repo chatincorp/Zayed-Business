@@ -380,7 +380,7 @@ export default function HeroCarousel() {
   const [direction, setDirection] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
+
 
   const goTo = useCallback(
     (index: number) => {
@@ -418,15 +418,6 @@ export default function HeroCarousel() {
     }, tick);
     return () => clearInterval(id);
   }, [isPaused, next]);
-
-  /* Preload images */
-  useEffect(() => {
-    slides.forEach((s, i) => {
-      const img = new Image();
-      img.onload = () => setImagesLoaded((prev) => ({ ...prev, [i]: true }));
-      img.src = s.image;
-    });
-  }, []);
 
   const slide = slides[current];
 
