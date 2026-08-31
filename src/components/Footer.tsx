@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Mail, Phone, ArrowUpRight } from "lucide-react";
 import YasirZayedLogo from "./YasirZayedLogo";
+import PartnerLogosCarousel from "./PartnerLogosCarousel";
 
 const footerNav = {
   Company: [
@@ -108,6 +109,9 @@ export default function Footer() {
             </Link>
           </div>
         </div>
+
+        {/* Partner / Supplier Logos Carousel */}
+        <PartnerLogosCarousel />
 
         {/* Bottom bar */}
         <div className="py-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
