@@ -278,6 +278,52 @@ const schema = defineSchema(
       updatedAt: v.number(),
     }),
 
+    // --- Verification Codes ---
+    verificationCodes: defineTable({
+      email: v.string(),
+      code: v.string(),
+      purpose: v.string(), // "login" | "signup" | "password_reset" | "email_verify"
+      status: v.union(
+        v.literal("pending"),
+        v.literal("verified"),
+        v.literal("expired"),
+        v.literal("revoked")
+      ),
+      attempts: v.number(),
+      maxAttempts: v.number(),
+      createdAt: v.number(),
+      expiresAt: v.number(),
+      verifiedAt: v.optional(v.number()),
+      ipAddress: v.optional(v.string()),
+      userAgent: v.optional(v.string()),
+      sessionId: v.optional(v.string()),
+    })
+      .index("by_email", ["email"])
+      .index("by_email_purpose", ["email", "purpose"])
+      .index("by_status", ["status"])
+      .index("by_expires", ["expiresAt"]),
+
+    // --- Email Logs ---
+    emailLogs: defineTable({
+      to: v.string(),
+      subject: v.string(),
+      body: v.string(),
+      provider: v.string(), // "freebuff" | "sendgrid" | "resend" | "ses"
+      status: v.union(
+        v.literal("queued"),
+        v.literal("sent"),
+        v.literal("delivered"),
+        v.literal("failed"),
+        v.literal("bounced")
+      ),
+      error: v.optional(v.string()),
+      metadata: v.optional(v.any()),
+      sentAt: v.number(),
+    })
+      .index("by_to", ["to"])
+      .index("by_status", ["status"])
+      .index("by_sent", ["sentAt"]),
+
     // --- Security Logs ---
     securityLogs: defineTable({
       timestamp: v.number(),
