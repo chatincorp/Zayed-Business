@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import YasirZayedLogo from "./YasirZayedLogo";
 
 const navLinks = [
   { label: "Home", href: "/#hero" },
@@ -49,21 +50,21 @@ export default function Navigation() {
       >
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-18 items-center justify-between">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-electric to-electric-dark flex items-center justify-center">
-                  <span className="text-white font-bold text-sm tracking-tight">YZ</span>
-                </div>
-                <div className="absolute inset-0 rounded-lg bg-electric/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Logo — rectangular badge: white icon on blue + white name */}
+            <Link to="/" className="flex items-center gap-0 group">
+              <div className="relative h-10 w-10 rounded-l-lg bg-gradient-to-br from-electric to-electric-dark flex items-center justify-center overflow-hidden">
+                <YasirZayedLogo variant="icon" color="white" height={30} />
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-white font-bold text-base tracking-tight leading-none">
-                  YASIR ZAYED
-                </span>
-                <span className="text-[10px] text-metallic/70 tracking-[0.15em] uppercase leading-none mt-0.5">
-                  Business • Security • Technology
-                </span>
+              <div className="h-10 px-4 rounded-r-lg bg-navy/80 border border-l-0 border-white/10 flex items-center gap-2 group-hover:border-electric/30 transition-colors duration-300">
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-sm tracking-[0.08em] leading-none">
+                    YASIR ZAYED
+                  </span>
+                  <span className="text-[9px] text-white/50 tracking-[0.18em] uppercase leading-none mt-1">
+                    Business • Security • Technology
+                  </span>
+                </div>
               </div>
             </Link>
 
@@ -135,7 +136,7 @@ export default function Navigation() {
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <span className="text-white font-bold text-sm tracking-tight">YASIR ZAYED</span>
+                  <YasirZayedLogo variant="icon" color="white" height={28} />
                   <button
                     onClick={() => setMobileOpen(false)}
                     className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"

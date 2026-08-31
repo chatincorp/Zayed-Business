@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Mail, Phone, ArrowUpRight } from "lucide-react";
+import YasirZayedLogo from "./YasirZayedLogo";
 
 const footerNav = {
   Company: [
@@ -41,18 +42,8 @@ export default function Footer() {
         <div className="py-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Brand */}
           <div className="lg:col-span-4">
-            <Link to="/" className="inline-flex items-center gap-3 mb-5 group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-electric to-electric-dark flex items-center justify-center">
-                <span className="text-white font-bold text-sm">YZ</span>
-              </div>
-              <div>
-                <span className="text-white font-bold text-base tracking-tight block leading-none">
-                  YASIR ZAYED
-                </span>
-                <span className="text-[10px] text-metallic/60 tracking-[0.12em] uppercase leading-none mt-0.5 block">
-                  Business • Security • Technology
-                </span>
-              </div>
+            <Link to="/" className="inline-flex mb-5 group">
+              <YasirZayedLogo variant="full" color="white" height={120} />
             </Link>
             <p className="text-white/40 text-sm leading-relaxed mb-6 max-w-sm">
               Building stronger businesses, smarter systems and secure futures. One partnership at a time.
