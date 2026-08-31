@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import NotificationBar from "@/components/NotificationBar";
+import FloatingWidgets from "@/components/FloatingWidgets";
 import CookieNotice from "@/components/CookieNotice";
 import HeroCarousel from "@/components/HeroCarousel";
 import IntroSection from "@/components/sections/IntroSection";
@@ -48,6 +49,7 @@ export default function Landing() {
       <FinalCTASection />
       <Footer />
       <CookieNotice />
+      <FloatingWidgets />
     </div>
   );
 }

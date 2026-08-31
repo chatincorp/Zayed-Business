@@ -3,6 +3,7 @@ import { useInView } from "react-intersection-observer";
 import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import FloatingWidgets from "@/components/FloatingWidgets";
 import {
   Target,
   BarChart3,
@@ -570,6 +571,7 @@ export default function About() {
       </section>
 
       <Footer />
+      <FloatingWidgets />
     </div>
   );
 }
