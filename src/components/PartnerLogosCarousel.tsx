@@ -1,19 +1,16 @@
 /**
  * PartnerLogosCarousel — infinite auto-scrolling supplier/partner logo strip.
  *
- * Each partner is rendered in a fixed-size card with the brand name styled
- * to suggest the partner's visual identity.  Cards auto-resize their
- * content (text or images) to fit uniformly.
- *
- * Duplicate the list once for a seamless CSS-marquee loop.
+ * Uses a CSS keyframes animation defined in index.css (.partner-track).
+ * Each partner renders as a branded card with coloured accent.
+ * Pass `logo` URLs for image-based logos; they auto-size to fit.
+ * Duplicate the list once for a seamless loop.
  */
 
 interface Partner {
   name: string;
-  /** Optional image URL — when provided, an <img> replaces the text badge. */
   logo?: string;
-  /** Override the accent colour shown behind the text fallback. */
-  color?: string;
+  color: string;
 }
 
 const partners: Partner[] = [
@@ -39,17 +36,24 @@ const partners: Partner[] = [
   { name: "Vercel", color: "#ffffff" },
 ];
 
-/* Double the list for a seamless loop */
 const loopPartners = [...partners, ...partners];
 
 function LogoCard({ partner }: { partner: Partner }) {
   if (partner.logo) {
     return (
-      <div className="flex items-center justify-center h-12 w-auto px-2">
+      <div
+        className="flex items-center justify-center shrink-0 rounded-lg px-5 py-3"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          minWidth: 120,
+          height: 56,
+        }}
+      >
         <img
           src={partner.logo}
           alt={partner.name}
-          className="max-h-10 max-w-[100px] w-auto h-auto object-contain opacity-50 hover:opacity-90 transition-opacity duration-300"
+          className="max-h-9 max-w-[100px] w-auto h-auto object-contain"
           loading="lazy"
         />
       </div>
@@ -58,12 +62,22 @@ function LogoCard({ partner }: { partner: Partner }) {
 
   return (
     <div
-      className="flex items-center justify-center h-12 px-4 min-w-[110px] rounded-md border border-white/5 hover:border-white/10 transition-all duration-300 group"
-      style={{ backgroundColor: `${partner.color}10` }}
+      className="flex items-center justify-center shrink-0 rounded-lg px-5 py-3 gap-2 transition-all duration-300 hover:scale-105"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        minWidth: 120,
+        height: 56,
+      }}
     >
+      {/* Coloured dot accent */}
       <span
-        className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap opacity-40 group-hover:opacity-80 transition-opacity duration-300 select-none"
-        style={{ color: partner.color }}
+        className="w-2 h-2 rounded-full shrink-0"
+        style={{ background: partner.color }}
+      />
+      <span
+        className="text-[13px] font-semibold tracking-wide whitespace-nowrap"
+        style={{ color: partner.color, opacity: 0.85 }}
       >
         {partner.name}
       </span>
@@ -73,34 +87,28 @@ function LogoCard({ partner }: { partner: Partner }) {
 
 export default function PartnerLogosCarousel() {
   return (
-    <div className="py-10 border-t border-white/5">
-      {/* Section label */}
-      <p className="text-center text-[10px] uppercase tracking-[0.25em] text-white/25 mb-6 select-none">
+    <section className="py-10 border-t border-white/5">
+      <p className="text-center text-[11px] font-medium uppercase tracking-[0.3em] text-white/30 mb-8 select-none">
         Technology &amp; Supplier Partners
       </p>
 
-      {/* Marquee wrapper */}
+      {/* Edge fade mask */}
       <div
-        className="relative overflow-hidden group"
-        style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
+        className="overflow-hidden"
+        style={{
+          maskImage:
+            "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
+        }}
       >
-        {/* Scrolling track — pure CSS infinite marquee */}
-        <div className="flex gap-6 w-max animate-[partnerScroll_60s_linear_infinite] group-hover:[animation-play-state:paused]">
+        {/* Scrolling track */}
+        <div className="partner-track flex gap-5 w-max">
           {loopPartners.map((partner, i) => (
-            <div key={`${partner.name}-${i}`} className="flex-shrink-0">
-              <LogoCard partner={partner} />
-            </div>
+            <LogoCard key={`${partner.name}-${i}`} partner={partner} />
           ))}
         </div>
       </div>
-
-      {/* CSS animation via inline style tag */}
-      <style>{`
-        @keyframes partnerScroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
-    </div>
+    </section>
   );
 }

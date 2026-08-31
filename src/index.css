@@ -288,3 +288,15 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Partner logos marquee */
+@keyframes partnerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.partner-track {
+  animation: partnerScroll 40s linear infinite;
+}
+.partner-track:hover {
+  animation-play-state: paused;
+}
