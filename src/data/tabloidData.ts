@@ -250,6 +250,49 @@ export const forexPairs: ForexPair[] = [
   { pair: "USD/GHS", baseCurrency: "USD", quoteCurrency: "GHS", rate: 14.89, change: 0.05, changePercent: 0.34, high24h: 14.95, low24h: 14.82, region: "Africa", lastUpdated: "2026-09-01T13:00:00Z" },
   { pair: "USD/TZS", baseCurrency: "USD", quoteCurrency: "TZS", rate: 2512.34, change: 4.56, changePercent: 0.18, high24h: 2516.78, low24h: 2508.12, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
   { pair: "USD/UGX", baseCurrency: "USD", quoteCurrency: "UGX", rate: 3789.12, change: 5.67, changePercent: 0.15, high24h: 3794.56, low24h: 3784.23, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "USD/RWF", baseCurrency: "USD", quoteCurrency: "RWF", rate: 1345.67, change: 2.34, changePercent: 0.17, high24h: 1348.90, low24h: 1343.23, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "USD/ETB", baseCurrency: "USD", quoteCurrency: "ETB", rate: 128.45, change: 1.23, changePercent: 0.96, high24h: 129.12, low24h: 127.89, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "USD/CDF", baseCurrency: "USD", quoteCurrency: "CDF", rate: 2845.67, change: 8.90, changePercent: 0.31, high24h: 2854.56, low24h: 2840.12, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "USD/XOF", baseCurrency: "USD", quoteCurrency: "XOF", rate: 623.45, change: 1.23, changePercent: 0.20, high24h: 624.78, low24h: 622.34, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "USD/MGA", baseCurrency: "USD", quoteCurrency: "MGA", rate: 4678.90, change: 12.34, changePercent: 0.26, high24h: 4691.23, low24h: 4672.34, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "USD/MZN", baseCurrency: "USD", quoteCurrency: "MZN", rate: 63.45, change: 0.23, changePercent: 0.36, high24h: 63.78, low24h: 63.12, region: "Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+
+  // East Africa (KES-based cross rates)
+  { pair: "KES/UGX", baseCurrency: "KES", quoteCurrency: "UGX", rate: 24.71, change: 0.05, changePercent: 0.20, high24h: 24.78, low24h: 24.65, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "KES/TZS", baseCurrency: "KES", quoteCurrency: "TZS", rate: 16.38, change: 0.02, changePercent: 0.12, high24h: 16.42, low24h: 16.35, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "KES/RWF", baseCurrency: "KES", quoteCurrency: "RWF", rate: 8.77, change: 0.01, changePercent: 0.11, high24h: 8.79, low24h: 8.75, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "KES/ETB", baseCurrency: "KES", quoteCurrency: "ETB", rate: 0.837, change: 0.006, changePercent: 0.72, high24h: 0.842, low24h: 0.833, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "KES/USD", baseCurrency: "KES", quoteCurrency: "USD", rate: 0.00652, change: -0.00001, changePercent: -0.15, high24h: 0.00653, low24h: 0.00650, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "KES/GBP", baseCurrency: "KES", quoteCurrency: "GBP", rate: 0.00512, change: -0.00002, changePercent: -0.39, high24h: 0.00515, low24h: 0.00510, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "KES/EUR", baseCurrency: "KES", quoteCurrency: "EUR", rate: 0.00599, change: 0.00001, changePercent: 0.17, high24h: 0.00601, low24h: 0.00597, region: "East Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+
+  // West Africa (NGN-based)
+  { pair: "NGN/GHS", baseCurrency: "NGN", quoteCurrency: "GHS", rate: 0.00963, change: -0.00005, changePercent: -0.52, high24h: 0.00969, low24h: 0.00958, region: "West Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "NGN/XOF", baseCurrency: "NGN", quoteCurrency: "XOF", rate: 0.403, change: 0.002, changePercent: 0.50, high24h: 0.405, low24h: 0.401, region: "West Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "XOF/EUR", baseCurrency: "XOF", quoteCurrency: "EUR", rate: 0.00152, change: 0.00001, changePercent: 0.66, high24h: 0.00153, low24h: 0.00151, region: "West Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+
+  // Southern Africa
+  { pair: "ZAR/MZN", baseCurrency: "ZAR", quoteCurrency: "MZN", rate: 3.48, change: 0.02, changePercent: 0.58, high24h: 3.50, low24h: 3.46, region: "Southern Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "ZAR/BWP", baseCurrency: "ZAR", quoteCurrency: "BWP", rate: 0.96, change: 0.001, changePercent: 0.10, high24h: 0.962, low24h: 0.958, region: "Southern Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "ZAR/SZL", baseCurrency: "ZAR", quoteCurrency: "SZL", rate: 1.00, change: 0.001, changePercent: 0.10, high24h: 1.002, low24h: 0.998, region: "Southern Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "ZAR/LSL", baseCurrency: "ZAR", quoteCurrency: "LSL", rate: 1.00, change: 0.001, changePercent: 0.10, high24h: 1.002, low24h: 0.998, region: "Southern Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "ZAR/NAD", baseCurrency: "ZAR", quoteCurrency: "NAD", rate: 1.00, change: 0.001, changePercent: 0.10, high24h: 1.002, low24h: 0.998, region: "Southern Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "ZAR/MWK", baseCurrency: "ZAR", quoteCurrency: "MWK", rate: 118.45, change: 0.89, changePercent: 0.76, high24h: 119.12, low24h: 117.89, region: "Southern Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+
+  // North Africa
+  { pair: "EGP/MAD", baseCurrency: "EGP", quoteCurrency: "MAD", rate: 0.207, change: 0.001, changePercent: 0.49, high24h: 0.208, low24h: 0.206, region: "North Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "MAD/EUR", baseCurrency: "MAD", quoteCurrency: "EUR", rate: 0.093, change: -0.001, changePercent: -1.06, high24h: 0.094, low24h: 0.092, region: "North Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "TND/EUR", baseCurrency: "TND", quoteCurrency: "EUR", rate: 0.297, change: 0.001, changePercent: 0.34, high24h: 0.298, low24h: 0.296, region: "North Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "DZD/EUR", baseCurrency: "DZD", quoteCurrency: "EUR", rate: 0.00689, change: 0.00002, changePercent: 0.29, high24h: 0.00691, low24h: 0.00687, region: "North Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+  { pair: "LYD/EUR", baseCurrency: "LYD", quoteCurrency: "EUR", rate: 0.189, change: -0.001, changePercent: -0.53, high24h: 0.190, low24h: 0.188, region: "North Africa", lastUpdated: "2026-09-01T14:00:00Z" },
+
+  // Southeast Asia
+  { pair: "USD/VND", baseCurrency: "USD", quoteCurrency: "VND", rate: 25456.78, change: 23.45, changePercent: 0.09, high24h: 25480.23, low24h: 25434.56, region: "Southeast Asia", lastUpdated: "2026-09-01T08:00:00Z" },
+  { pair: "USD/IDR", baseCurrency: "USD", quoteCurrency: "IDR", rate: 15678.90, change: 23.45, changePercent: 0.15, high24h: 15701.23, low24h: 15656.78, region: "Southeast Asia", lastUpdated: "2026-09-01T08:00:00Z" },
+  { pair: "SGD/MYR", baseCurrency: "SGD", quoteCurrency: "MYR", rate: 3.396, change: 0.008, changePercent: 0.24, high24h: 3.402, low24h: 3.390, region: "Southeast Asia", lastUpdated: "2026-09-01T08:00:00Z" },
+  { pair: "SGD/THB", baseCurrency: "SGD", quoteCurrency: "THB", rate: 25.69, change: 0.12, changePercent: 0.47, high24h: 25.74, low24h: 25.63, region: "Southeast Asia", lastUpdated: "2026-09-01T08:00:00Z" },
+  { pair: "SGD/PHP", baseCurrency: "SGD", quoteCurrency: "PHP", rate: 42.21, change: 0.15, changePercent: 0.36, high24h: 42.28, low24h: 42.14, region: "Southeast Asia", lastUpdated: "2026-09-01T08:00:00Z" },
+  { pair: "SGD/IDR", baseCurrency: "SGD", quoteCurrency: "IDR", rate: 11654.78, change: 34.56, changePercent: 0.30, high24h: 11689.34, low24h: 11623.45, region: "Southeast Asia", lastUpdated: "2026-09-01T08:00:00Z" },
 
   // Europe
   { pair: "EUR/GBP", baseCurrency: "EUR", quoteCurrency: "GBP", rate: 0.8554, change: -0.0012, changePercent: -0.14, high24h: 0.8567, low24h: 0.8542, region: "Europe", lastUpdated: "2026-09-01T14:30:00Z" },
@@ -295,6 +338,11 @@ export const regions: RegionMeta[] = [
   { name: "South America", slug: "south-america", flag: "🇧🇷", color: "#8b5cf6" },
   { name: "Europe", slug: "europe", flag: "🇪🇺", color: "#06b6d4" },
   { name: "Africa", slug: "africa", flag: "🌍", color: "#ef4444" },
+  { name: "East Africa", slug: "east-africa", flag: "🇰🇪", color: "#f43f5e" },
+  { name: "West Africa", slug: "west-africa", flag: "🇳🇬", color: "#f97316" },
+  { name: "Southern Africa", slug: "southern-africa", flag: "🇿🇦", color: "#a855f7" },
+  { name: "North Africa", slug: "north-africa", flag: "🇪🇬", color: "#14b8a6" },
+  { name: "Southeast Asia", slug: "southeast-asia", flag: "🇸🇬", color: "#ec4899" },
   { name: "Asia", slug: "asia", flag: "🌏", color: "#ec4899" },
   { name: "Americas", slug: "americas", flag: "🌎", color: "#14b8a6" },
   { name: "Oceania", slug: "oceania", flag: "🇦🇺", color: "#f97316" },

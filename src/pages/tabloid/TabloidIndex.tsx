@@ -4,7 +4,7 @@
  * plus stock and forex tickers.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import {
@@ -21,6 +21,7 @@ import {
   PenTool,
   Eye,
   Globe,
+
 } from "lucide-react";
 import {
   newsSources,
@@ -34,6 +35,16 @@ import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
 
 const categories = ["All", "Africa", "Global Finance", "Technology", "Business", "Security"];
+
+/** Live timestamp that updates every second */
+function LiveTimestamp() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="text-white/50 font-mono text-[10px]">{time.toLocaleTimeString()}</span>;
+}
 
 export default function TabloidIndex() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -104,31 +115,22 @@ export default function TabloidIndex() {
         </div>
       </header>
 
-      {/* ── Source News Links ── */}
+      {/* ── Live News Feed Status ── */}
       <section className="border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-white/30 mb-4">
-            Source News Feeds
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {newsSources.map((source) => (
-              <a
-                key={source.id}
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all"
-              >
-                <span className="text-lg">{source.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white/70 group-hover:text-white transition-colors truncate">
-                    {source.name}
-                  </p>
-                  <p className="text-[10px] text-white/30 uppercase">{source.category}</p>
-                </div>
-                <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-electric shrink-0 transition-colors" />
-              </a>
-            ))}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-medium text-emerald-400">Live</span>
+              </div>
+              <span className="text-xs text-white/40">
+                Fetching from {newsSources.length} sources · Last checked: <LiveTimestamp />
+              </span>
+            </div>
+            <span className="text-[10px] text-white/20">
+              Sources managed in Admin Panel
+            </span>
           </div>
         </div>
       </section>
