@@ -390,6 +390,97 @@ const schema = defineSchema(
       .index("by_client", ["clientId"])
       .index("by_status", ["status"]),
 
+    // --- Departments ---
+    departments: defineTable({
+      name: v.string(),
+      head: v.optional(v.string()),
+      description: v.optional(v.string()),
+      staffCount: v.number(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }),
+
+    // --- Staff ---
+    staff: defineTable({
+      name: v.string(),
+      email: v.string(),
+      role: v.union(v.literal("admin"), v.literal("manager"), v.literal("staff")),
+      department: v.string(),
+      status: v.union(v.literal("active"), v.literal("pending"), v.literal("suspended")),
+      responsibilities: v.array(v.string()),
+      joinedAt: v.string(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_department", ["department"])
+      .index("by_status", ["status"]),
+
+    // --- Campaigns ---
+    campaigns: defineTable({
+      name: v.string(),
+      type: v.union(v.literal("email"), v.literal("social"), v.literal("ads"), v.literal("sms")),
+      status: v.union(v.literal("draft"), v.literal("active"), v.literal("paused"), v.literal("completed")),
+      sent: v.number(),
+      opened: v.number(),
+      clicked: v.number(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_status", ["status"]),
+
+    // --- Email Templates ---
+    emailTemplates: defineTable({
+      name: v.string(),
+      subject: v.string(),
+      body: v.optional(v.string()),
+      category: v.string(),
+      lastEdited: v.number(),
+      createdAt: v.number(),
+    })
+      .index("by_category", ["category"]),
+
+    // --- CTAs ---
+    ctas: defineTable({
+      label: v.string(),
+      url: v.string(),
+      style: v.string(),
+      clicks: v.number(),
+      visible: v.boolean(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }),
+
+    // --- Form Submissions (contact forms) ---
+    formSubmissions: defineTable({
+      name: v.string(),
+      email: v.string(),
+      subject: v.string(),
+      message: v.string(),
+      department: v.string(),
+      status: v.union(v.literal("unread"), v.literal("replied"), v.literal("escalated")),
+      createdAt: v.number(),
+      repliedAt: v.optional(v.number()),
+    })
+      .index("by_status", ["status"]),
+
+    // --- Live Chats ---
+    chats: defineTable({
+      client: v.string(),
+      clientEmail: v.string(),
+      department: v.string(),
+      assignedTo: v.string(),
+      status: v.union(v.literal("active"), v.literal("waiting"), v.literal("resolved"), v.literal("escalated")),
+      messages: v.array(v.object({
+        from: v.string(),
+        text: v.string(),
+        time: v.string(),
+      })),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_status", ["status"])
+      .index("by_department", ["department"]),
+
     // --- Project Download Tracking ---
     projectDownloads: defineTable({
       projectId: v.id("projects"),

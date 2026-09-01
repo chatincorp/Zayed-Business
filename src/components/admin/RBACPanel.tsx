@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   Plus, Search, Users, Building2, MessageSquare,
   Trash2, Send,
@@ -154,16 +156,48 @@ type Tab = "staff" | "departments" | "submissions" | "chats";
 
 export default function RBACPanel() {
   const [tab, setTab] = useState<Tab>("staff");
-  const [departments, setDepartments] = useState(mockDepartments);
-  const [staff, setStaff] = useState(mockStaff);
-  const [submissions] = useState(mockSubmissions);
-  const [chats] = useState(mockChats);
+  // Convex queries
+  const dbDepartments = useQuery(api.adminRbac.listDepartments);
+  const dbStaff = useQuery(api.adminRbac.listStaff);
+  const dbSubmissions = useQuery(api.adminRbac.listFormSubmissions);
+  const dbChats = useQuery(api.adminRbac.listChats);
+
+  // Convex mutations
+  const createDepartmentMut = useMutation(api.adminRbac.createDepartment);
+  const deleteDepartmentMut = useMutation(api.adminRbac.deleteDepartment);
+  const createStaffMut = useMutation(api.adminRbac.createStaff);
+  const updateStaffStatusMut = useMutation(api.adminRbac.updateStaffStatus);
+  const deleteStaffMut = useMutation(api.adminRbac.deleteStaff);
+  const updateSubmissionStatusMut = useMutation(api.adminRbac.updateSubmissionStatus);
+  const escalateChatMut = useMutation(api.adminRbac.escalateChat);
+  const updateChatStatusMut = useMutation(api.adminRbac.updateChatStatus);
+  const addChatMessageMut = useMutation(api.adminRbac.addChatMessage);
+
+  // Use DB data
+  const departments = dbDepartments ?? [];
+  const staffList = dbStaff ?? [];
+  const submissions = dbSubmissions ?? [];
+  const chats = dbChats ?? [];
   const [search, setSearch] = useState("");
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [showCreateDept, setShowCreateDept] = useState(false);
   const [expandedChat, setExpandedChat] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chatId = expandedChat as any;
   const [expandedSubmission, setExpandedSubmission] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [chatInput, setChatInput] = useState("");
+
+  const handleSendChatMessage = async () => {
+    if (!chatId || !chatInput.trim()) return;
+    await addChatMessageMut({ chatId, from: "Admin", text: chatInput });
+    setChatInput("");
+  };
+
+  const handleEscalateChat = async (assignTo: string) => {
+    if (!chatId) return;
+    await escalateChatMut({ chatId, assignTo });
+  };
 
 
   // New staff form
@@ -179,38 +213,41 @@ export default function RBACPanel() {
   const [newDeptDesc, setNewDeptDesc] = useState("");
 
   const tabs: { id: Tab; label: string; icon: typeof Users; count: number }[] = [
-    { id: "staff", label: "Staff", icon: Users, count: staff.length },
+    { id: "staff", label: "Staff", icon: Users, count: staffList.length },
     { id: "departments", label: "Departments", icon: Building2, count: departments.length },
     { id: "submissions", label: "Form Submissions", icon: FileText, count: submissions.filter((s) => s.status === "unread").length },
     { id: "chats", label: "Live Chats", icon: MessageSquare, count: chats.filter((c) => c.status === "active").length },
   ];
 
-  const handleCreateStaff = () => {
+  const handleCreateStaff = async () => {
     if (!newName.trim() || !newEmail.trim()) return;
-    setStaff((prev) => [...prev, {
-      id: Date.now().toString(), name: newName, email: newEmail, role: newRole,
-      department: newDept, status: "pending" as StaffStatus,
+    await createStaffMut({
+      name: newName, email: newEmail, role: newRole,
+      department: newDept,
       responsibilities: newResponsibilities.split(",").map((r) => r.trim()).filter(Boolean),
       joinedAt: new Date().toISOString().split("T")[0],
-    }]);
+    });
     setNewName(""); setNewEmail(""); setNewResponsibilities(""); setShowCreateStaff(false);
   };
 
-  const handleCreateDept = () => {
+  const handleCreateDept = async () => {
     if (!newDeptName.trim()) return;
-    setDepartments((prev) => [...prev, {
-      id: Date.now().toString(), name: newDeptName, head: newDeptHead || "TBD",
-      staffCount: 0, description: newDeptDesc,
-    }]);
+    await createDepartmentMut({
+      name: newDeptName, head: newDeptHead || "TBD", description: newDeptDesc,
+    });
     setNewDeptName(""); setNewDeptHead(""); setNewDeptDesc(""); setShowCreateDept(false);
   };
 
-  const toggleStaffStatus = (id: string, status: StaffStatus) => {
-    setStaff((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
+  const handleToggleStaffStatus = async (id: any, status: StaffStatus) => {
+    await updateStaffStatusMut({ id, status });
   };
 
-  const deleteStaff = (id: string) => {
-    setStaff((prev) => prev.filter((s) => s.id !== id));
+  const handleDeleteStaff = async (id: any) => {
+    await deleteStaffMut({ id });
+  };
+
+  const handleDeleteDept = async (id: any) => {
+    await deleteDepartmentMut({ id });
   };
 
   const inputClass = "px-3 py-2 rounded-lg border bg-background text-sm w-full";
@@ -239,7 +276,7 @@ export default function RBACPanel() {
           <div className="flex items-center justify-between mb-4">
             <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff..." className="w-full pl-9 pr-4 py-2 rounded-lg bg-card border border-border text-sm" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staffList..." className="w-full pl-9 pr-4 py-2 rounded-lg bg-card border border-border text-sm" />
             </div>
             <button onClick={() => setShowCreateStaff(!showCreateStaff)} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
               <Plus className="w-4 h-4" /> Add Staff
@@ -260,7 +297,7 @@ export default function RBACPanel() {
                       <option value="staff">Staff</option>
                     </select>
                     <select value={newDept} onChange={(e) => setNewDept(e.target.value)} className={inputClass}>
-                      {departments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                      {departments.map((d) => <option key={d._id} value={d.name}>{d.name}</option>)}
                     </select>
                   </div>
                   <input placeholder="Responsibilities (comma separated)" value={newResponsibilities} onChange={(e) => setNewResponsibilities(e.target.value)} className={inputClass} />
@@ -282,8 +319,8 @@ export default function RBACPanel() {
               <div className="col-span-3 text-right">Actions</div>
             </div>
             <div className="divide-y divide-border">
-              {staff.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase())).map((s) => (
-                <div key={s.id} className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/30 transition-colors">
+              {staffList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase())).map((s) => (
+                <div key={s._id} className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/30 transition-colors">
                   <div className="col-span-3 flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-electric/10 flex items-center justify-center text-electric text-xs font-bold shrink-0">{s.name.split(" ").map((n) => n[0]).join("")}</div>
                     <div className="min-w-0">
@@ -295,9 +332,9 @@ export default function RBACPanel() {
                   <div className="col-span-2 flex justify-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${roleColors[s.role]}`}>{s.role.replace("_", " ")}</span></div>
                   <div className="col-span-2 flex justify-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusColors[s.status]}`}>{s.status}</span></div>
                   <div className="col-span-3 flex items-center justify-end gap-1">
-                    <button onClick={() => toggleStaffStatus(s.id, "active")} className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors" title="Approve"><UserCheck className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => toggleStaffStatus(s.id, "suspended")} className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="Suspend"><Ban className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => deleteStaff(s.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleToggleStaffStatus(s._id, "active")} className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors" title="Approve"><UserCheck className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleToggleStaffStatus(s._id, "suspended")} className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="Suspend"><Ban className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteStaff(s._id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               ))}
@@ -337,7 +374,7 @@ export default function RBACPanel() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {departments.map((dept) => (
-              <div key={dept.id} className="p-5 rounded-xl bg-card border border-border hover:border-border/80 transition-all">
+              <div key={dept._id} className="p-5 rounded-xl bg-card border border-border hover:border-border/80 transition-all">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center"><Building2 className="w-5 h-5 text-electric" /></div>
                   <div>
@@ -348,7 +385,7 @@ export default function RBACPanel() {
                 <p className="text-xs text-muted-foreground mb-3">{dept.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{dept.staffCount} staff</span>
-                  <button onClick={() => { setDepartments((prev) => prev.filter((d) => d.id !== dept.id)); }} className="text-xs text-destructive hover:underline">Delete</button>
+                  <button onClick={() => handleDeleteDept(dept._id)} className="text-xs text-destructive hover:underline">Delete</button>
                 </div>
               </div>
             ))}
@@ -362,11 +399,11 @@ export default function RBACPanel() {
           <div className="rounded-xl bg-card border border-border overflow-hidden">
             <div className="divide-y divide-border">
               {submissions.map((sub) => (
-                <div key={sub.id}>
-                  <div className="px-5 py-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setExpandedSubmission(expandedSubmission === sub.id ? null : sub.id)}>
+                <div key={sub._id}>
+                  <div className="px-5 py-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setExpandedSubmission(expandedSubmission === sub._id ? null : sub._id)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 min-w-0">
-                        {expandedSubmission === sub.id ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
+                        {expandedSubmission === sub._id ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground">{sub.subject}</p>
                           <p className="text-[10px] text-muted-foreground">{sub.name} · {sub.email} · {sub.department}</p>
@@ -378,7 +415,7 @@ export default function RBACPanel() {
                       </div>
                     </div>
                   </div>
-                  {expandedSubmission === sub.id && (
+                  {expandedSubmission === sub._id && (
                     <div className="px-5 pb-5 border-t border-border/50">
                       <p className="text-sm text-foreground mt-3 mb-4">{sub.message}</p>
                       <div className="flex items-center gap-3">
@@ -406,12 +443,12 @@ export default function RBACPanel() {
           <div className="lg:col-span-1 space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Active Conversations</h3>
             {chats.map((chat) => (
-              <button key={chat.id} onClick={() => setExpandedChat(expandedChat === chat.id ? null : chat.id)} className={`w-full text-left p-4 rounded-xl border transition-all ${expandedChat === chat.id ? "border-electric bg-electric/5" : "bg-card border-border hover:border-border/80"}`}>
+              <button key={chat._id} onClick={() => setExpandedChat(expandedChat === chat._id ? null : chat._id)} className={`w-full text-left p-4 rounded-xl border transition-all ${expandedChat === chat._id ? "border-electric bg-electric/5" : "bg-card border-border hover:border-border/80"}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-foreground truncate">{chat.client}</span>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${chatStatusColors[chat.status]}`}>{chat.status}</span>
                 </div>
-                <p className="text-xs text-muted-foreground truncate">{chat.message}</p>
+                <p className="text-xs text-muted-foreground truncate">{chat.messages[0]?.text}</p>
                 <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
                   <span>{chat.department}</span>
                   <span>·</span>
@@ -424,7 +461,7 @@ export default function RBACPanel() {
           {/* Chat detail */}
           <div className="lg:col-span-2">
             {expandedChat ? (() => {
-              const chat = chats.find((c) => c.id === expandedChat);
+              const chat = chats.find((c) => c._id === expandedChat);
               if (!chat) return <div className="text-center py-20 text-muted-foreground text-sm">Select a chat.</div>;
               return (
                 <div className="rounded-xl bg-card border border-border overflow-hidden">
@@ -436,13 +473,13 @@ export default function RBACPanel() {
                     <div className="flex items-center gap-2">
                       <select className="px-3 py-1.5 rounded-lg border bg-background text-xs">
                         <option>{chat.assignedTo}</option>
-                        {staff.filter((s) => s.department === chat.department && s.status === "active").map((s) => <option key={s.id}>{s.name}</option>)}
+                        {staffList.filter((s) => s.department === chat.department && s.status === "active").map((s) => <option key={s._id}>{s.name}</option>)}
                       </select>
                       <button className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium hover:bg-amber-500/20"><ArrowUpRight className="w-3 h-3" /> Escalate</button>
                     </div>
                   </div>
                   <div className="p-5 space-y-4 max-h-[400px] overflow-y-auto">
-                    {chat.messages.map((msg, i) => (
+                    {chat.messages.map((msg: any, i: number) => (
                       <div key={i} className={`flex ${msg.from === chat.client ? "justify-start" : "justify-end"}`}>
                         <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${msg.from === chat.client ? "bg-muted text-foreground rounded-bl-sm" : "bg-electric text-white rounded-br-sm"}`}>
                           <p>{msg.text}</p>
@@ -452,8 +489,8 @@ export default function RBACPanel() {
                     ))}
                   </div>
                   <div className="px-5 py-4 border-t border-border flex gap-2">
-                    <input placeholder="Type a reply..." className="flex-1 px-4 py-2 rounded-lg border bg-background text-sm" />
-                    <button className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark"><Send className="w-4 h-4" /></button>
+                    <input placeholder="Type a reply..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-2 rounded-lg border bg-background text-sm" />
+                    <button onClick={handleSendChatMessage} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark"><Send className="w-4 h-4" /></button>
                   </div>
                 </div>
               );
