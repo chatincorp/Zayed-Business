@@ -15,7 +15,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { sendEmail, buildVerificationEmailHtml, buildVerificationEmailText } from "./emailHook";
 
 // ─── Constants ─────────────────────────────────────────────────────

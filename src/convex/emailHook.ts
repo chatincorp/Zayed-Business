@@ -434,7 +434,8 @@ export const sendVerificationEmail = action({
     });
 
     // Log the email attempt
-    await ctx.runMutation("emailLogs:create" as any, {
+    await ctx.runMutation("emailLogs:create" as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      {
       to: args.to,
       subject: `Your ${appName} verification code: ${args.code}`,
       body: html,

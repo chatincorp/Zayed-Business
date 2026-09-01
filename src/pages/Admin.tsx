@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Admin panel uses intentional type-unsafe casts for demo select values */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
@@ -653,7 +654,7 @@ function AdminProjectsContent() {
     // For demo, use first user as client
 
     await createProject({
-      clientId: "" as any, // Will be set properly in production
+      clientId: "" as any, // demo placeholder
       title: newTitle,
       description: newDesc || undefined,
       status: newStatus,

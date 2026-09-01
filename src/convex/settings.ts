@@ -62,7 +62,7 @@ export const siteConfig = query({
       "seo_defaults",
     ];
 
-    const config: Record<string, any> = {};
+    const config: Record<string, unknown> = {};
     for (const key of keys) {
       const setting = await ctx.db
         .query("settings")

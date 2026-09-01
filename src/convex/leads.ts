@@ -87,7 +87,7 @@ export const updateStatus = mutation({
     if (!lead) throw new Error("Lead not found");
 
     await ctx.db.patch(args.id, {
-      status: args.status as any,
+      status: args.status as unknown as "closed" | "new" | "verified" | "contacted" | "qualified" | "proposal_sent" | "negotiation" | "won" | "lost",
       updatedAt: Date.now(),
     });
   },
