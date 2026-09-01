@@ -310,7 +310,6 @@ export const forexPairs: ForexPair[] = [
   { pair: "USD/KRW", baseCurrency: "USD", quoteCurrency: "KRW", rate: 1345.67, change: -8.90, changePercent: -0.66, high24h: 1354.56, low24h: 1342.34, region: "Asia", lastUpdated: "2026-09-01T08:00:00Z" },
   { pair: "USD/MYR", baseCurrency: "USD", quoteCurrency: "MYR", rate: 4.5678, change: 0.0123, changePercent: 0.27, high24h: 4.5789, low24h: 4.5567, region: "Asia", lastUpdated: "2026-09-01T08:00:00Z" },
   { pair: "USD/THB", baseCurrency: "USD", quoteCurrency: "THB", rate: 34.5678, change: 0.1234, changePercent: 0.36, high24h: 34.6789, low24h: 34.4567, region: "Asia", lastUpdated: "2026-09-01T08:00:00Z" },
-  { pair: "USD/IDR", baseCurrency: "USD", quoteCurrency: "IDR", rate: 15678.90, change: 23.45, changePercent: 0.15, high24h: 15701.23, low24h: 15656.78, region: "Asia", lastUpdated: "2026-09-01T08:00:00Z" },
   { pair: "USD/PHP", baseCurrency: "USD", quoteCurrency: "PHP", rate: 56.78, change: 0.23, changePercent: 0.41, high24h: 56.89, low24h: 56.56, region: "Asia", lastUpdated: "2026-09-01T08:00:00Z" },
 
   // Americas

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Admin panel uses intentional type-unsafe casts for demo select values */
 import { useState } from "react";
+import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -10,6 +11,7 @@ import FAQManager from "@/components/admin/FAQManager";
 import BlogManager from "@/components/admin/BlogManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import UsersManager from "@/components/admin/UsersManager";
+import RBACPanel from "@/components/admin/RBACPanel";
 import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
 import {
   LayoutDashboard,
@@ -172,8 +174,8 @@ export default function Admin() {
           sidebarOpen ? "w-64" : "w-16"
         } hidden lg:block`}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center px-4 border-b border-white/5">
+        {/* Logo — links to homepage */}
+        <Link to="/" className="h-16 flex items-center px-4 border-b border-white/5 hover:bg-white/5 transition-colors">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-electric to-electric-dark flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-xs">YZ</span>
@@ -187,7 +189,7 @@ export default function Admin() {
               </div>
             )}
           </div>
-        </div>
+        </Link>
 
         {/* Nav items */}
         <nav className="h-[calc(100vh-64px)] overflow-y-auto py-4 px-2 scrollbar-thin">
@@ -273,6 +275,7 @@ export default function Admin() {
             {activeSection === "blog" && <BlogManager key="blog" />}
             {activeSection === "analytics" && <AnalyticsDashboard key="analytics" />}
             {activeSection === "users" && <UsersManager key="users" />}
+            {activeSection === "roles" && <RBACPanel key="roles" />}
             {activeSection === "system-health" && <SystemHealthPanel key="system-health" />}
             {activeSection === "security-logs" && <SecurityLogsPanel key="security-logs" />}
             {activeSection === "integrations" && <IntegrationsPanel key="integrations" />}
@@ -280,7 +283,7 @@ export default function Admin() {
             {activeSection === "media" && <MediaLibraryPanel key="media" />}
             {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
             {activeSection === "projects" && <AdminProjectsContent key="projects" />}
-            {!["dashboard", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects"].includes(activeSection) && (
+            {!["dashboard", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects"].includes(activeSection) && (
               <PlaceholderContent key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
           </AnimatePresence>
