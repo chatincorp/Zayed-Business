@@ -17,7 +17,6 @@ import {
   Filter,
   ArrowRight,
   Bot,
-  CheckCircle2,
   PenTool,
   Eye,
   Globe,
@@ -186,6 +185,14 @@ export default function TabloidIndex() {
 
 /* ── Article Card Component ─────────────────────────────────── */
 
+const categoryImages: Record<string, string> = {
+  Africa: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=600&h=300&fit=crop",
+  "Global Finance": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&h=300&fit=crop",
+  Technology: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=300&fit=crop",
+  Business: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=300&fit=crop",
+  Security: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=300&fit=crop",
+};
+
 function ArticleCard({
   article,
   index,
@@ -197,32 +204,44 @@ function ArticleCard({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const source = newsSources.find((s) => s.id === article.sourceId);
+  const imgSrc = article.image || categoryImages[article.category] || categoryImages.Technology;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden hover:border-white/10 transition-all"
+      className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden hover:border-white/10 transition-all group"
     >
-      {/* Top bar — source + status */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <span className="text-sm">{source?.icon}</span>
-          <span className="text-xs text-white/40">{source?.name}</span>
-          <span className="text-white/10">•</span>
-          <span className="text-xs text-white/30">{article.category}</span>
+      {/* Hero image */}
+      <Link to={`/tabloid/${article.id}`} className="block relative h-48 overflow-hidden">
+        <img
+          src={imgSrc}
+          alt={article.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-3 left-4 right-4">
+          <span className="px-2 py-0.5 rounded-full bg-electric/20 border border-electric/30 text-electric text-[10px] font-semibold backdrop-blur-sm">
+            {article.category}
+          </span>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusColor(article.status)}`}>
-          {getStatusLabel(article.status)}
-        </span>
-      </div>
+        <div className="absolute top-3 right-3">
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border backdrop-blur-sm ${getStatusColor(article.status)}`}>
+            {getStatusLabel(article.status)}
+          </span>
+        </div>
+      </Link>
 
       {/* Content */}
       <div className="px-5 py-4">
-        <h3 className="text-lg font-semibold text-white mb-2 leading-snug">{article.title}</h3>
-        <p className="text-sm text-white/40 mb-3">{article.excerpt}</p>
+        <Link to={`/tabloid/${article.id}`}>
+          <h3 className="text-lg font-semibold text-white mb-2 leading-snug group-hover:text-electric transition-colors">
+            {article.title}
+          </h3>
+        </Link>
+        <p className="text-sm text-white/40 mb-3 line-clamp-2">{article.excerpt}</p>
 
         {/* Meta */}
         <div className="flex items-center gap-4 text-xs text-white/30">
@@ -236,12 +255,6 @@ function ArticleCard({
               {article.editor}
             </span>
           )}
-          {article.publisher && (
-            <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
-              {article.publisher}
-            </span>
-          )}
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {article.readTime}
@@ -249,10 +262,10 @@ function ArticleCard({
         </div>
       </div>
 
-      {/* Tags + expand */}
+      {/* Tags + actions */}
       <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
-          {article.tags.map((tag) => (
+          {article.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 text-white/30 text-[10px]"
@@ -262,13 +275,22 @@ function ArticleCard({
             </span>
           ))}
         </div>
-        <button
-          onClick={onToggle}
-          className="text-xs text-electric hover:text-electric/80 transition-colors flex items-center gap-1"
-        >
-          {isExpanded ? "Collapse" : "Read AI Rewrite"}
-          <ArrowRight className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggle(); }}
+            className="text-xs text-white/40 hover:text-electric transition-colors flex items-center gap-1"
+          >
+            {isExpanded ? "Collapse" : "AI Summary"}
+            <ArrowRight className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+          </button>
+          <Link
+            to={`/tabloid/${article.id}`}
+            className="text-xs text-electric hover:text-electric/80 transition-colors flex items-center gap-1 font-medium"
+          >
+            Read Full Article
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
       </div>
 
       {/* Expanded AI Rewrite */}
@@ -287,6 +309,13 @@ function ArticleCard({
           </div>
           <p className="text-sm text-white/60 leading-relaxed">{article.aiRewrite}</p>
           <div className="mt-4 flex items-center gap-3">
+            <Link
+              to={`/tabloid/${article.id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-electric/10 text-electric text-xs font-medium hover:bg-electric/20 transition-all"
+            >
+              Read Full Article
+              <ArrowRight className="w-3 h-3" />
+            </Link>
             <a
               href={article.sourceUrl}
               target="_blank"
@@ -294,7 +323,7 @@ function ArticleCard({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-white/50 text-xs hover:bg-white/10 hover:text-white/70 transition-all"
             >
               <Globe className="w-3 h-3" />
-              View Original Source
+              Source
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>

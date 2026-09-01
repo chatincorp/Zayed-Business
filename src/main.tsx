@@ -24,6 +24,7 @@ const DemoCorporate = lazy(() => import("./pages/demos/DemoCorporate.tsx"));
 const DemoWebapp = lazy(() => import("./pages/demos/DemoWebapp.tsx"));
 const DemoEcommerce = lazy(() => import("./pages/demos/DemoEcommerce.tsx"));
 const TabloidIndex = lazy(() => import("./pages/tabloid/TabloidIndex.tsx"));
+const TabloidArticlePage = lazy(() => import("./pages/tabloid/TabloidArticlePage.tsx"));
 const FinancialMarkets = lazy(() => import("./pages/tabloid/FinancialMarkets.tsx"));
 const LiveForex = lazy(() => import("./pages/tabloid/LiveForex.tsx"));
 const EditorialDashboard = lazy(() => import("./pages/tabloid/EditorialDashboard.tsx"));
@@ -161,6 +162,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/demo/webapp" element={<DemoWebapp />} />
               <Route path="/demo/ecommerce" element={<DemoEcommerce />} />
               <Route path="/tabloid" element={<TabloidIndex />} />
+              <Route path="/tabloid/:id" element={<TabloidArticlePage />} />
               <Route path="/tabloid/markets" element={<FinancialMarkets />} />
               <Route path="/tabloid/forex" element={<LiveForex />} />
               <Route path="/tabloid/editorial" element={<EditorialDashboard />} />
