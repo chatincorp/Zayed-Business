@@ -23,6 +23,10 @@ const About = lazy(() => import("./pages/About.tsx"));
 const DemoCorporate = lazy(() => import("./pages/demos/DemoCorporate.tsx"));
 const DemoWebapp = lazy(() => import("./pages/demos/DemoWebapp.tsx"));
 const DemoEcommerce = lazy(() => import("./pages/demos/DemoEcommerce.tsx"));
+const TabloidIndex = lazy(() => import("./pages/tabloid/TabloidIndex.tsx"));
+const FinancialMarkets = lazy(() => import("./pages/tabloid/FinancialMarkets.tsx"));
+const LiveForex = lazy(() => import("./pages/tabloid/LiveForex.tsx"));
+const EditorialDashboard = lazy(() => import("./pages/tabloid/EditorialDashboard.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -156,6 +160,10 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/demo/corporate" element={<DemoCorporate />} />
               <Route path="/demo/webapp" element={<DemoWebapp />} />
               <Route path="/demo/ecommerce" element={<DemoEcommerce />} />
+              <Route path="/tabloid" element={<TabloidIndex />} />
+              <Route path="/tabloid/markets" element={<FinancialMarkets />} />
+              <Route path="/tabloid/forex" element={<LiveForex />} />
+              <Route path="/tabloid/editorial" element={<EditorialDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

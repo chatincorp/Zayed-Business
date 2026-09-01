@@ -24,7 +24,11 @@ const partners: Partner[] = [
     logo: svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 50"><rect width="140" height="50" fill="white" rx="4"/><text x="12" y="24" font-family="Arial,sans-serif" font-weight="800" font-size="16" fill="#232f3e">amazon</text><text x="12" y="40" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#ff9900">aws</text><path d="M100 34c6 2 14 1 20-2" stroke="#ff9900" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M116 31l4-2-1 5" fill="#ff9900"/></svg>`),
     color: "#ff9900",
   },
-  { name: "Google Cloud", logo: "/logos/google-cloud.png", color: "#4285f4" },
+  {
+    name: "Google Cloud",
+    logo: svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 50"><rect width="140" height="50" fill="white" rx="4"/><path d="M70 10l20 34H50z" fill="#4285f4"/><path d="M50 44l-14 16h28z" fill="#34a853"/><path d="M90 44l14 16H76z" fill="#ea4335"/><circle cx="70" cy="38" r="8" fill="#fbbc05"/><circle cx="70" cy="38" r="4" fill="white"/></svg>`),
+    color: "#4285f4",
+  },
   { name: "Oracle", logo: "/logos/oracle.png", color: "#c74634" },
   { name: "HP", logo: "/logos/hp.svg", color: "#0096d6" },
   { name: "Cisco", logo: "/logos/cisco.svg", color: "#049fd9" },

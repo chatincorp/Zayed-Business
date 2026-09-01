@@ -300,3 +300,27 @@
 .partner-track:hover {
   animation-play-state: paused;
 }
+
+/* Stock ticker marquee */
+@keyframes stockScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.stock-ticker {
+  animation: stockScroll 45s linear infinite;
+}
+.stock-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Forex ticker marquee */
+@keyframes forexScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.forex-ticker {
+  animation: forexScroll 50s linear infinite;
+}
+.forex-ticker:hover {
+  animation-play-state: paused;
+}

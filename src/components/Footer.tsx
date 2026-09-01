@@ -32,14 +32,13 @@ const footerNav = [
       { label: "AI Chatbots", href: "/services/custom-ai-chatbots" },
       { label: "Workflow Automation", href: "/services/workflow-automation" },
     ],
-  },
-  {
-    title: "Resources",
+  },    { title: "Resources",
     links: [
       { label: "Pricing", href: "/pricing" },
       { label: "Case Studies", href: "/#case-studies" },
-      { label: "Zayed Tabloid", href: "#" },
-      { label: "Blog", href: "#" },
+      { label: "Zayed Tabloid", href: "/tabloid" },
+      { label: "Live Markets", href: "/tabloid/markets" },
+      { label: "Live Forex", href: "/tabloid/forex" },
       { label: "Partner With Us", href: "/contact" },
     ],
   },
