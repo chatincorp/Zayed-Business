@@ -20,6 +20,9 @@ const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
+const DemoCorporate = lazy(() => import("./pages/demos/DemoCorporate.tsx"));
+const DemoWebapp = lazy(() => import("./pages/demos/DemoWebapp.tsx"));
+const DemoEcommerce = lazy(() => import("./pages/demos/DemoEcommerce.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -150,6 +153,9 @@ createRoot(document.getElementById("root")!).render(
                   </RequireAuth>
                 }
               />
+              <Route path="/demo/corporate" element={<DemoCorporate />} />
+              <Route path="/demo/webapp" element={<DemoWebapp />} />
+              <Route path="/demo/ecommerce" element={<DemoEcommerce />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
