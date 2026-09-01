@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
+import { countries, getOfficeForCountry } from "@/data/countries";
 import {
   Calendar,
   Users,
@@ -12,6 +13,7 @@ import {
   Phone,
   Mail,
   CheckCircle2,
+  Building2,
 } from "lucide-react";
 
 const tabs = [
@@ -79,6 +81,7 @@ const meetingFormats = ["In Person", "Phone", "Video Conference", "Other"];
 export default function Contact() {
   const [activeTab, setActiveTab] = useState("appointment");
   const [submitted, setSubmitted] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("KE");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,6 +199,8 @@ export default function Contact() {
                 <ContactForm
                   type={activeTab}
                   onSubmit={handleSubmit}
+                  selectedCountry={selectedCountry}
+                  onCountryChange={setSelectedCountry}
                 />
               </motion.div>
             )}
@@ -212,12 +217,19 @@ export default function Contact() {
 function ContactForm({
   type,
   onSubmit,
+  selectedCountry,
+  onCountryChange,
 }: {
   type: string;
   onSubmit: (e: React.FormEvent) => void;
+  selectedCountry: string;
+  onCountryChange: (code: string) => void;
 }) {
   const inputClass =
     "w-full px-4 py-3 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric transition-all";
+
+  const currentCountry = countries.find((c) => c.code === selectedCountry) || countries[0];
+  const office = getOfficeForCountry(selectedCountry);
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
@@ -262,10 +274,16 @@ function ContactForm({
             Personal Mobile Number <span className="text-destructive">*</span>
           </label>
           <div className="flex gap-2">
-            <select className="w-28 px-2 py-3 rounded-lg bg-card border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric transition-all">
-              <option>🇰🇪 +254</option>
-              <option>🇬🇧 +44</option>
-              <option>🇺🇸 +1</option>
+            <select
+              value={selectedCountry}
+              onChange={(e) => onCountryChange(e.target.value)}
+              className="w-36 px-2 py-3 rounded-lg bg-card border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric transition-all appearance-none cursor-pointer"
+            >
+              {countries.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.dial} {c.name}
+                </option>
+              ))}
             </select>
             <input type="tel" required className={`${inputClass} flex-1`} placeholder="Phone number" />
           </div>
@@ -428,6 +446,22 @@ function ContactForm({
           className={`${inputClass} resize-none`}
           placeholder="Tell us about your needs..."
         />
+      </div>
+
+      {/* RBAC Office Routing Info */}
+      <div className="p-4 rounded-xl bg-electric/5 border border-electric/20">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5 text-electric" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Routed to: {office.name}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Your request will be handled by our {currentCountry.region} office.{' '}
+              Contact: {office.email} · {office.phone}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Submit */}
