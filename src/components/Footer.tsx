@@ -3,35 +3,47 @@ import { Mail, Phone, ArrowUpRight } from "lucide-react";
 import YasirZayedLogo from "./YasirZayedLogo";
 import PartnerLogosCarousel from "./PartnerLogosCarousel";
 
-const footerNav = {
-  Company: [
-    { label: "About Us", href: "/about" },
-    { label: "Services", href: "/services" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "How We Work", href: "/#process" },
-    { label: "Contact", href: "/contact" },
-  ],
-  Services: [
-    { label: "Business Development", href: "/services/strategic-business-planning" },
-    { label: "Sales Strategy", href: "/services/sales-strategy-development" },
-    { label: "Marketing Strategy", href: "/services/marketing-strategy-planning" },
-    { label: "Security Solutions", href: "/services/cctv-surveillance-systems" },
-    { label: "AI Integration", href: "/services/ai-system-integration" },
-  ],
-  Technology: [
-    { label: "Web Development", href: "/services/custom-corporate-websites" },
-    { label: "WordPress Development", href: "/services/custom-wordpress-themes" },
-    { label: "AI Chatbots", href: "/services/custom-ai-chatbots" },
-    { label: "Workflow Automation", href: "/services/workflow-automation" },
-  ],
-  Resources: [
-    { label: "Pricing", href: "/pricing" },
-    { label: "Case Studies", href: "/#case-studies" },
-    { label: "Zayed Tabloid", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Partner With Us", href: "/contact" },
-  ],
-};
+const footerNav = [
+  {
+    title: "Company",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Services", href: "/services" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "How We Work", href: "/#process" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    title: "Services",
+    links: [
+      { label: "Business Development", href: "/services/strategic-business-planning" },
+      { label: "Sales Strategy", href: "/services/sales-strategy-development" },
+      { label: "Marketing Strategy", href: "/services/marketing-strategy-planning" },
+      { label: "Security Solutions", href: "/services/cctv-surveillance-systems" },
+      { label: "AI Integration", href: "/services/ai-system-integration" },
+    ],
+  },
+  {
+    title: "Technology",
+    links: [
+      { label: "Web Development", href: "/services/custom-corporate-websites" },
+      { label: "WordPress Development", href: "/services/custom-wordpress-themes" },
+      { label: "AI Chatbots", href: "/services/custom-ai-chatbots" },
+      { label: "Workflow Automation", href: "/services/workflow-automation" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Pricing", href: "/pricing" },
+      { label: "Case Studies", href: "/#case-studies" },
+      { label: "Zayed Tabloid", href: "#" },
+      { label: "Blog", href: "#" },
+      { label: "Partner With Us", href: "/contact" },
+    ],
+  },
+];
 
 export default function Footer() {
   return (
@@ -39,100 +51,97 @@ export default function Footer() {
       <div className="absolute inset-0 bg-grid-pattern-dark opacity-30" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Main footer — 3-column layout */}
-        <div className="py-14">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            {/* ── Brand column (left ~25%) ── */}
-            <div className="lg:col-span-3">
-              <Link to="/" className="inline-flex mb-5 group">
-                <YasirZayedLogo variant="full" color="white" height={110} />
-              </Link>
-              <p className="text-white/40 text-sm leading-relaxed mb-5 max-w-xs">
-                Building stronger businesses, smarter systems and secure futures. One partnership at a time.
-              </p>
-              <p className="text-white/30 text-xs leading-relaxed max-w-xs mb-5">
-                From business strategy and sales growth to security infrastructure, digital experiences and artificial intelligence — we help organizations build stronger foundations for sustainable growth.
-              </p>
+        {/* Main footer content */}
+        <div className="py-14 flex flex-col lg:flex-row gap-10">
+          {/* Brand column */}
+          <div className="w-full lg:w-64 shrink-0">
+            <Link to="/" className="inline-flex mb-5 group">
+              <YasirZayedLogo variant="full" color="white" height={110} />
+            </Link>
+            <p className="text-white/40 text-sm leading-relaxed mb-5">
+              Building stronger businesses, smarter systems and secure futures. One partnership at a time.
+            </p>
+            <p className="text-white/30 text-xs leading-relaxed mb-5">
+              From business strategy and sales growth to security infrastructure, digital experiences and artificial intelligence — we help organizations build stronger foundations for sustainable growth.
+            </p>
 
-              {/* Contact */}
-              <div className="space-y-2">
-                <a href="tel:+254114712989" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
-                  <Phone className="w-4 h-4" />
-                  +254 114 712 989
-                </a>
-                <a href="tel:+254717227012" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
-                  <Phone className="w-4 h-4" />
-                  +254 717 227 012
-                </a>
-                <a href="mailto:info@yasirzayed.com" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
-                  <Mail className="w-4 h-4" />
-                  info@yasirzayed.com
-                </a>
-              </div>
+            {/* Contact info */}
+            <div className="space-y-2">
+              <a href="tel:+254114712989" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
+                <Phone className="w-4 h-4" />
+                +254 114 712 989
+              </a>
+              <a href="tel:+254717227012" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
+                <Phone className="w-4 h-4" />
+                +254 717 227 012
+              </a>
+              <a href="mailto:info@yasirzayed.com" className="flex items-center gap-2 text-white/50 hover:text-electric text-sm transition-colors">
+                <Mail className="w-4 h-4" />
+                info@yasirzayed.com
+              </a>
             </div>
+          </div>
 
-            {/* ── Navigation columns (center ~50%) ── */}
-            <div className="lg:col-span-7">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
-                {Object.entries(footerNav).map(([title, links]) => (
-                  <div key={title}>
-                    <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">
-                      {title}
-                    </h4>
-                    <ul className="space-y-2.5">
-                      {links.map((link) => (
-                        <li key={link.label}>
-                          <Link
-                            to={link.href}
-                            className="text-white/40 hover:text-electric text-sm transition-colors flex items-center gap-1 group"
-                          >
-                            {link.label}
-                            <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+          {/* Navigation columns — fill remaining space */}
+          <div className="flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+              {footerNav.map((section) => (
+                <div key={section.title}>
+                  <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">
+                    {section.title}
+                  </h4>
+                  <ul className="space-y-2.5">
+                    {section.links.map((link) => (
+                      <li key={link.label}>
+                        <Link
+                          to={link.href}
+                          className="text-white/40 hover:text-electric text-sm transition-colors flex items-center gap-1 group"
+                        >
+                          {link.label}
+                          <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* ── Get in Touch CTA (right ~25%) ── */}
-            <div className="lg:col-span-2">
-              <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">
-                Get in Touch
-              </h4>
-              <p className="text-white/40 text-sm leading-relaxed mb-4">
-                Ready to grow your business? Let&apos;s start a conversation.
-              </p>
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-electric text-white text-sm font-semibold rounded-lg hover:bg-electric-dark transition-all duration-200 shadow-lg shadow-electric/20"
-              >
-                Contact Us
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
-            </div>
+          {/* Get in Touch CTA — fixed width on right */}
+          <div className="w-full lg:w-48 shrink-0">
+            <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">
+              Get in Touch
+            </h4>
+            <p className="text-white/40 text-sm leading-relaxed mb-4">
+              Ready to grow your business? Let&apos;s start a conversation.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-electric text-white text-sm font-semibold rounded-lg hover:bg-electric-dark transition-all duration-200 shadow-lg shadow-electric/20"
+            >
+              Contact Us
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
-        {/* ── Partner/Supplier Logos Carousel ── */}
-        {/* Below nav columns, full width, above legal bar */}
+        {/* Partner/Supplier Logos Carousel — below nav columns, above legal bar */}
         <div className="border-t border-white/5">
           <PartnerLogosCarousel />
         </div>
 
-        {/* ── Bottom legal bar ── */}
+        {/* Bottom legal bar */}
         <div className="py-5 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/30 text-xs">
-            © {new Date().getFullYear()} Yasir Zayed. All rights reserved.
+            &copy; {new Date().getFullYear()} Yasir Zayed. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-white/30 hover:text-white/50 text-xs transition-colors">
               Privacy Policy
             </a>
             <a href="#" className="text-white/30 hover:text-white/50 text-xs transition-colors">
-              Terms & Conditions
+              Terms &amp; Conditions
             </a>
             <a href="#" className="text-white/30 hover:text-white/50 text-xs transition-colors">
               Cookie Policy
