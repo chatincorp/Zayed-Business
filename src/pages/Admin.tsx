@@ -3,6 +3,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import ServicesManager from "@/components/admin/ServicesManager";
+import LeadsTable from "@/components/admin/LeadsTable";
+import TestimonialsManager from "@/components/admin/TestimonialsManager";
+import FAQManager from "@/components/admin/FAQManager";
+import BlogManager from "@/components/admin/BlogManager";
+import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import UsersManager from "@/components/admin/UsersManager";
+import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
 import {
   LayoutDashboard,
   FileText,
@@ -258,20 +266,21 @@ export default function Admin() {
         <div className="p-6">
           <AnimatePresence mode="wait">
             {activeSection === "dashboard" && <DashboardContent key="dashboard" />}
-            {activeSection === "homepage" && <PlaceholderContent key="homepage" title="Homepage Manager" description="Manage hero carousel slides, section ordering, visibility and content blocks." />}
-            {activeSection === "services" && <PlaceholderContent key="services" title="Service Manager" description="Create, edit and manage services across all categories." />}
-            {activeSection === "leads" && <PlaceholderContent key="leads" title="Lead Management" description="View, filter, assign and manage all incoming leads and inquiries." />}
-            {activeSection === "security" && <PlaceholderContent key="security" title="Security Solutions" description="Manage security categories, solutions, industries and CTA content." />}
-            {activeSection === "pages" && <PlaceholderContent key="pages" title="Pages" description="Create, edit and manage website pages with the block builder." />}
-            {activeSection === "media" && <PlaceholderContent key="media" title="Media Library" description="Upload, search, filter and manage all media assets." />}
-            {activeSection === "tabloid" && <PlaceholderContent key="tabloid" title="Zayed Tabloid" description="Create and manage articles for the Zayed Tabloid news section." />}
-            {activeSection === "seo-dashboard" && <PlaceholderContent key="seo" title="SEO Dashboard" description="Monitor SEO health, keywords, technical issues and regional targeting." />}
-            {activeSection === "ai-assistant" && <PlaceholderContent key="ai-assist" title="AI Assistant" description="AI-powered content assistance for writing, rewriting, improving and generating content." />}
-            {activeSection === "yasir-verify" && <PlaceholderContent key="verify" title="YASIR VERIFY™" description="Configure human verification, risk thresholds and bot protection settings." />}
-            {activeSection === "users" && <PlaceholderContent key="users" title="User Management" description="Manage users, roles, permissions and access controls." />}
+            {activeSection === "services" && <ServicesManager key="services" />}
+            {activeSection === "leads" && <LeadsTable key="leads" />}
+            {activeSection === "testimonials" && <TestimonialsManager key="testimonials" />}
+            {activeSection === "faq" && <FAQManager key="faq" />}
+            {activeSection === "blog" && <BlogManager key="blog" />}
+            {activeSection === "analytics" && <AnalyticsDashboard key="analytics" />}
+            {activeSection === "users" && <UsersManager key="users" />}
+            {activeSection === "system-health" && <SystemHealthPanel key="system-health" />}
+            {activeSection === "security-logs" && <SecurityLogsPanel key="security-logs" />}
+            {activeSection === "integrations" && <IntegrationsPanel key="integrations" />}
+            {(activeSection === "seo-dashboard" || activeSection === "page-seo" || activeSection === "keywords" || activeSection === "regional-seo" || activeSection === "technical-seo") && <SEOToolkitPanel key="seo" />}
+            {activeSection === "media" && <MediaLibraryPanel key="media" />}
             {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
             {activeSection === "projects" && <AdminProjectsContent key="projects" />}
-            {!["dashboard", "homepage", "services", "leads", "security", "pages", "media", "tabloid", "seo-dashboard", "ai-assistant", "yasir-verify", "users", "global-settings"].includes(activeSection) && (
+            {!["dashboard", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects"].includes(activeSection) && (
               <PlaceholderContent key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
           </AnimatePresence>
