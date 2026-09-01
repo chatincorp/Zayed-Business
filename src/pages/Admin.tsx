@@ -13,6 +13,7 @@ import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import UsersManager from "@/components/admin/UsersManager";
 import RBACPanel from "@/components/admin/RBACPanel";
 import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
+import { HomepageManagerPanel, AIAssistantPanel, YasirVerifyPanel, CampaignsPanel, EmailTemplatesPanel, CTAsPanel, PartnersPanel, RateLimitingPanel, BlockedActivityPanel, AuditLogsPanel, AISettingsPanel, GenericAdminPanel } from "@/components/admin/RemainingPanels";
 import {
   LayoutDashboard,
   FileText,
@@ -283,8 +284,26 @@ export default function Admin() {
             {activeSection === "media" && <MediaLibraryPanel key="media" />}
             {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
             {activeSection === "projects" && <AdminProjectsContent key="projects" />}
-            {!["dashboard", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects"].includes(activeSection) && (
-              <PlaceholderContent key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
+            {/* Homepage */}
+            {activeSection === "homepage" && <HomepageManagerPanel key="homepage" />}
+            {/* AI */}
+            {activeSection === "ai-assistant" && <AIAssistantPanel key="ai-assistant" />}
+            {activeSection === "ai-settings" && <AISettingsPanel key="ai-settings" />}
+            {/* Security */}
+            {activeSection === "yasir-verify" && <YasirVerifyPanel key="yasir-verify" />}
+            {activeSection === "rate-limiting" && <RateLimitingPanel key="rate-limiting" />}
+            {activeSection === "blocked" && <BlockedActivityPanel key="blocked" />}
+            {/* Marketing */}
+            {activeSection === "campaigns" && <CampaignsPanel key="campaigns" />}
+            {activeSection === "email-templates" && <EmailTemplatesPanel key="email-templates" />}
+            {activeSection === "ctas" && <CTAsPanel key="ctas" />}
+            {/* Website */}
+            {activeSection === "partners" && <PartnersPanel key="partners" />}
+            {/* System */}
+            {activeSection === "audit-logs" && <AuditLogsPanel key="audit-logs" />}
+            {/* Catch-all for remaining sections */}
+            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs"].includes(activeSection) && (
+              <GenericAdminPanel key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
           </AnimatePresence>
         </div>
@@ -437,30 +456,7 @@ function DashboardContent() {
   );
 }
 
-function PlaceholderContent({ title, description }: { title: string; description: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-    >
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="text-muted-foreground text-sm mt-1">{description}</p>
-      </div>
 
-      <div className="rounded-xl bg-card border border-border p-12 text-center">
-        <div className="w-16 h-16 mx-auto rounded-xl bg-muted flex items-center justify-center mb-4">
-          <Layers className="w-7 h-7 text-muted-foreground/40" />
-        </div>
-        <h3 className="font-semibold text-foreground mb-2">Coming Soon</h3>
-        <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-          This section will be connected to the Convex backend for full content management capabilities.
-        </p>
-      </div>
-    </motion.div>
-  );
-}
 
 function GlobalSettingsContent() {
   const [brandName, setBrandName] = useState("YASIR ZAYED");
