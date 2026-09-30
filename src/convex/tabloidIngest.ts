@@ -45,15 +45,65 @@ interface RawItem {
   image?: string;
 }
 
-function extractImage(block: string): string | undefined {
-  const enc = block.match(/<enclosure[^>]+url="([^"]+)"[^>]*\/?>(?:<\/enclosure>)?/i);
-  if (enc?.[1] && /\.(jpe?g|png|webp|gif)/i.test(enc[1])) return enc[1];
-  const media = block.match(/<media:(?:content|thumbnail)[^>]+url="([^"]+)"/i);
-  if (media?.[1] && /\.(jpe?g|png|webp|gif)/i.test(media[1])) return media[1];
-  return undefined;
+function absolutizeUrl(u: string, base: string): string {
+  try {
+    return new URL(u, base).href;
+  } catch {
+    return u;
+  }
 }
 
-function parseFeed(xml: string): RawItem[] {
+function isArticleImage(u: string): boolean {
+  if (!u) return false;
+  // Reject tracking pixels / tiny assets / logos.
+  if (/(1x1|pixel|spacer|blank|\.svg)(\?|$)/i.test(u)) return false;
+  return /\.(jpe?g|png|webp)(\?|$)/i.test(u) || /\/photo\//.test(u);
+}
+
+/**
+ * Extract the original article image from a raw RSS/Atom item block.
+ * Priority: media:content (widest) → media:thumbnail → enclosure → inline <img>.
+ */
+function extractImage(block: string, feedUrl: string): string | undefined {
+  const candidates: string[] = [];
+  let m: RegExpExecArray | null;
+
+  // 1. Media RSS — collect url + width so we can pick the largest.
+  const mediaRe = /<media:(?:content|thumbnail)\b[^>]*>/gi;
+  while ((m = mediaRe.exec(block)) !== null) {
+    const url = m[0].match(/url="([^"]+)"/i)?.[1];
+    if (!url || !isArticleImage(url)) continue;
+    const w = Number(m[0].match(/width="(\d+)"/i)?.[1] ?? 0);
+    candidates.push(`${w}|${url}`);
+  }
+
+  // 2. <enclosure url=... type="image/...">
+  const encRe = /<enclosure\b[^>]*>/gi;
+  while ((m = encRe.exec(block)) !== null) {
+    const url = m[0].match(/url="([^"]+)"/i)?.[1];
+    const type = m[0].match(/type="([^"]+)"/i)?.[1] ?? "";
+    if (url && (type.startsWith("image") || /\.(jpe?g|png|webp)(\?|$)/i.test(url))) {
+      candidates.push(`0|${url}`);
+    }
+  }
+
+  // 3. Inline <img src=...> (Google News, some Atom content blocks).
+  const imgRe = /<img\b[^>]*>/gi;
+  while ((m = imgRe.exec(block)) !== null) {
+    const url =
+      m[0].match(/(?:data-)?src="([^"]+)"/i)?.[1] ??
+      m[0].match(/srcset="([^"]+?)\s/)?.[1];
+    if (url && isArticleImage(url)) candidates.push(`0|${url}`);
+  }
+
+  if (candidates.length === 0) return undefined;
+
+  // Widest media:content first; ties resolved by encounter order.
+  candidates.sort((a, b) => Number(b.split("|")[0]) - Number(a.split("|")[0]));
+  return absolutizeUrl(candidates[0].split("|").slice(1).join("|"), feedUrl);
+}
+
+function parseFeed(xml: string, feedUrl: string): RawItem[] {
   const items: RawItem[] = [];
   const blocks =
     xml.match(/<item[\s>][\s\S]*?<\/item>/gi) ??
@@ -84,7 +134,7 @@ function parseFeed(xml: string): RawItem[] {
       link,
       description,
       pubDate: Number.isFinite(pubDate) ? pubDate : Date.now(),
-      image: extractImage(block),
+      image: extractImage(block, feedUrl),
     });
   }
   return items;
@@ -341,7 +391,7 @@ export const ingestNews = action({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const xml = await res.text();
-        const rawItems = parseFeed(xml).slice(0, maxPerFeed);
+        const rawItems = parseFeed(xml, source.url).slice(0, maxPerFeed);
         const prepared: Array<Record<string, unknown>> = [];
 
         for (const item of rawItems) {
@@ -365,6 +415,13 @@ export const ingestNews = action({
             }
           }
 
+          // SEO metadata — derived from the final title/body after any AI rewrite.
+          const seoTitle = `${rewrite.title.slice(0, 60)} | Zayed Tabloid`.slice(0, 100);
+          const seoDescription =
+            (sentenceSplit(rewrite.body)[0] ?? rewrite.excerpt).replace(/\s+/g, " ").trim().slice(0, 155) ||
+            rewrite.excerpt.slice(0, 155);
+          const seoKeywords = tags.join(", ");
+
           prepared.push({
             dedupeKey,
             sourceName: source.name,
@@ -378,8 +435,11 @@ export const ingestNews = action({
             image: item.image,
             category,
             tags,
+            seoTitle,
+            seoDescription,
+            seoKeywords,
             readTime,
-            author: "Zayed AI",
+            author: "Zayed News Desk",
             editor: "News Desk",
             status: autoPublish ? "published" : "rewritten",
             publishedAt: Math.max(item.pubDate, now - 48 * 60 * 60 * 1000),

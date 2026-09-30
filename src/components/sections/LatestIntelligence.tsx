@@ -115,8 +115,8 @@ export default function LatestIntelligence() {
               Latest <span className="text-electric">Intelligence</span>
             </h2>
             <p className="text-white/45 text-sm mt-2 max-w-xl">
-              Business, technology and market signals — continuously fetched from leading global
-              sources and rewritten by the Zayed AI editorial engine.
+              Business, technology and market signals — continuously gathered from leading global
+              sources by the Zayed Tabloid news desk.
             </p>
           </div>
 

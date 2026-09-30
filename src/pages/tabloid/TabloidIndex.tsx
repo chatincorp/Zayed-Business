@@ -13,7 +13,6 @@ import {
   TrendingUp,
   DollarSign,
   Clock,
-  Bot,
   PenTool,
   Radio,
   RefreshCw,
@@ -141,7 +140,7 @@ export default function TabloidIndex() {
   useSEO({
     title: "Zayed Tabloid — Business, Technology & Global Markets News",
     description:
-      "AI-curated business, technology, security and markets news from the world's leading sources — continuously fetched and rewritten in human editorial style. Live stocks, forex and East African market intelligence.",
+      "Business, technology, security and markets news from the world's leading sources — curated and published by the Zayed Tabloid news desk. Live stocks, forex and East African market intelligence.",
     path: "/tabloid",
     keywords:
       "Kenya business news, global markets, technology news, AI news, live forex, stock markets, East Africa business, Zayed Tabloid",
@@ -200,8 +199,8 @@ export default function TabloidIndex() {
                   Business. Technology. <span className="text-electric">Markets.</span>
                 </h1>
                 <p className="text-white/45 text-sm mt-2 max-w-2xl">
-                  Continuously fetched from leading global sources, rewritten by our AI
-                  editorial engine — then refined by human desks before publishing.
+                  Continuously fetched from leading global sources and curated by the
+                  Zayed Tabloid news desk — with live stocks, forex and market intelligence.
                 </p>
               </div>
 
@@ -355,6 +354,7 @@ export default function TabloidIndex() {
                           alt=""
                           className="w-16 h-16 rounded-lg object-cover shrink-0"
                           loading="lazy"
+                          referrerPolicy="no-referrer"
                         />
                         <div className="min-w-0">
                           <p className="text-[10px] font-bold text-electric/80 uppercase tracking-wider mb-0.5">
@@ -426,6 +426,7 @@ function LeadStory({ item }: { item: FeedItem }) {
             src={imgFor(item)}
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+            referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#060a14] via-[#060a14]/55 to-transparent" />
 
@@ -453,8 +454,9 @@ function LeadStory({ item }: { item: FeedItem }) {
             </p>
             <div className="flex items-center gap-3 mt-4 text-[11px] text-white/40">
               <span className="flex items-center gap-1.5">
-                <Bot className="w-3 h-3 text-electric" />
                 {item.author}
+                <span className="text-white/20">·</span>
+                <span className="text-white/40">{item.sourceName}</span>
               </span>
               <span>·</span>
               <span><AgoChip ts={item.publishedAt} /></span>
@@ -487,6 +489,7 @@ function StandardCard({ item, index }: { item: FeedItem; index: number }) {
           alt={item.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
+          referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
         <span className="absolute top-3 left-3 px-2 py-0.5 rounded bg-electric/85 text-white text-[10px] font-bold uppercase tracking-wider">
@@ -502,8 +505,9 @@ function StandardCard({ item, index }: { item: FeedItem; index: number }) {
         <p className="text-[13px] text-white/40 mt-2 line-clamp-2">{item.excerpt}</p>
         <div className="flex items-center gap-2 mt-3 text-[11px] text-white/30">
           <span className="flex items-center gap-1">
-            <Bot className="w-3 h-3" />
             {item.author}
+            <span className="text-white/20">·</span>
+            <span className="text-white/40">{item.sourceName}</span>
           </span>
           <span>·</span>
           <span><AgoChip ts={item.publishedAt} /></span>

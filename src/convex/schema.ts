@@ -249,9 +249,12 @@ const schema = defineSchema(
       excerpt: v.string(),
       aiRewrite: v.string(),
       body: v.string(),
-      image: v.optional(v.string()),
+      image: v.optional(v.string()), // original article image from the source feed
       category: v.string(),
       tags: v.array(v.string()),
+      seoTitle: v.optional(v.string()),
+      seoDescription: v.optional(v.string()),
+      seoKeywords: v.optional(v.string()),
       readTime: v.string(),
       author: v.string(),
       editor: v.optional(v.string()),

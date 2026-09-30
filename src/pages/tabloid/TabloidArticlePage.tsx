@@ -40,6 +40,7 @@ const categoryImages: Record<string, string> = {
 interface ArticleView {
   id: string;
   title: string;
+  originalTitle?: string;
   excerpt: string;
   body: string;
   aiRewrite: string;
@@ -50,6 +51,9 @@ interface ArticleView {
   readTime: string;
   publishedAt: number;
   image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
   tags: string[];
   sourceName: string;
   sourceUrl: string;
@@ -71,6 +75,7 @@ export default function TabloidArticlePage() {
     ? {
         id: live._id,
         title: live.title,
+        originalTitle: live.originalTitle,
         excerpt: live.excerpt,
         body: live.body,
         aiRewrite: live.aiRewrite,
@@ -81,6 +86,9 @@ export default function TabloidArticlePage() {
         readTime: live.readTime,
         publishedAt: live.publishedAt,
         image: live.image,
+        seoTitle: live.seoTitle,
+        seoDescription: live.seoDescription,
+        seoKeywords: live.seoKeywords,
         tags: live.tags,
         sourceName: live.sourceName,
         sourceUrl: live.sourceUrl,
@@ -112,23 +120,31 @@ export default function TabloidArticlePage() {
     : [];
 
   /* ── SEO + NewsArticle structured data ── */
+  const heroImage =
+    article?.image || (article ? categoryImages[article.category] : undefined) || categoryImages.Technology;
+  const seoTitle = article?.seoTitle || article?.title || "Article";
+  const seoDescription = article?.seoDescription || article?.excerpt || "";
+  const seoKeywords = article?.seoKeywords || article?.tags.join(", ") || "";
+
   useSEO(
     article
       ? {
-          title: article.title,
-          description: article.excerpt,
+          title: seoTitle,
+          description: seoDescription,
           path: `/tabloid/${article.id}`,
           type: "article",
-          image: article.image || categoryImages[article.category] || categoryImages.Technology,
+          image: heroImage,
           publishedTime: new Date(article.publishedAt).toISOString(),
+          modifiedTime: new Date().toISOString(),
           author: article.author,
-          keywords: article.tags.join(", "),
+          keywords: seoKeywords,
           jsonLd: {
             "@context": "https://schema.org",
             "@type": "NewsArticle",
             headline: article.title,
-            description: article.excerpt,
-            image: [article.image || categoryImages[article.category] || categoryImages.Technology],
+            alternativeHeadline: article.originalTitle || article.title,
+            description: seoDescription,
+            image: [heroImage],
             datePublished: new Date(article.publishedAt).toISOString(),
             dateModified: new Date(article.publishedAt).toISOString(),
             author: { "@type": "Organization", name: article.author },
@@ -141,8 +157,10 @@ export default function TabloidArticlePage() {
               "@type": "WebPage",
               "@id": `${SEO_SITE_URL}/tabloid/${article.id}`,
             },
-            keywords: article.tags.join(", "),
+            keywords: seoKeywords,
             articleSection: article.category,
+            inLanguage: "en",
+            isAccessibleForFree: true,
           },
         }
       : {
@@ -176,7 +194,6 @@ export default function TabloidArticlePage() {
     );
   }
 
-  const heroImage = article.image || categoryImages[article.category] || categoryImages.Technology;
   const bodyParagraphs = article.body.split("\n\n").filter((p) => p.trim());
   const publishedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -198,6 +215,7 @@ export default function TabloidArticlePage() {
           alt={article.title}
           className="w-full h-full object-cover"
           loading="eager"
+          referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#060a14] via-[#060a14]/60 to-transparent" />
 
@@ -237,7 +255,7 @@ export default function TabloidArticlePage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-white/80">{article.author}</p>
-                <p className="text-[10px] text-white/30">AI Content Engine · Human-reviewed</p>
+                <p className="text-[10px] text-white/30">Zayed Tabloid · {article.sourceName}</p>
               </div>
             </div>
 
@@ -379,6 +397,7 @@ export default function TabloidArticlePage() {
                         alt={rel.title}
                         className="w-20 h-20 rounded-lg object-cover shrink-0"
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white/80 group-hover:text-white line-clamp-2 transition-colors">
