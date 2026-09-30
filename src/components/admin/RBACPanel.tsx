@@ -55,73 +55,6 @@ interface ChatMessage {
   messages: { from: string; text: string; time: string }[];
 }
 
-/* ── Mock Data ──────────────────────────────────────────────── */
-
-const mockDepartments: Department[] = [
-  { id: "1", name: "Business Development", head: "Yasir Zayed", staffCount: 3, description: "Growth strategy, partnerships, and market expansion" },
-  { id: "2", name: "Technology", head: "Tech Desk", staffCount: 4, description: "Web development, AI, automation, and infrastructure" },
-  { id: "3", name: "Security", head: "Security Desk", staffCount: 2, description: "CCTV, access control, cybersecurity, and YASIR VERIFY" },
-  { id: "4", name: "Marketing", head: "Marketing Lead", staffCount: 2, description: "Digital marketing, content, SEO, and campaigns" },
-  { id: "5", name: "Client Services", head: "Client Success", staffCount: 3, description: "Client onboarding, support, and relationship management" },
-  { id: "6", name: "Finance", head: "Finance Lead", staffCount: 1, description: "Invoicing, payments, budgets, and financial reporting" },
-];
-
-const mockStaff: Staff[] = [
-  { id: "1", name: "Yasir Zayed", email: "yasir@yasirzayed.com", role: "super_admin", department: "Business Development", status: "active", responsibilities: ["Company strategy", "Client relationships", "Final approvals", "Business growth"], joinedAt: "2024-01-15" },
-  { id: "2", name: "Content Desk", email: "content@yasirzayed.com", role: "admin", department: "Marketing", status: "active", responsibilities: ["Article writing", "SEO content", "Social media", "Brand voice"], joinedAt: "2025-03-01" },
-  { id: "3", name: "Tech Lead", email: "tech@yasirzayed.com", role: "admin", department: "Technology", status: "active", responsibilities: ["Web development", "AI integration", "System architecture", "Code review"], joinedAt: "2025-01-10" },
-  { id: "4", name: "Security Ops", email: "security@yasirzayed.com", role: "manager", department: "Security", status: "active", responsibilities: ["CCTV installation", "Access control", "Security audits", "Incident response"], joinedAt: "2025-06-15" },
-  { id: "5", name: "Client Success", email: "clients@yasirzayed.com", role: "manager", department: "Client Services", status: "active", responsibilities: ["Client onboarding", "Support tickets", "Satisfaction tracking", "Retention"], joinedAt: "2025-04-20" },
-  { id: "6", name: "Marketing Exec", email: "marketing@yasirzayed.com", role: "staff", department: "Marketing", status: "active", responsibilities: ["Campaign execution", "Social media posts", "Email newsletters"], joinedAt: "2025-08-01" },
-  { id: "7", name: "Junior Dev", email: "dev@yasirzayed.com", role: "staff", department: "Technology", status: "pending", responsibilities: ["Frontend development", "Bug fixes", "Testing"], joinedAt: "2026-08-28" },
-  { id: "8", name: "Contractor", email: "contractor@example.com", role: "staff", department: "Technology", status: "suspended", responsibilities: ["WordPress development"], joinedAt: "2026-06-01" },
-];
-
-const mockSubmissions: FormSubmission[] = [
-  { id: "1", name: "James Mwangi", email: "james@techcorp.co.ke", subject: "AI Chatbot Integration", message: "We need an AI chatbot for our e-commerce platform. Can you handle product recommendations and order tracking?", department: "Technology", status: "unread", createdAt: "2026-09-01T10:30:00Z" },
-  { id: "2", name: "Sarah Williams", email: "sarah@greenfield.com", subject: "Website Redesign", message: "Our corporate site needs a complete overhaul. We want something modern with a client portal.", department: "Technology", status: "replied", createdAt: "2026-08-31T14:20:00Z" },
-  { id: "3", name: "Ahmed Hassan", email: "ahmed@albaraka.ae", subject: "Security Assessment", message: "We need a comprehensive security assessment for our new office building in Dubai.", department: "Security", status: "escalated", createdAt: "2026-08-30T09:15:00Z" },
-  { id: "4", name: "Priya Patel", email: "priya@innovate.in", subject: "Partnership Inquiry", message: "Interested in a technology partnership for the Indian market. Can we schedule a call?", department: "Business Development", status: "unread", createdAt: "2026-08-29T16:45:00Z" },
-];
-
-const mockChats: ChatMessage[] = [
-  {
-    id: "1", client: "James Mwangi", clientEmail: "james@techcorp.co.ke",
-    message: "Hi, I need help with setting up the AI chatbot on our site",
-    department: "Technology", assignedTo: "Tech Lead", status: "active",
-    createdAt: "2026-09-01T10:30:00Z",
-    messages: [
-      { from: "James Mwangi", text: "Hi, I need help with setting up the AI chatbot on our site", time: "10:30" },
-      { from: "Tech Lead", text: "Hello James! I'd be happy to help. What platform is your website built on?", time: "10:32" },
-      { from: "James Mwangi", text: "It's a custom React app with a Node.js backend", time: "10:33" },
-      { from: "Tech Lead", text: "Perfect, we can integrate our AI chatbot solution directly. Let me send you a scope document.", time: "10:35" },
-    ],
-  },
-  {
-    id: "2", client: "Sarah Williams", clientEmail: "sarah@greenfield.com",
-    message: "When can we expect the first design mockups?",
-    department: "Technology", assignedTo: "Junior Dev", status: "waiting",
-    createdAt: "2026-08-31T14:20:00Z",
-    messages: [
-      { from: "Sarah Williams", text: "When can we expect the first design mockups?", time: "14:20" },
-      { from: "Junior Dev", text: "Hi Sarah, the design team is working on them. Expected by Friday.", time: "14:25" },
-      { from: "Sarah Williams", text: "Can we get an interim preview sooner?", time: "14:30" },
-    ],
-  },
-  {
-    id: "3", client: "Ahmed Hassan", clientEmail: "ahmed@albaraka.ae",
-    message: "We need the security audit report urgently",
-    department: "Security", assignedTo: "Security Ops", status: "escalated",
-    createdAt: "2026-08-30T09:15:00Z",
-    messages: [
-      { from: "Ahmed Hassan", text: "We need the security audit report urgently", time: "09:15" },
-      { from: "Security Ops", text: "Ahmed, the audit is 80% complete. I'll have the preliminary report by tomorrow.", time: "09:20" },
-      { from: "Ahmed Hassan", text: "Our board meeting is on Wednesday. Can you expedite?", time: "09:22" },
-      { from: "Security Ops", text: "I'll escalate this to our management. We'll prioritize your report.", time: "09:25" },
-    ],
-  },
-];
-
 /* ── Helper ─────────────────────────────────────────────────── */
 
 const roleColors: Record<string, string> = {
@@ -182,21 +115,30 @@ export default function RBACPanel() {
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [showCreateDept, setShowCreateDept] = useState(false);
   const [expandedChat, setExpandedChat] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chatId = expandedChat as any;
   const [expandedSubmission, setExpandedSubmission] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [chatInput, setChatInput] = useState("");
 
   const handleSendChatMessage = async () => {
-    if (!chatId || !chatInput.trim()) return;
-    await addChatMessageMut({ chatId, from: "Admin", text: chatInput });
+    if (!expandedChat || !chatInput.trim()) return;
+    await addChatMessageMut({ chatId: expandedChat, from: "Admin", text: chatInput });
     setChatInput("");
   };
 
   const handleEscalateChat = async (assignTo: string) => {
-    if (!chatId) return;
-    await escalateChatMut({ chatId, assignTo });
+    if (!expandedChat) return;
+    await escalateChatMut({ chatId: expandedChat, assignTo });
+  };
+
+  const handleReplySubmission = async () => {
+    if (!expandedSubmission || !replyText.trim()) return;
+    await updateSubmissionStatusMut({ id: expandedSubmission, status: "replied" });
+    setReplyText("");
+  };
+
+  const handleEscalateSubmission = async () => {
+    if (!expandedSubmission) return;
+    await updateSubmissionStatusMut({ id: expandedSubmission, status: "escalated" });
   };
 
 
@@ -238,15 +180,15 @@ export default function RBACPanel() {
     setNewDeptName(""); setNewDeptHead(""); setNewDeptDesc(""); setShowCreateDept(false);
   };
 
-  const handleToggleStaffStatus = async (id: any, status: StaffStatus) => {
+  const handleToggleStaffStatus = async (id: string, status: StaffStatus) => {
     await updateStaffStatusMut({ id, status });
   };
 
-  const handleDeleteStaff = async (id: any) => {
+  const handleDeleteStaff = async (id: string) => {
     await deleteStaffMut({ id });
   };
 
-  const handleDeleteDept = async (id: any) => {
+  const handleDeleteDept = async (id: string) => {
     await deleteDepartmentMut({ id });
   };
 
