@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
   Plus, Search, Users, Building2, MessageSquare,
   Trash2, Send,
@@ -9,53 +10,16 @@ import {
   Ban, UserCheck, FileText,
 } from "lucide-react";
 
-/* ── Types ──────────────────────────────────────────────────── */
+/* ── Types (from Convex schema) ─────────────────────────────── */
 
 type StaffStatus = "active" | "pending" | "suspended";
+type StaffDoc = Doc<"staff">;
+type DeptDoc = Doc<"departments">;
+type SubmissionDoc = Doc<"formSubmissions">;
+type ChatDoc = Doc<"chats">;
+type ChatMsg = ChatDoc["messages"][number];
 
-interface Department {
-  id: string;
-  name: string;
-  head: string;
-  staffCount: number;
-  description: string;
-}
-
-interface Staff {
-  id: string;
-  name: string;
-  email: string;
-  role: "super_admin" | "admin" | "manager" | "staff";
-  department: string;
-  status: StaffStatus;
-  responsibilities: string[];
-  joinedAt: string;
-}
-
-interface FormSubmission {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  department: string;
-  status: "unread" | "replied" | "escalated";
-  createdAt: string;
-}
-
-interface ChatMessage {
-  id: string;
-  client: string;
-  clientEmail: string;
-  message: string;
-  department: string;
-  assignedTo: string;
-  status: "active" | "waiting" | "resolved" | "escalated";
-  createdAt: string;
-  messages: { from: string; text: string; time: string }[];
-}
-
-/* ── Helper ─────────────────────────────────────────────────── */
+/* ── Status color helpers ───────────────────────────────────── */
 
 const roleColors: Record<string, string> = {
   super_admin: "bg-electric/10 text-electric",
@@ -89,7 +53,8 @@ type Tab = "staff" | "departments" | "submissions" | "chats";
 
 export default function RBACPanel() {
   const [tab, setTab] = useState<Tab>("staff");
-  // Convex queries
+
+  // Convex queries (reactive)
   const dbDepartments = useQuery(api.adminRbac.listDepartments);
   const dbStaff = useQuery(api.adminRbac.listStaff);
   const dbSubmissions = useQuery(api.adminRbac.listFormSubmissions);
@@ -103,44 +68,21 @@ export default function RBACPanel() {
   const deleteStaffMut = useMutation(api.adminRbac.deleteStaff);
   const updateSubmissionStatusMut = useMutation(api.adminRbac.updateSubmissionStatus);
   const escalateChatMut = useMutation(api.adminRbac.escalateChat);
-  const updateChatStatusMut = useMutation(api.adminRbac.updateChatStatus);
   const addChatMessageMut = useMutation(api.adminRbac.addChatMessage);
 
-  // Use DB data
-  const departments = dbDepartments ?? [];
-  const staffList = dbStaff ?? [];
-  const submissions = dbSubmissions ?? [];
-  const chats = dbChats ?? [];
+  // DB data (empty arrays while loading)
+  const departments: DeptDoc[] = dbDepartments ?? [];
+  const staffList: StaffDoc[] = dbStaff ?? [];
+  const submissions: SubmissionDoc[] = dbSubmissions ?? [];
+  const chats: ChatDoc[] = dbChats ?? [];
+
   const [search, setSearch] = useState("");
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [showCreateDept, setShowCreateDept] = useState(false);
-  const [expandedChat, setExpandedChat] = useState<string | null>(null);
-  const [expandedSubmission, setExpandedSubmission] = useState<string | null>(null);
+  const [expandedChat, setExpandedChat] = useState<Id<"chats"> | null>(null);
+  const [expandedSubmission, setExpandedSubmission] = useState<Id<"formSubmissions"> | null>(null);
   const [replyText, setReplyText] = useState("");
   const [chatInput, setChatInput] = useState("");
-
-  const handleSendChatMessage = async () => {
-    if (!expandedChat || !chatInput.trim()) return;
-    await addChatMessageMut({ chatId: expandedChat, from: "Admin", text: chatInput });
-    setChatInput("");
-  };
-
-  const handleEscalateChat = async (assignTo: string) => {
-    if (!expandedChat) return;
-    await escalateChatMut({ chatId: expandedChat, assignTo });
-  };
-
-  const handleReplySubmission = async () => {
-    if (!expandedSubmission || !replyText.trim()) return;
-    await updateSubmissionStatusMut({ id: expandedSubmission, status: "replied" });
-    setReplyText("");
-  };
-
-  const handleEscalateSubmission = async () => {
-    if (!expandedSubmission) return;
-    await updateSubmissionStatusMut({ id: expandedSubmission, status: "escalated" });
-  };
-
 
   // New staff form
   const [newName, setNewName] = useState("");
@@ -154,17 +96,32 @@ export default function RBACPanel() {
   const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptDesc, setNewDeptDesc] = useState("");
 
-  const tabs: { id: Tab; label: string; icon: typeof Users; count: number }[] = [
-    { id: "staff", label: "Staff", icon: Users, count: staffList.length },
-    { id: "departments", label: "Departments", icon: Building2, count: departments.length },
-    { id: "submissions", label: "Form Submissions", icon: FileText, count: submissions.filter((s) => s.status === "unread").length },
-    { id: "chats", label: "Live Chats", icon: MessageSquare, count: chats.filter((c) => c.status === "active").length },
-  ];
+  const handleSendChatMessage = async () => {
+    if (!expandedChat || !chatInput.trim()) return;
+    await addChatMessageMut({ chatId: expandedChat, from: "Admin", text: chatInput });
+    setChatInput("");
+  };
+
+  const handleEscalateChat = (chat: ChatDoc) => {
+    void escalateChatMut({ chatId: chat._id, assignTo: chat.assignedTo });
+  };
+
+  const handleReplySubmission = (id: Id<"formSubmissions">) => {
+    if (!replyText.trim()) return;
+    void updateSubmissionStatusMut({ id, status: "replied" });
+    setReplyText("");
+  };
+
+  const handleEscalateSubmission = (id: Id<"formSubmissions">) => {
+    void updateSubmissionStatusMut({ id, status: "escalated" });
+  };
 
   const handleCreateStaff = async () => {
-    if (!newName.trim() || !newEmail.trim()) return;
+    if (!newName || !newEmail) return;
     await createStaffMut({
-      name: newName, email: newEmail, role: newRole,
+      name: newName,
+      email: newEmail,
+      role: newRole,
       department: newDept,
       responsibilities: newResponsibilities.split(",").map((r) => r.trim()).filter(Boolean),
       joinedAt: new Date().toISOString().split("T")[0],
@@ -173,35 +130,43 @@ export default function RBACPanel() {
   };
 
   const handleCreateDept = async () => {
-    if (!newDeptName.trim()) return;
+    if (!newDeptName) return;
     await createDepartmentMut({
       name: newDeptName, head: newDeptHead || "TBD", description: newDeptDesc,
     });
     setNewDeptName(""); setNewDeptHead(""); setNewDeptDesc(""); setShowCreateDept(false);
   };
 
-  const handleToggleStaffStatus = async (id: string, status: StaffStatus) => {
-    await updateStaffStatusMut({ id, status });
+  const handleToggleStaffStatus = (id: Id<"staff">, status: StaffStatus) => {
+    void updateStaffStatusMut({ id, status });
   };
 
-  const handleDeleteStaff = async (id: string) => {
-    await deleteStaffMut({ id });
+  const handleDeleteStaff = (id: Id<"staff">) => {
+    void deleteStaffMut({ id });
   };
 
-  const handleDeleteDept = async (id: string) => {
-    await deleteDepartmentMut({ id });
+  const handleDeleteDept = (id: Id<"departments">) => {
+    void deleteDepartmentMut({ id });
   };
 
   const inputClass = "px-3 py-2 rounded-lg border bg-background text-sm w-full";
 
+  const tabs: { id: Tab; label: string; icon: typeof Users; count: number }[] = [
+    { id: "staff", label: "Staff", icon: Users, count: staffList.length },
+    { id: "departments", label: "Departments", icon: Building2, count: departments.length },
+    { id: "submissions", label: "Form Submissions", icon: FileText, count: submissions.length },
+    { id: "chats", label: "Live Chats", icon: MessageSquare, count: chats.length },
+  ];
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">RBAC Accounts</h1>
-        <p className="text-muted-foreground text-sm mt-1">Staff management, departments, form submissions, and live chat.</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Roles &amp; Permissions</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage staff accounts, departments, submissions and live chats</p>
+        </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex items-center gap-1 mb-6 overflow-x-auto pb-1">
         {tabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${tab === t.id ? "bg-electric text-white" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
@@ -218,7 +183,7 @@ export default function RBACPanel() {
           <div className="flex items-center justify-between mb-4">
             <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staffList..." className="w-full pl-9 pr-4 py-2 rounded-lg bg-card border border-border text-sm" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff..." className="w-full pl-9 pr-4 py-2 rounded-lg bg-card border border-border text-sm" />
             </div>
             <button onClick={() => setShowCreateStaff(!showCreateStaff)} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
               <Plus className="w-4 h-4" /> Add Staff
@@ -262,24 +227,31 @@ export default function RBACPanel() {
             </div>
             <div className="divide-y divide-border">
               {staffList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase())).map((s) => (
-                <div key={s._id} className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/30 transition-colors">
-                  <div className="col-span-3 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-electric/10 flex items-center justify-center text-electric text-xs font-bold shrink-0">{s.name.split(" ").map((n) => n[0]).join("")}</div>
+                <div key={s._id} className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/20 transition-colors">
+                  <div className="col-span-3 flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-electric/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-bold text-electric">{s.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}</span>
+                    </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{s.name}</p>
                       <p className="text-[10px] text-muted-foreground truncate">{s.email}</p>
                     </div>
                   </div>
-                  <div className="col-span-2"><span className="text-xs text-foreground">{s.department}</span></div>
-                  <div className="col-span-2 flex justify-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${roleColors[s.role]}`}>{s.role.replace("_", " ")}</span></div>
-                  <div className="col-span-2 flex justify-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusColors[s.status]}`}>{s.status}</span></div>
-                  <div className="col-span-3 flex items-center justify-end gap-1">
-                    <button onClick={() => handleToggleStaffStatus(s._id, "active")} className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors" title="Approve"><UserCheck className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleToggleStaffStatus(s._id, "suspended")} className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="Suspend"><Ban className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleDeleteStaff(s._id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <div className="col-span-2 text-xs text-muted-foreground truncate">{s.department}</div>
+                  <div className="col-span-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${roleColors[s.role]}`}>{s.role.replace("_", " ")}</span></div>
+                  <div className="col-span-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusColors[s.status]}`}>{s.status}</span></div>
+                  <div className="col-span-3 flex items-center justify-end gap-1.5">
+                    {s.status !== "active" && (
+                      <button onClick={() => handleToggleStaffStatus(s._id, "active")} title="Approve" className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-500/10 transition-colors"><UserCheck className="w-3.5 h-3.5" /></button>
+                    )}
+                    {s.status === "active" && (
+                      <button onClick={() => handleToggleStaffStatus(s._id, "suspended")} title="Suspend" className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition-colors"><Ban className="w-3.5 h-3.5" /></button>
+                    )}
+                    <button onClick={() => handleDeleteStaff(s._id)} title="Delete" className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               ))}
+              {staffList.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">No staff yet. Click &ldquo;Add Staff&rdquo; to create the first account.</div>}
             </div>
           </div>
         </div>
@@ -288,10 +260,9 @@ export default function RBACPanel() {
       {/* ── DEPARTMENTS TAB ── */}
       {tab === "departments" && (
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-muted-foreground">{departments.length} departments</span>
+          <div className="flex items-center justify-end mb-4">
             <button onClick={() => setShowCreateDept(!showCreateDept)} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
-              <Plus className="w-4 h-4" /> New Department
+              <Plus className="w-4 h-4" /> Add Department
             </button>
           </div>
 
@@ -327,10 +298,11 @@ export default function RBACPanel() {
                 <p className="text-xs text-muted-foreground mb-3">{dept.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{dept.staffCount} staff</span>
-                  <button onClick={() => handleDeleteDept(dept._id)} className="text-xs text-destructive hover:underline">Delete</button>
+                  <button onClick={() => handleDeleteDept(dept._id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
             ))}
+            {departments.length === 0 && <div className="py-12 col-span-full text-center text-muted-foreground text-sm">No departments yet. Click &ldquo;Add Department&rdquo; to create one.</div>}
           </div>
         </div>
       )}
@@ -338,42 +310,37 @@ export default function RBACPanel() {
       {/* ── FORM SUBMISSIONS TAB ── */}
       {tab === "submissions" && (
         <div>
-          <div className="rounded-xl bg-card border border-border overflow-hidden">
-            <div className="divide-y divide-border">
-              {submissions.map((sub) => (
-                <div key={sub._id}>
-                  <div className="px-5 py-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setExpandedSubmission(expandedSubmission === sub._id ? null : sub._id)}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {expandedSubmission === sub._id ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground">{sub.subject}</p>
-                          <p className="text-[10px] text-muted-foreground">{sub.name} · {sub.email} · {sub.department}</p>
-                        </div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Client Form Submissions</h3>
+          <div className="rounded-xl bg-card border border-border overflow-hidden divide-y divide-border">
+            {submissions.map((sub) => (
+              <div key={sub._id}>
+                <button onClick={() => { setExpandedSubmission(expandedSubmission === sub._id ? null : sub._id); setReplyText(""); }} className="w-full text-left px-5 py-4 hover:bg-muted/20 transition-colors flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {expandedSubmission === sub._id ? <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{sub.subject}</p>
+                      <p className="text-xs text-muted-foreground truncate">{sub.name} · {sub.email} · {sub.department}</p>
+                    </div>
+                  </div>
+                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${submissionStatusColors[sub.status]}`}>{sub.status}</span>
+                </button>
+                {expandedSubmission === sub._id && (
+                  <div className="px-5 pb-5 border-t border-border/50">
+                    <p className="text-sm text-foreground mt-3 mb-4">{sub.message}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <textarea placeholder="Type your reply..." value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none" />
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${submissionStatusColors[sub.status]}`}>{sub.status}</span>
-                        <span className="text-[10px] text-muted-foreground">{new Date(sub.createdAt).toLocaleDateString()}</span>
+                      <div className="flex flex-col gap-2">
+                        <button onClick={() => handleReplySubmission(sub._id)} className="flex items-center gap-1.5 px-4 py-2 bg-electric text-white rounded-lg text-xs font-medium hover:bg-electric-dark"><Send className="w-3 h-3" /> Reply</button>
+                        <button onClick={() => handleEscalateSubmission(sub._id)} className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium hover:bg-amber-500/20"><ArrowUpRight className="w-3 h-3" /> Escalate</button>
                       </div>
                     </div>
                   </div>
-                  {expandedSubmission === sub._id && (
-                    <div className="px-5 pb-5 border-t border-border/50">
-                      <p className="text-sm text-foreground mt-3 mb-4">{sub.message}</p>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <textarea placeholder="Type your reply..." value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none" />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <button className="flex items-center gap-1.5 px-4 py-2 bg-electric text-white rounded-lg text-xs font-medium hover:bg-electric-dark"><Send className="w-3 h-3" /> Reply</button>
-                          <button className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium hover:bg-amber-500/20"><ArrowUpRight className="w-3 h-3" /> Escalate</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                )}
+              </div>
+            ))}
+            {submissions.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">No form submissions yet.</div>}
           </div>
         </div>
       )}
@@ -388,7 +355,7 @@ export default function RBACPanel() {
               <button key={chat._id} onClick={() => setExpandedChat(expandedChat === chat._id ? null : chat._id)} className={`w-full text-left p-4 rounded-xl border transition-all ${expandedChat === chat._id ? "border-electric bg-electric/5" : "bg-card border-border hover:border-border/80"}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-foreground truncate">{chat.client}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${chatStatusColors[chat.status]}`}>{chat.status}</span>
+                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${chatStatusColors[chat.status]}`}>{chat.status}</span>
                 </div>
                 <p className="text-xs text-muted-foreground truncate">{chat.messages[0]?.text}</p>
                 <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
@@ -398,30 +365,40 @@ export default function RBACPanel() {
                 </div>
               </button>
             ))}
+            {chats.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">No live chats yet.</div>}
           </div>
 
           {/* Chat detail */}
           <div className="lg:col-span-2">
-            {expandedChat ? (() => {
+            {(() => {
               const chat = chats.find((c) => c._id === expandedChat);
-              if (!chat) return <div className="text-center py-20 text-muted-foreground text-sm">Select a chat.</div>;
+              if (!chat) return (
+                <div className="text-center py-20 text-muted-foreground text-sm h-full flex flex-col items-center justify-center">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-muted-foreground/20" />
+                  Select a conversation to view details.
+                </div>
+              );
               return (
                 <div className="rounded-xl bg-card border border-border overflow-hidden">
                   <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{chat.client}</p>
-                      <p className="text-[10px] text-muted-foreground">{chat.clientEmail} · {chat.department}</p>
+                      <p className="text-xs text-muted-foreground">{chat.clientEmail} · {chat.department}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <select className="px-3 py-1.5 rounded-lg border bg-background text-xs">
+                      <select
+                        value={chat.assignedTo}
+                        onChange={(e) => void escalateChatMut({ chatId: chat._id, assignTo: e.target.value })}
+                        className="px-3 py-1.5 rounded-lg border bg-background text-xs"
+                      >
                         <option>{chat.assignedTo}</option>
                         {staffList.filter((s) => s.department === chat.department && s.status === "active").map((s) => <option key={s._id}>{s.name}</option>)}
                       </select>
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium hover:bg-amber-500/20"><ArrowUpRight className="w-3 h-3" /> Escalate</button>
+                      <button onClick={() => handleEscalateChat(chat)} className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium hover:bg-amber-500/20"><ArrowUpRight className="w-3 h-3" /> Escalate</button>
                     </div>
                   </div>
                   <div className="p-5 space-y-4 max-h-[400px] overflow-y-auto">
-                    {chat.messages.map((msg: any, i: number) => (
+                    {chat.messages.map((msg: ChatMsg, i: number) => (
                       <div key={i} className={`flex ${msg.from === chat.client ? "justify-start" : "justify-end"}`}>
                         <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${msg.from === chat.client ? "bg-muted text-foreground rounded-bl-sm" : "bg-electric text-white rounded-br-sm"}`}>
                           <p>{msg.text}</p>
@@ -431,17 +408,12 @@ export default function RBACPanel() {
                     ))}
                   </div>
                   <div className="px-5 py-4 border-t border-border flex gap-2">
-                    <input placeholder="Type a reply..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-2 rounded-lg border bg-background text-sm" />
-                    <button onClick={handleSendChatMessage} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark"><Send className="w-4 h-4" /></button>
+                    <input placeholder="Type a reply..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && void handleSendChatMessage()} className="flex-1 px-4 py-2 rounded-lg border bg-background text-sm" />
+                    <button onClick={() => void handleSendChatMessage()} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark"><Send className="w-4 h-4" /></button>
                   </div>
                 </div>
               );
-            })() : (
-              <div className="text-center py-20 text-muted-foreground text-sm">
-                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-muted-foreground/20" />
-                Select a conversation to view details.
-              </div>
-            )}
+            })()}
           </div>
         </div>
       )}
