@@ -25,6 +25,7 @@ import StockTicker from "@/components/tabloid/StockTicker";
 import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
+import Navigation from "@/components/Navigation";
 import { useSEO } from "@/lib/seo";
 
 type NewsDoc = Doc<"tabloidNews">;
@@ -171,6 +172,7 @@ export default function TabloidIndex() {
 
   return (
     <div className="min-h-screen bg-[#060a14]">
+      <Navigation />
       <StockTicker />
       <ForexTicker />
 

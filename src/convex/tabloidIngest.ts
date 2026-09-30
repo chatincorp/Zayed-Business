@@ -192,17 +192,38 @@ function sentenceSplit(text: string): string[] {
     .filter((s) => s.length > 1);
 }
 
+function hash01(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function pick<T>(arr: T[], seed: number): T {
+  return arr[seed % arr.length];
+}
+
+/** Magnetic headline styles — deterministic per story, never clickbait. */
 function rewriteTitle(original: string, category: string): string {
   let t = original.trim();
   // Remove noisy source suffixes and site branding.
   t = t.replace(/\s*[-–—|]\s*[^-–—|]{2,40}$/, "").trim() || original.trim();
   t = t.replace(/\b(report|update|breaking|exclusive)\b\s*\d*\s*[-–—:]\s*/i, "");
-  if (t.length > 90) {
-    const cut = t.slice(0, 90);
-    t = cut.slice(0, cut.lastIndexOf(" ")) + "…";
+
+  const seed = hash01(original);
+  const styles: Array<(s: string) => string> = [
+    (s) => s,
+    (s) => (s.endsWith("?") ? s : `${s}: What Changed and Why It Matters`),
+    (s) => (s.endsWith("?") ? s : `${s} — The Full Story`),
+    (s) => (s.endsWith("?") ? s : `${s}, Explained`),
+  ];
+  let out = pick(styles, seed)(t);
+
+  if (out.length > 92) {
+    const cut = out.slice(0, 92);
+    out = cut.slice(0, cut.lastIndexOf(" ")) + "…";
   }
-  if (t.length < 28 && category === "Africa") t = `${t}: What It Means for Kenya`;
-  return t;
+  if (out.length < 28 && category === "Africa") out = `${out}: What It Means for Kenya`;
+  return out;
 }
 
 function humanizeParagraph(sentence: string): string {
@@ -222,45 +243,121 @@ function humanizeParagraph(sentence: string): string {
   return s.trim();
 }
 
+function keyFacts(excerpt: string): string[] {
+  const facts: string[] = [];
+  // Sentences containing figures, dates, or named-entity verbs make solid pull-facts.
+  for (const s of sentenceSplit(excerpt)) {
+    if (
+      (/\d/.test(s) || /\b(said|announced|reported|confirmed|launched|signed|plan(ned)?|expect(s|ed)?)\b/i.test(s)) &&
+      s.length > 40 &&
+      s.length < 220
+    ) {
+      facts.push(s.trim());
+    }
+    if (facts.length >= 4) break;
+  }
+  return facts;
+}
+
+function buildSection(segments: string[], heading: string): string {
+  if (segments.length === 0) return "";
+  return `## ${heading}\n\n${segments.join(" ")}`;
+}
+
+/**
+ * Longform editorial rewrite: turns a thin RSS glimpse into a full
+ * 700+ word article with magnetic headline, hook lede, key-facts box,
+ * themed analysis sections, pull-quote, outlook and evergreen closer.
+ */
 function buildRewrite(
   originalTitle: string,
   excerpt: string,
   category: string
 ): { title: string; excerpt: string; body: string; aiRewrite: string } {
   const title = rewriteTitle(originalTitle, category);
+  const seed = hash01(originalTitle);
   const sentences = sentenceSplit(excerpt);
+  const humanized = sentences.map(humanizeParagraph);
 
-  const lead = sentences[0] ? humanizeParagraph(sentences[0]) : originalTitle;
-  const hook = HOOKS[originalTitle.length % HOOKS.length];
+  const hook = pick(HOOKS, seed);
+  const hookMap: Record<string, string> = {
+    Security: "cybersecurity teams, regulators and every board with data on the line",
+    Technology: "founders, engineers and the investors funding the next wave",
+    "Global Finance": "traders, treasurers and anyone with exposure to the moving parts",
+    Business: "executives, operators and the markets pricing it all in",
+    Africa: "East African businesses, policymakers and regional investors",
+  };
+  const audience = hookMap[category] ?? "executives, operators and the markets pricing it all in";
 
-  const bodyParagraphs: string[] = [];
-  bodyParagraphs.push(lead);
+  /* ── Lede ── */
+  const leadFacts = humanized[0] ?? originalTitle;
+  const contextFact = humanized[1] ?? "";
+  const lede = [
+    leadFacts,
+    contextFact,
+    `${hook} ${audience} are watching this one closely — and for good reason.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  const middles = sentences.slice(1, 7).map(humanizeParagraph);
-  if (middles.length > 0) {
-    bodyParagraphs.push(middles.slice(0, Math.ceil(middles.length / 2)).join(" "));
-    if (middles.length > 1) {
-      bodyParagraphs.push(middles.slice(Math.ceil(middles.length / 2)).join(" "));
-    }
-  }
+  /* ── Key facts box ── */
+  const facts = keyFacts(excerpt);
+  const factsBlock =
+    facts.length > 0
+      ? `> **The essentials:**\n>\n${facts.map((f) => `> - ${f}`).join("\n")}`
+      : "";
 
-  if (bodyParagraphs.length < 3) {
-    bodyParagraphs.push(
-      `${hook} ${category === "Security" ? "Security teams" : "Market watchers"} will be following how this develops over the coming days, particularly what it means for businesses and investors watching the space.`
-    );
-  }
+  /* ── Body sections ── */
+  const middle = humanized.slice(facts.length > 0 ? 1 : 1, 9);
+  const half = Math.ceil(middle.length / 2);
 
-  const contextLine =
+  const sectionHeadings: Record<string, string[]> = {
+    Security: ["What Happened", "How the Attack Unfolded", "Who Is Exposed", "What Defenders Should Do Now"],
+    Technology: ["What Was Announced", "Why It Matters", "The Competitive Picture", "What Comes Next"],
+    "Global Finance": ["The Numbers", "What Drove the Move", "Market Reaction", "The Road Ahead"],
+    Business: ["The Deal, Explained", "The Strategic Logic", "Winners and Losers", "What to Watch"],
+    Africa: ["The Story So Far", "Why It Matters for the Region", "The Business Angle", "The Road Ahead"],
+  };
+  const headings = sectionHeadings[category] ?? sectionHeadings.Business;
+
+  const sections: string[] = [];
+  if (middle.length > 0) sections.push(buildSection(middle.slice(0, half), headings[0]));
+  if (middle.length > half) sections.push(buildSection(middle.slice(half), headings[1]));
+
+  /* ── Analysis (voice of the desk) ── */
+  const analysisTemplates = [
+    `Zoom out, and the pattern is hard to miss. ${category === "Africa" ? "Across East Africa" : category === "Security" ? "Across the security landscape" : "Across the industry"}, momentum has been building for months — capital, talent and attention all tilting the same direction. This development doesn't arrive in a vacuum; it lands on an already-tilted board.`,
+    `For businesses, the practical question is not whether this matters but how fast it changes decisions. Budgets, procurement timelines and risk registers all move slower than headlines — which is precisely why the teams that act early tend to capture the upside while late movers pay catch-up premiums.`,
+    `There is also a second-order story here. Every shift of this scale reshuffles adjacent markets: suppliers gain or lose leverage, rivals recalibrate pricing, and regulators start asking questions that outlast the news cycle itself.`,
+  ];
+  sections.push(buildSection(analysisTemplates, headings[2]));
+
+  /* ── Pull-quote ── */
+  const quoteCandidates = humanized.filter((s) => s.length > 60 && s.length < 180);
+  const pullQuote =
+    quoteCandidates.length > 0
+      ? `> "${quoteCandidates[seed % quoteCandidates.length]}"\n>\n> — Zayed Tabloid analysis`
+      : `> "${title.replace(/ — .*$/, "")}"\n>\n> — Zayed Tabloid analysis`;
+
+  /* ── Outlook ── */
+  const outlookTemplates = [
+    `The next few sessions and statements will tell the real story. Watch for follow-through: official confirmations, counter-moves from competitors, and whether the initial numbers hold up under scrutiny. ${category === "Global Finance" ? "Positioning data and central-bank commentary will be the tells." : category === "Security" ? "Patch cadence and disclosure timelines will be the tells." : "Official filings and partnership announcements will be the tells."}`, 
+    `For ${audience}, the disciplined move is to separate signal from spectacle: track what is verifiable, discount what is breathless, and let the verification catch up before committing capital or reputation.`,
+  ];
+  sections.push(buildSection(outlookTemplates, headings[3]));
+
+  /* ── Evergreen closer ── */
+  const closer =
     category === "Africa"
-      ? "For East African businesses, the development underscores how quickly the regional landscape is maturing — and why staying informed is now a competitive advantage."
-      : "The takeaway: stay close to the facts, watch the numbers, and treat every development as an input to your next decision.";
+      ? `The bigger picture for Kenya and East Africa: the region's business landscape is maturing faster than most forecasts assumed, and stories like this are reminders that global capital, technology and regulation now move through Nairobi as quickly as they move through London or Singapore. Zayed Tabloid will keep tracking this story as it develops.`
+      : `Zayed Tabloid will continue to follow this story as it develops — with the numbers, the context and the analysis that decision-makers actually need.`;
 
-  bodyParagraphs.push(contextLine);
+  const bodyParts = [lede, factsBlock, ...sections, pullQuote, closer].filter((p) => p.length > 0);
+  const body = bodyParts.join("\n\n");
 
-  const body = bodyParagraphs.filter((p) => p.length > 0).join("\n\n");
   const excerptOut =
-    (sentences[0] ? humanizeParagraph(sentences[0]) : title).slice(0, 180).trim() + "…";
-  const aiRewrite = `${bodyParagraphs.slice(0, 2).join(" ")} ${hook} ${contextLine}`;
+    (humanized[0] ? humanized[0].slice(0, 180).trim() : title) + "…";
+  const aiRewrite = bodyParts.slice(0, 2).join(" ").slice(0, 500);
 
   return { title, excerpt: excerptOut, body, aiRewrite };
 }
@@ -287,11 +384,11 @@ async function openAiRewrite(
           {
             role: "system",
             content:
-              "You are the lead editor of a premium business publication. Rewrite the given news in a confident, human, journalistic style. Return strict JSON: {\"title\": string (max 90 chars, no clickbait), \"body\": string (4-6 paragraphs separated by blank lines)}. Never copy source sentences verbatim.",
+              "You are the lead editor of Zayed Tabloid, a premium business publication. Write a FULL-LENGTH news article from the given material — not a summary. Requirements: a confident, human, journalistic voice; a magnetic headline; a hook lede; themed analysis sections; a forward-looking close. Return strict JSON: {\"title\": string (max 90 chars, no clickbait), \"body\": string (700-1100 words, 7-9 paragraphs separated by blank lines; optional section headings as '## Heading' on their own line; one blockquote line starting with '>' is welcome)}. Never copy source sentences verbatim; add context, implications and analysis while staying faithful to the facts.",
           },
           {
             role: "user",
-            content: `Headline: ${title}\n\nSummary: ${excerpt}`,
+            content: `Headline: ${title}\n\nSummary: ${excerpt}\n\nWrite the complete article now.`,
           },
         ],
         response_format: { type: "json_object" },
@@ -398,8 +495,6 @@ export const ingestNews = action({
           const dedupeKey = hashString(`${item.link || item.title}`.slice(0, 300));
           const category = inferCategory(item.title, item.description, source.category);
           const tags = buildTags(item.title, item.description, category);
-          const readTime =
-            Math.max(2, Math.min(9, Math.round(item.description.split(/\s+/).length / 60) || 3)) + " min";
 
           let rewrite = buildRewrite(item.title, item.description || item.title, category);
 
@@ -414,6 +509,10 @@ export const ingestNews = action({
               };
             }
           }
+
+          // Read time from the FINAL body (~220 wpm), clamped to a believable range.
+          const words = rewrite.body.split(/\s+/).length;
+          const readTime = `${Math.max(3, Math.min(12, Math.round(words / 220) || 3))} min`;
 
           // SEO metadata — derived from the final title/body after any AI rewrite.
           const seoTitle = `${rewrite.title.slice(0, 60)} | Zayed Tabloid`.slice(0, 100);

@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
+import { useSEO } from "@/lib/seo";
 import {
   Search,
   ArrowRight,
@@ -312,6 +313,30 @@ const services = [
 export default function Catalog() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+
+  useSEO({
+    title: "Services — Business Development, Security, AI & Web Solutions",
+    description:
+      "Explore Yasir Zayed's full service catalog: business development, sales and marketing strategy, CCTV and security systems, AI chatbots, workflow automation, corporate websites and WordPress development in Kenya and beyond.",
+    path: "/services",
+    keywords:
+      "business development services, sales strategy, marketing strategy, CCTV installation Kenya, AI chatbots, workflow automation, web development services, WordPress development, Yasir Zayed services",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Yasir Zayed Services",
+      url: "https://yasirzayed.com/services",
+      description:
+        "Full catalog of business, security, AI and technology services from Yasir Zayed.",
+      breadcrumb: {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://yasirzayed.com/" },
+          { "@type": "ListItem", position: 2, name: "Services", item: "https://yasirzayed.com/services" },
+        ],
+      },
+    },
+  });
 
   const filtered = useMemo(() => {
     return services.filter((s) => {

@@ -2,11 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Home -->
   <url>
     <loc>https://yasirzayed.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- Core pages -->
   <url>
     <loc>https://yasirzayed.com/services</loc>
     <changefreq>weekly</changefreq>
@@ -25,8 +28,35 @@
   <url>
     <loc>https://yasirzayed.com/pricing</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
+
+  <!-- Service detail pages (verified slugs from the services catalog) -->
+  <url><loc>https://yasirzayed.com/services/strategic-business-planning</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/market-research-analysis</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/business-model-optimization</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/sales-strategy-development</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/sales-process-optimization</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/marketing-strategy-planning</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/digital-marketing-strategy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/brand-development-positioning</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/promotional-campaign-development</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/event-marketing-management</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/product-launch-support</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/cctv-surveillance-systems</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/intrusion-alarm-systems</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/access-control-systems</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/ai-system-integration</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/custom-ai-chatbots</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/workflow-automation</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/custom-corporate-websites</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://yasirzayed.com/services/custom-wordpress-themes</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/wordpress-woocommerce</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/web-applications</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/ecommerce-platforms</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://yasirzayed.com/services/crm-implementation</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- Zayed Tabloid -->
   <url>
     <loc>https://yasirzayed.com/tabloid</loc>
     <changefreq>hourly</changefreq>
@@ -35,11 +65,21 @@
   <url>
     <loc>https://yasirzayed.com/tabloid/markets</loc>
     <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://yasirzayed.com/tabloid/forex</loc>
     <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://yasirzayed.com/tabloid/editorial</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Interactive demos -->
+  <url><loc>https://yasirzayed.com/demo/corporate</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://yasirzayed.com/demo/webapp</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://yasirzayed.com/demo/ecommerce</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>

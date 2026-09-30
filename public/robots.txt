@@ -1,8 +1,15 @@
+# Yasir Zayed — https://yasirzayed.com
+# Business Development · Consultancy · Security · Technology (Nairobi, Kenya)
+
 User-agent: *
 Allow: /
+Crawl-delay: 1
 
 # Explicitly welcome major crawlers
 User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-News
 Allow: /
 
 User-agent: Bingbot
@@ -11,10 +18,35 @@ Allow: /
 User-agent: DuckDuckBot
 Allow: /
 
+User-agent: Slurp
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: FacebookExternalHit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
 # Block backend internals
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /dashboard
+Disallow: /api/
 
-# Important: bots don't run JS, so point them at prerendered content
+# Sitemaps
 Sitemap: https://yasirzayed.com/sitemap.xml

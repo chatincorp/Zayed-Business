@@ -29,6 +29,7 @@ import {
   type ArticleStatus,
 } from "@/data/tabloidData";
 import StockTicker from "@/components/tabloid/StockTicker";
+import Navigation from "@/components/Navigation";
 import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import { useSEO } from "@/lib/seo";
@@ -77,6 +78,7 @@ export default function EditorialDashboard() {
 
   return (
     <div className="min-h-screen bg-[#060a14]">
+      <Navigation />
       <StockTicker />
       <ForexTicker />
 
