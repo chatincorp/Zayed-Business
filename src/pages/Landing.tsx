@@ -3,6 +3,9 @@ import NotificationBar from "@/components/NotificationBar";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import CookieNotice from "@/components/CookieNotice";
 import HeroCarousel from "@/components/HeroCarousel";
+import LatestIntelligence from "@/components/sections/LatestIntelligence";
+import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
+import { useSEO } from "@/lib/seo";
 import IntroSection from "@/components/sections/IntroSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import AIIntegrationPreview from "@/components/sections/AIIntegrationPreview";
@@ -24,12 +27,22 @@ import FinalCTASection from "@/components/sections/FinalCTASection";
 import Footer from "@/components/Footer";
 
 export default function Landing() {
+  useSEO({
+    title: "Yasir Zayed — Business Development, Security & Technology Solutions in Kenya",
+    description:
+      "Yasir Zayed combines business development, sales & marketing, web development, custom AI chatbots, intelligent automation and security solutions under one integrated ecosystem. Building Stronger Businesses. Smarter Systems. Secure Futures.",
+    path: "/",
+    keywords:
+      "business development Kenya, consultancy, security solutions, AI chatbots, web development, digital transformation, technology consulting, Yasir Zayed",
+  });
+
   return (
     <div className="min-h-screen">
       <NotificationBar />
       <Navigation />
       <HeroCarousel />
       <IntroSection />
+      <LatestIntelligence />
       <ServicesSection />
       <AIIntegrationPreview />
       <LiveDemoPreviews />
@@ -50,6 +63,7 @@ export default function Landing() {
       <Footer />
       <CookieNotice />
       <FloatingWidgets />
+      <NewsEngineBoot />
     </div>
   );
 }

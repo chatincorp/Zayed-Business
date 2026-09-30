@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Explicitly welcome major crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Block backend internals
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /dashboard
+
+# Important: bots don't run JS, so point them at prerendered content
+Sitemap: https://yasirzayed.com/sitemap.xml

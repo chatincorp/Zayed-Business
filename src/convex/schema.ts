@@ -225,6 +225,54 @@ const schema = defineSchema(
       .index("by_category", ["category"])
       .index("by_status", ["status"]),
 
+    // --- Zayed Tabloid: News Feed Sources ---
+    newsFeeds: defineTable({
+      name: v.string(),
+      url: v.string(), // RSS/Atom endpoint
+      pageUrl: v.optional(v.string()), // public page for reference
+      category: v.string(),
+      active: v.boolean(),
+      lastFetchedAt: v.optional(v.number()),
+      itemCount: v.optional(v.number()),
+      createdAt: v.number(),
+    }).index("by_active", ["active"]),
+
+    // --- Zayed Tabloid: Ingested + AI-rewritten news items ---
+    tabloidNews: defineTable({
+      feedId: v.optional(v.id("newsFeeds")),
+      sourceName: v.string(),
+      sourceUrl: v.string(),
+      dedupeKey: v.string(),
+      originalTitle: v.string(),
+      originalExcerpt: v.optional(v.string()),
+      title: v.string(),
+      excerpt: v.string(),
+      aiRewrite: v.string(),
+      body: v.string(),
+      image: v.optional(v.string()),
+      category: v.string(),
+      tags: v.array(v.string()),
+      readTime: v.string(),
+      author: v.string(),
+      editor: v.optional(v.string()),
+      status: v.union(
+        v.literal("ingested"),
+        v.literal("rewritten"),
+        v.literal("pending_review"),
+        v.literal("approved"),
+        v.literal("published"),
+        v.literal("rejected")
+      ),
+      publishedAt: v.number(),
+      rewrittenAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_status", ["status"])
+      .index("by_category", ["category"])
+      .index("by_dedupe", ["dedupeKey"])
+      .index("by_published", ["publishedAt"]),
+
     // --- Global Settings ---
     settings: defineTable({
       key: v.string(),

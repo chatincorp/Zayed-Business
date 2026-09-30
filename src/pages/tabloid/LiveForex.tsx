@@ -25,10 +25,19 @@ import {
 import StockTicker from "@/components/tabloid/StockTicker";
 import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
+import { useSEO } from "@/lib/seo";
 
 type SortKey = "pair" | "rate" | "changePercent";
 
 export default function LiveForex() {
+  useSEO({
+    title: "Live Forex Rates — Global & East African Currency Pairs",
+    description:
+      "Live foreign exchange rates for major pairs and East African currencies — USD/KES, KES/UGX, KES/TZS, KES/RWF and more. Real-time forex intelligence from the Zayed Tabloid desk.",
+    path: "/tabloid/forex",
+    keywords: "live forex rates, USD to KES, KES cross rates, East Africa forex, currency exchange, USD/NGN, USD/TZS",
+  });
+
   const [activeRegion, setActiveRegion] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("changePercent");
   const [sortDesc, setSortDesc] = useState(true);

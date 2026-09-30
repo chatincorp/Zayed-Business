@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
+import { useSEO } from "@/lib/seo";
 import {
   Target,
   BarChart3,
@@ -133,6 +134,15 @@ const audiences = [
 ];
 
 export default function About() {
+  useSEO({
+    title: "About Yasir Zayed — The Zayed Brief: Mission, Vision & Capabilities",
+    description:
+      "Discover Yasir Zayed: a Kenya-based, multi-disciplinary business development, consultancy, security and technology company building stronger businesses, smarter systems and secure futures.",
+    path: "/about",
+    keywords:
+      "about Yasir Zayed, business development company Kenya, consultancy profile, security and technology firm",
+  });
+
   const [ref1, inView1] = useInView({ threshold: 0.1, triggerOnce: true });
   const [ref2, inView2] = useInView({ threshold: 0.1, triggerOnce: true });
   const [ref3, inView3] = useInView({ threshold: 0.1, triggerOnce: true });

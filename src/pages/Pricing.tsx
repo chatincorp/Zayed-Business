@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import { Check, ArrowRight, Zap, Shield, Crown } from "lucide-react";
 import PaystackCheckout from "@/components/PaystackCheckout";
+import { useSEO } from "@/lib/seo";
 
 const plans = [
   {
@@ -102,6 +103,15 @@ const addOns = [
 ];
 
 export default function Pricing() {
+  useSEO({
+    title: "Pricing & Company Registration Packages — Yasir Zayed",
+    description:
+      "Transparent pricing for business development, technology and security engagements. Starter, Growth and Enterprise retainers plus company registration packages for Kenyan and international businesses.",
+    path: "/pricing",
+    keywords:
+      "Yasir Zayed pricing, business consultancy cost Kenya, company registration Kenya, technology retainer, security solutions pricing",
+  });
+
   const [annual, setAnnual] = useState(false);
 
   return (

@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Building2,
 } from "lucide-react";
+import { useSEO } from "@/lib/seo";
 
 const tabs = [
   { id: "appointment", label: "Book an Appointment", icon: Calendar },
@@ -79,6 +80,15 @@ const appointmentTypes = [
 const meetingFormats = ["In Person", "Phone", "Video Conference", "Other"];
 
 export default function Contact() {
+  useSEO({
+    title: "Contact Yasir Zayed — Book a Business or Security Consultation",
+    description:
+      "Get in touch with Yasir Zayed: book an appointment, schedule a meeting, request a quotation or send a general inquiry. Call +254 114 712 989 or WhatsApp +254 717 227 012.",
+    path: "/contact",
+    keywords:
+      "contact Yasir Zayed, business consultation Kenya, security consultation, quotation request, book appointment Nairobi",
+  });
+
   const [activeTab, setActiveTab] = useState("appointment");
   const [submitted, setSubmitted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("KE");

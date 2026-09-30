@@ -23,10 +23,19 @@ import {
 import StockTicker from "@/components/tabloid/StockTicker";
 import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
+import { useSEO } from "@/lib/seo";
 
 type SortKey = "country" | "value" | "changePercent";
 
 export default function FinancialMarkets() {
+  useSEO({
+    title: "Live Global Stock Markets — Real-Time Indices by Region",
+    description:
+      "Track live stock indices across Africa, Asia, Europe, the Americas and Oceania, including the Nairobi Securities Exchange. Real-time market data from the Zayed Tabloid markets desk.",
+    path: "/tabloid/markets",
+    keywords: "live stock markets, global indices, Nairobi Securities Exchange, NSE 20, stock market data, Africa markets",
+  });
+
   const [activeRegion, setActiveRegion] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("changePercent");
   const [sortDesc, setSortDesc] = useState(true);

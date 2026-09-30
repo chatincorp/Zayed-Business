@@ -31,6 +31,7 @@ import {
 import StockTicker from "@/components/tabloid/StockTicker";
 import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
+import { useSEO } from "@/lib/seo";
 
 const statusFilters: ArticleStatus[] = ["draft", "pending_review", "approved", "published", "rejected"];
 
@@ -43,6 +44,14 @@ const statusIcons: Record<ArticleStatus, typeof PenTool> = {
 };
 
 export default function EditorialDashboard() {
+  useSEO({
+    title: "Editorial Pipeline — AI Content Workflow",
+    description:
+      "How the Zayed Tabloid editorial engine works: AI content creation, human editor review, and publisher approval before every story goes live.",
+    path: "/tabloid/editorial",
+    noindex: true,
+  });
+
   const [statusFilter, setStatusFilter] = useState<ArticleStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<TabloidArticle | null>(null);
