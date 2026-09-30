@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight,
+  CheckCircle2,
   ChevronDown,
   Globe,
   Shield,
@@ -14,11 +15,39 @@ import {
 } from "lucide-react";
 
 const navLinks = [
-  "Solutions",
-  "Insights",
-  "About Us",
-  "Responsibility",
-  "Careers",
+  { label: "Solutions", href: "#capabilities" },
+  { label: "Insights", href: "#insights" },
+  { label: "About Us", href: "#about" },
+  { label: "Responsibility", href: "#responsibility" },
+  { label: "Careers", href: "#careers" },
+];
+
+const testimonials = [
+  {
+    quote:
+      "Their technology-driven approach to portfolio management gave us clarity we'd been missing for years. The transition was seamless and the results speak for themselves.",
+    name: "Amara Okafor",
+    title: "CFO, Pan-African Logistics Group",
+  },
+  {
+    quote:
+      "A rare combination of deep market expertise and genuine partnership. They challenge our assumptions in exactly the right moments.",
+    name: "David Kimura",
+    title: "Managing Director, Eastgate Capital",
+  },
+  {
+    quote:
+      "From due diligence to execution, the team operated at an institutional standard while remaining agile enough for our mid-market reality.",
+    name: "Sofia Alvarez",
+    title: "CEO, Meridian Holdings",
+  },
+];
+
+const offices = [
+  { city: "New York", detail: "725 Fifth Avenue, NY 10022", phone: "+1 212 555 0140" },
+  { city: "London", detail: "25 Canada Square, E14 5LQ", phone: "+44 20 7946 0230" },
+  { city: "Nairobi", detail: "Riverside Drive, Westlands", phone: "+254 114 712 989" },
+  { city: "Singapore", detail: "1 Raffles Place, 048616", phone: "+65 6011 0230" },
 ];
 
 const stats = [
@@ -399,6 +428,277 @@ function LeadershipSection() {
   );
 }
 
+function TestimonialsSection() {
+  return (
+    <section id="about" className="py-24 bg-[#0a0f1e]">
+      <div className="mx-auto max-w-7xl px-8 sm:px-16 lg:px-24">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <div className="text-[#60a5fa] text-xs font-semibold uppercase tracking-[0.25em] mb-4">
+            Client Outcomes
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Trusted in the Moments That Matter
+          </h2>
+          <p className="text-white/40 max-w-2xl mx-auto text-lg">
+            From mid-market operators to institutional allocators, our clients
+            stay because the results compound.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
+            <motion.figure
+              key={t.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="p-8 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#60a5fa]/20 transition-colors"
+            >
+              <div className="text-[#60a5fa] text-3xl leading-none mb-4">&ldquo;</div>
+              <blockquote className="text-white/70 leading-relaxed mb-6 text-[15px]">
+                {t.quote}
+              </blockquote>
+              <figcaption>
+                <div className="font-semibold text-white text-sm">{t.name}</div>
+                <div className="text-white/40 text-xs mt-0.5">{t.title}</div>
+              </figcaption>
+            </motion.figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ResponsibilitySection() {
+  const pillars = [
+    {
+      icon: Globe,
+      title: "Financial Inclusion",
+      desc: "Expanding access to capital and tools for underserved businesses across our markets.",
+      metric: "120K+ businesses financed",
+    },
+    {
+      icon: Shield,
+      title: "Responsible AI",
+      desc: "Governance-first deployment of AI with bias audits and human oversight on every model.",
+      metric: "100% models audited",
+    },
+    {
+      icon: Users,
+      title: "Talent Development",
+      desc: "Training the next generation of analysts through structured programs and mentorship.",
+      metric: "400+ graduates yearly",
+    },
+  ];
+
+  return (
+    <section id="responsibility" className="py-24 bg-[#f8fafc]">
+      <div className="mx-auto max-w-7xl px-8 sm:px-16 lg:px-24">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-14"
+        >
+          <div className="text-[#60a5fa] text-xs font-semibold uppercase tracking-[0.25em] mb-4">
+            Responsibility
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0a0f1e] mb-4">
+            Impact Beyond the Balance Sheet
+          </h2>
+          <p className="text-gray-500 max-w-2xl text-lg">
+            Sustainable performance means measuring what we contribute, not just
+            what we capture.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {pillars.map((p, i) => {
+            const Icon = p.icon;
+            return (
+              <motion.div
+                key={p.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="p-8 bg-white rounded-xl border border-gray-100 hover:shadow-lg transition-shadow"
+              >
+                <div className="w-12 h-12 rounded-lg bg-[#60a5fa]/10 flex items-center justify-center mb-5">
+                  <Icon className="w-6 h-6 text-[#60a5fa]" />
+                </div>
+                <h3 className="text-lg font-bold text-[#0a0f1e] mb-3">{p.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed mb-4">{p.desc}</p>
+                <div className="text-[#60a5fa] text-sm font-semibold">{p.metric}</div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CareersSection() {
+  const roles = [
+    { title: "Quantitative Analyst", team: "Investment Engineering", loc: "New York / Hybrid" },
+    { title: "Senior Backend Engineer", team: "Platform", loc: "London / Remote" },
+    { title: "Client Portfolio Manager", team: "Advisory", loc: "Nairobi / On-site" },
+    { title: "AI Risk Researcher", team: "Risk & Compliance", loc: "Singapore / Hybrid" },
+  ];
+
+  return (
+    <section id="careers" className="py-24 bg-white">
+      <div className="mx-auto max-w-7xl px-8 sm:px-16 lg:px-24">
+        <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="text-[#60a5fa] text-xs font-semibold uppercase tracking-[0.25em] mb-4">
+              Careers
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0a0f1e]">
+              Build With Us
+            </h2>
+          </motion.div>
+          <p className="text-gray-500 max-w-md text-sm leading-relaxed">
+            We hire people who challenge consensus respectfully and execute
+            relentlessly. Four teams are currently growing.
+          </p>
+        </div>
+
+        <div className="divide-y divide-gray-100 border-t border-b border-gray-100">
+          {roles.map((r, i) => (
+            <motion.a
+              key={r.title}
+              href="/contact"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.06 }}
+              className="group flex flex-wrap items-center justify-between gap-3 py-5 cursor-pointer"
+            >
+              <div>
+                <div className="font-semibold text-[#0a0f1e] group-hover:text-[#60a5fa] transition-colors">
+                  {r.title}
+                </div>
+                <div className="text-sm text-gray-400 mt-0.5">{r.team}</div>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-gray-400">{r.loc}</span>
+                <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-[#60a5fa] transition-colors" />
+              </div>
+            </motion.a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function OfficesSection() {
+  return (
+    <section className="py-20 bg-[#070c16]">
+      <div className="mx-auto max-w-7xl px-8 sm:px-16 lg:px-24">
+        <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">
+            Global Presence
+          </h2>
+          <p className="text-white/30 text-sm max-w-md">
+            Four offices across three continents — one operating standard.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {offices.map((o, i) => (
+            <motion.div
+              key={o.city}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className="p-6 rounded-xl bg-white/[0.03] border border-white/5"
+            >
+              <div className="text-white font-semibold mb-2">{o.city}</div>
+              <div className="text-white/40 text-sm leading-relaxed">{o.detail}</div>
+              <div className="text-[#60a5fa] text-sm mt-3">{o.phone}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NewsletterCTA() {
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  return (
+    <section className="py-24 bg-gradient-to-br from-[#0d1730] to-[#0a0f1e]">
+      <div className="mx-auto max-w-4xl px-8 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Insights Delivered Monthly
+          </h2>
+          <p className="text-white/50 text-lg mb-10 max-w-2xl mx-auto">
+            Market analysis, research notes and strategy briefings from our
+            investment committees — no noise, one email a month.
+          </p>
+
+          {subscribed ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25"
+            >
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <span className="text-emerald-300 font-medium">
+                You're subscribed. First briefing arrives next month.
+              </span>
+            </motion.div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (email.includes("@")) setSubscribed(true);
+              }}
+              className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto"
+            >
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="flex-1 px-5 py-4 rounded-sm bg-white/5 border border-white/10 text-white placeholder:text-white/30 outline-none focus:border-[#60a5fa]/50 transition-colors"
+              />
+              <button
+                type="submit"
+                className="bg-[#60a5fa] hover:bg-[#3b82f6] text-white px-8 py-4 rounded-sm text-sm font-semibold transition-all"
+              >
+                Subscribe
+              </button>
+            </form>
+          )}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 function Footer() {
   return (
     <footer className="py-12 bg-[#070c16] border-t border-white/5">
@@ -463,11 +763,11 @@ export default function DemoCorporate() {
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
                 className="text-white/60 hover:text-white text-sm transition-colors"
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </div>
@@ -487,7 +787,12 @@ export default function DemoCorporate() {
       <ScrollingStats />
       <AutoScrollingCapabilities />
       <InsightsSection />
+      <TestimonialsSection />
+      <ResponsibilitySection />
       <LeadershipSection />
+      <CareersSection />
+      <OfficesSection />
+      <NewsletterCTA />
       <Footer />
 
       {/* Back to demos link */}
