@@ -54,8 +54,11 @@ export default function Footer() {
         <div className="py-14 flex flex-col lg:flex-row gap-10">
           {/* Brand column */}
           <div className="w-full lg:w-64 shrink-0">
-            <Link to="/" className="inline-flex mb-5 group">
-              <YasirZayedLogo variant="full" color="white" height={110} />
+            <Link to="/" className="inline-flex flex-col items-start mb-5 group">
+              <YasirZayedLogo variant="full" height={120} />
+              <span className="mt-3 font-serif text-lg text-[#E8C56A] tracking-[0.3em]">
+                YASIR ZAYED
+              </span>
             </Link>
             <p className="text-white/40 text-sm leading-relaxed mb-5">
               Building stronger businesses, smarter systems and secure futures. One partnership at a time.
