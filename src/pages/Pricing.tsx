@@ -7,6 +7,7 @@ import FloatingWidgets from "@/components/FloatingWidgets";
 import { Check, ArrowRight, Zap, Shield, Crown } from "lucide-react";
 import PaystackCheckout from "@/components/PaystackCheckout";
 import { useSEO } from "@/lib/seo";
+import { usdToKes, formatUsd, formatKes } from "@/lib/currency";
 
 const plans = [
   {
@@ -83,21 +84,25 @@ const addOns = [
   {
     name: "Security Assessment",
     price: "$750",
+    amountUsd: 750,
     description: "Comprehensive on-site security audit with a detailed report and recommendations.",
   },
   {
     name: "AI Chatbot Deployment",
     price: "$2,500",
+    amountUsd: 2500,
     description: "Custom-trained chatbot built for your business, installed on your website or messaging platform.",
   },
   {
     name: "Additional Consultation Hours",
     price: "$200/hr",
+    amountUsd: 200,
     description: "Book extra consulting hours beyond your plan allocation whenever you need them.",
   },
   {
     name: "Custom Landing Page",
     price: "$1,500",
+    amountUsd: 1500,
     description: "Professionally designed and developed landing page optimized for your campaign.",
   },
 ];
@@ -113,6 +118,7 @@ export default function Pricing() {
   });
 
   const [annual, setAnnual] = useState(false);
+  const [currency, setCurrency] = useState<"USD" | "KES">("USD");
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,32 +153,55 @@ export default function Pricing() {
             Transparent pricing for businesses that value clarity. No hidden fees, no surprises — just a plan that fits your goals.
           </motion.p>
 
-          {/* Toggle */}
+          {/* Toggles */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="inline-flex p-1 rounded-xl bg-white/5 border border-white/10"
+            className="flex flex-wrap items-center justify-center gap-3"
           >
-            <button
-              onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
-                !annual ? "bg-electric text-white" : "text-white/50 hover:text-white/80"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
-                annual ? "bg-electric text-white" : "text-white/50 hover:text-white/80"
-              }`}
-            >
-              Annual
-              <span className="ml-1.5 text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">
-                Save 20%
-              </span>
-            </button>
+            {/* Billing toggle */}
+            <div className="inline-flex p-1 rounded-xl bg-white/5 border border-white/10">
+              <button
+                onClick={() => setAnnual(false)}
+                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  !annual ? "bg-electric text-white" : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setAnnual(true)}
+                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  annual ? "bg-electric text-white" : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                Annual
+                <span className="ml-1.5 text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">
+                  Save 20%
+                </span>
+              </button>
+            </div>
+
+            {/* Currency toggle */}
+            <div className="inline-flex p-1 rounded-xl bg-white/5 border border-white/10">
+              <button
+                onClick={() => setCurrency("USD")}
+                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  currency === "USD" ? "bg-electric text-white" : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                USD $
+              </button>
+              <button
+                onClick={() => setCurrency("KES")}
+                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  currency === "KES" ? "bg-electric text-white" : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                KES KSh
+              </button>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -183,11 +212,19 @@ export default function Pricing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {plans.map((plan, i) => {
               const Icon = plan.icon;
-              const displayPrice = plan.price === null
-                ? "Custom"
+              // Accurate USD ⇄ KES display: plans are defined in USD and
+              // converted at the business rate for KES view.
+              const usdPerPeriod = plan.price === null
+                ? null
                 : annual
-                ? `$${Math.round(plan.price * 0.8).toLocaleString()}`
-                : `$${plan.price.toLocaleString()}`;
+                  ? plan.price * 0.8
+                  : plan.price;
+              const displayPrice =
+                usdPerPeriod === null
+                  ? "Custom"
+                  : currency === "USD"
+                    ? formatUsd(usdPerPeriod)
+                    : formatKes(usdToKes(usdPerPeriod));
 
               return (
                 <motion.div
@@ -226,9 +263,11 @@ export default function Pricing() {
                         <span className="text-muted-foreground text-sm">/{plan.period}</span>
                       )}
                     </div>
-                    {annual && plan.price && (
+                    {annual && usdPerPeriod !== null && (
                       <p className="text-xs text-emerald-600 font-medium mt-1">
-                        Billed ${Math.round(plan.price * 0.8 * 12).toLocaleString()}/year
+                        Billed {currency === "USD"
+                          ? formatUsd(usdPerPeriod * 12)
+                          : formatKes(usdToKes(usdPerPeriod * 12))}/year
                       </p>
                     )}
                   </div>
@@ -247,7 +286,8 @@ export default function Pricing() {
                   ) : (
                     <PaystackCheckout
                       planName={`${plan.name} Plan`}
-                      amount={annual ? Math.round(plan.price! * 0.8 * 12) : plan.price! * 12}
+                      // Correct: convert USD plan price → KES before charging.
+                      amount={Math.round(usdToKes(annual ? usdPerPeriod! * 12 : usdPerPeriod!))}
                       description={`${plan.name} plan — ${annual ? "Annual" : "Monthly"} billing`}
                       variant={plan.popular ? "primary" : "secondary"}
                     />
@@ -304,6 +344,7 @@ export default function Pricing() {
                 className="p-6 rounded-2xl bg-card border border-border/60 hover:border-border hover:shadow-md transition-all duration-300"
               >
                 <p className="text-2xl font-bold text-foreground mb-1">{addon.price}</p>
+                <p className="text-xs text-muted-foreground mb-3">{formatKes(usdToKes(addon.amountUsd))}</p>
                 <h3 className="font-semibold text-foreground text-sm mb-2">{addon.name}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{addon.description}</p>
               </motion.div>

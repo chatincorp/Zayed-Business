@@ -148,7 +148,7 @@ export default function PaystackCheckout({
         ) : (
           <>
             <CreditCard className="w-4 h-4" />
-            Pay KES {amount.toLocaleString()} via Paystack
+            Subscribe Now — KES {amount.toLocaleString()}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </>
         )}
@@ -156,7 +156,7 @@ export default function PaystackCheckout({
 
       <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground/50">
         <Shield className="w-3 h-3" />
-        <span>Secured by Paystack. Your payment details are encrypted.</span>
+        <span>Secure checkout powered by Paystack. Your payment details are encrypted.</span>
       </div>
     </div>
   );
@@ -223,7 +223,7 @@ export function ServiceCheckoutLink({
         className="group w-full flex items-center justify-center gap-2 py-3.5 rounded-lg text-sm font-semibold bg-electric text-white hover:bg-electric-dark shadow-lg shadow-electric/20 transition-all"
       >
         <CreditCard className="w-4 h-4" />
-        Pay via Paystack
+        Subscribe Now
         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </a>
     </div>
