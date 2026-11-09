@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { useSEO } from "@/lib/seo";
 import {
   LayoutDashboard,
   LogOut,
@@ -13,6 +14,13 @@ import {
 import { useNavigate, Link } from "react-router";
 
 export default function Dashboard() {
+  useSEO({
+    title: "Workspace",
+    description:
+      "Your Yasir Zayed workspace for services, projects and enquiries.",
+    noindex: true,
+  });
+
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 

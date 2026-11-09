@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { useAuth } from "@/hooks/use-auth";
+import { useSEO } from "@/lib/seo";
 import { ArrowRight, Loader2, Mail, ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router";
@@ -68,6 +69,13 @@ function createPuzzle(): Puzzle {
 type Step = "signIn" | "policyConsent" | "verify";
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
+  useSEO({
+    title: "Sign In",
+    description:
+      "Sign in to your Yasir Zayed workspace to manage services, projects and enquiries.",
+    noindex: true,
+  });
+
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

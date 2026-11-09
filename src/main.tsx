@@ -120,6 +120,36 @@ function BackendSessionBridge() {
   return null;
 }
 
+/** Scroll to in-page anchors (e.g. /#fmcg) on navigation and hash changes. */
+function HashScroller() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) return;
+    const id = decodeURIComponent(hash.slice(1));
+    let attempts = 0;
+    let timer: number | undefined;
+
+    // Lazy route chunks can mount after the effect runs, so retry briefly.
+    const scroll = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      if (attempts++ < 20) timer = window.setTimeout(scroll, 100);
+    };
+
+    const frame = requestAnimationFrame(scroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [pathname, hash]);
+
+  return null;
+}
+
 function RouteSyncer() {
   const location = useLocation();
   useEffect(() => {
@@ -147,6 +177,7 @@ function RouteSyncer() {
 const routes = (
   <BrowserRouter>
     <RouteSyncer />
+    <HashScroller />
     <Suspense fallback={<RouteLoading />}>
       <Routes>
         <Route path="/" element={<Landing />} />

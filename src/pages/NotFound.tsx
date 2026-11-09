@@ -1,8 +1,16 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
+import { useSEO } from "@/lib/seo";
 
 export default function NotFound() {
+  useSEO({
+    title: "Page Not Found",
+    description:
+      "The page you were looking for doesn't exist. Explore Yasir Zayed's FMCG, business, security and technology services, the Zayed Tabloid, or get in touch.",
+    noindex: true,
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0 }}

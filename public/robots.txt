@@ -5,6 +5,10 @@ User-agent: *
 Allow: /
 Crawl-delay: 1
 
+# SEO essentials
+# Canonical host: https://yasirzayed.com (no www)
+# Sitemap includes every service, tabloid section and demo page.
+
 # Explicitly welcome major crawlers
 User-agent: Googlebot
 Allow: /
@@ -42,10 +46,11 @@ Allow: /
 User-agent: WhatsApp
 Allow: /
 
-# Block backend internals
+# Block private/backend routes
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /dashboard
+Disallow: /auth
 Disallow: /api/
 
 # Sitemaps

@@ -441,35 +441,62 @@ export default function ServiceDetail() {
     description: service.description || service.longDescription?.slice(0, 155) || `Professional ${service.title.toLowerCase()} from Yasir Zayed.`,
     path: `/services/${slug ?? ""}`,
     keywords: `${service.title}, ${service.categoryLabel}, ${service.title} Kenya, business services, Yasir Zayed`,
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name: service.title,
-      serviceType: service.categoryLabel,
-      description: service.description,
-      url: `https://yasirzayed.com/services/${slug ?? ""}`,
-      provider: {
-        "@type": "Organization",
-        name: "Yasir Zayed",
-        url: "https://yasirzayed.com/",
-        telephone: "+254-114-712-989",
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Nairobi",
-          addressCountry: "KE",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: service.title,
+        serviceType: service.categoryLabel,
+        description: service.longDescription,
+        url: `https://yasirzayed.com/services/${slug ?? ""}`,
+        provider: {
+          "@type": "Organization",
+          "@id": "https://yasirzayed.com/#organization",
+          name: "Yasir Zayed",
+          url: "https://yasirzayed.com/",
+          telephone: "+254-114-712-989",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Nairobi",
+            addressCountry: "KE",
+          },
         },
+        areaServed: ["Kenya", "East Africa", "Global"],
       },
-      areaServed: ["Kenya", "East Africa", "Global"],
-      ...(service.faqs?.length
-        ? {
-            mainEntity: service.faqs.map((f) => ({
-              "@type": "Question",
-              name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-          }
-        : {}),
-    },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: service.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.q,
+          acceptedAnswer: { "@type": "Answer", text: faq.a },
+        })),
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://yasirzayed.com/",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Services",
+            item: "https://yasirzayed.com/services",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: service.title,
+            item: `https://yasirzayed.com/services/${slug ?? ""}`,
+          },
+        ],
+      },
+    ],
   });
 
   return (

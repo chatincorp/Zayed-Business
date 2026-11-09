@@ -44,6 +44,20 @@ function setLink(rel: string, href: string) {
   el.setAttribute("href", href);
 }
 
+/** Keep one alternate-language link per hreflang value. */
+function setAlternate(hreflang: string, href: string) {
+  let el = document.head.querySelector<HTMLLinkElement>(
+    `link[rel="alternate"][hreflang="${hreflang}"]`,
+  );
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", "alternate");
+    el.setAttribute("hreflang", hreflang);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
+}
+
 export function useSEO(seo: SEOData) {
   useEffect(() => {
     const fullTitle = seo.title.includes(SITE_NAME) ? seo.title : `${seo.title} | ${SITE_NAME}`;
@@ -53,14 +67,19 @@ export function useSEO(seo: SEOData) {
     const prevTitle = document.title;
     document.title = fullTitle;
 
+    const robots = seo.noindex
+      ? "noindex, nofollow"
+      : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
+
     setMeta("name", "description", seo.description);
     if (seo.keywords) setMeta("name", "keywords", seo.keywords);
-    setMeta("name", "robots", seo.noindex
-      ? "noindex, nofollow"
-      : "index, follow, max-image-preview:large, max-snippet:-1");
+    setMeta("name", "robots", robots);
+    setMeta("name", "googlebot", robots);
 
-    // Canonical
+    // Canonical + language alternates
     setLink("canonical", url);
+    setAlternate("en", url);
+    setAlternate("x-default", url);
 
     // Open Graph
     setMeta("property", "og:title", fullTitle);
@@ -68,13 +87,17 @@ export function useSEO(seo: SEOData) {
     setMeta("property", "og:url", url);
     setMeta("property", "og:type", seo.type ?? "website");
     setMeta("property", "og:image", image);
+    setMeta("property", "og:image:alt", fullTitle);
     setMeta("property", "og:site_name", SITE_NAME);
+    setMeta("property", "og:locale", "en_KE");
 
     // Twitter
     setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@yasirzayed");
     setMeta("name", "twitter:title", fullTitle);
     setMeta("name", "twitter:description", seo.description);
     setMeta("name", "twitter:image", image);
+    setMeta("name", "twitter:image:alt", fullTitle);
 
     // Article extras
     if (seo.type === "article") {

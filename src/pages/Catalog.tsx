@@ -393,7 +393,18 @@ export default function Catalog() {
       name: "Yasir Zayed Services",
       url: "https://yasirzayed.com/services",
       description:
-        "Full catalog of business, security, AI and technology services from Yasir Zayed.",
+        "Full catalog of FMCG, business, security, AI and technology services from Yasir Zayed.",
+      mainEntity: {
+        "@type": "ItemList",
+        name: "Yasir Zayed Services",
+        numberOfItems: services.length,
+        itemListElement: services.map((service, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: service.title,
+          url: `https://yasirzayed.com/services/${service.slug}`,
+        })),
+      },
       breadcrumb: {
         "@type": "BreadcrumbList",
         itemListElement: [

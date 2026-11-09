@@ -3,6 +3,7 @@ import NotificationBar from "@/components/NotificationBar";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import CookieNotice from "@/components/CookieNotice";
 import HeroCarousel from "@/components/HeroCarousel";
+import FmcgSection from "@/components/sections/FmcgSection";
 import LatestIntelligence from "@/components/sections/LatestIntelligence";
 import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
 import { useSEO } from "@/lib/seo";
@@ -29,13 +30,75 @@ import Footer from "@/components/Footer";
 
 export default function Landing() {
   useSEO({
-    title: "Yasir Zayed — Business Development, Security & Technology Solutions in Kenya",
+    title: "Yasir Zayed — Business, FMCG, Security & Technology Solutions in Kenya",
     description:
-      "Yasir Zayed combines business development, sales & marketing, web development, custom AI chatbots, intelligent automation and security solutions under one integrated ecosystem. Building Stronger Businesses. Smarter Systems. Secure Futures.",
+      "Yasir Zayed combines FMCG order booking, sales, supplier sourcing, merchandizing and product promotion with business development, marketing, web development, AI automation and security solutions under one integrated ecosystem. Building Stronger Businesses. Smarter Systems. Secure Futures.",
     path: "/",
     keywords:
-      "business development Kenya, consultancy, security solutions, AI chatbots, web development, digital transformation, technology consulting, Yasir Zayed",
+      "FMCG services Kenya, FMCG order booking, FMCG sales, supplier sourcing Kenya, merchandizing, product promotion, business development Kenya, security solutions, AI chatbots, web development, digital transformation, Yasir Zayed",
     jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: "FMCG Services",
+        serviceType:
+          "FMCG order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion",
+        description:
+          "End-to-end FMCG support for distributors, retailers and brand owners in Kenya and East Africa: structured order booking, sales execution, supplier sourcing, shelf merchandizing and product promotion.",
+        url: "https://yasirzayed.com/services",
+        provider: {
+          "@type": "Organization",
+          "@id": "https://yasirzayed.com/#organization",
+          name: "Yasir Zayed",
+        },
+        areaServed: ["Kenya", "East Africa", "Global"],
+        hasOfferCatalog: {
+          "@type": "OfferCatalog",
+          name: "FMCG Services",
+          itemListElement: [
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "FMCG Order Booking",
+                url: "https://yasirzayed.com/services/fmcg-order-booking",
+              },
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "FMCG Sales",
+                url: "https://yasirzayed.com/services/fmcg-sales",
+              },
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "FMCG Supplier Sourcing",
+                url: "https://yasirzayed.com/services/fmcg-supplier-sourcing",
+              },
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "FMCG Merchandizing",
+                url: "https://yasirzayed.com/services/fmcg-merchandizing",
+              },
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "FMCG Product Promotion",
+                url: "https://yasirzayed.com/services/fmcg-product-promotion",
+              },
+            },
+          ],
+        },
+      },
       {
         "@context": "https://schema.org",
         "@type": "FAQPage",
@@ -45,7 +108,15 @@ export default function Landing() {
             name: "What services does Yasir Zayed offer?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yasir Zayed provides business development, sales and marketing strategy, CCTV and security systems, AI system integration, custom AI chatbots, workflow automation, corporate websites and WordPress development — all under one integrated ecosystem.",
+              text: "Yasir Zayed provides FMCG order booking, sales, supplier sourcing, merchandizing and product promotion, plus business development, sales and marketing strategy, CCTV and security systems, AI system integration, custom AI chatbots, workflow automation, corporate websites and WordPress development — all under one integrated ecosystem.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Does Yasir Zayed provide FMCG services in Kenya?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Yes. Our FMCG team handles order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion for distributors, retailers and brand owners across Kenya and East Africa.",
             },
           },
           {
@@ -92,6 +163,7 @@ export default function Landing() {
       <NotificationBar />
       <Navigation />
       <HeroCarousel />
+      <FmcgSection />
       <IntroSection />
       <LatestIntelligence />
       <ServicesSection />
