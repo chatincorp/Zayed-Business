@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -19,14 +19,14 @@ type SubmissionDoc = Doc<"formSubmissions">;
 type ChatDoc = Doc<"chats">;
 type ChatMsg = ChatDoc["messages"][number];
 
-/* ── Status color helpers ───────────────────────────────────── */
-
-const roleColors: Record<string, string> = {
+/* ── Status color helpers ───────────────────────────────────── */  const roleColors: Record<string, string> = {
   super_admin: "bg-electric/10 text-electric",
   admin: "bg-violet-500/10 text-violet-500",
   manager: "bg-amber-500/10 text-amber-500",
   staff: "bg-muted text-muted-foreground",
 };
+
+
 
 const statusColors: Record<StaffStatus, string> = {
   active: "bg-emerald-500/10 text-emerald-500",
@@ -84,17 +84,38 @@ export default function RBACPanel() {
   const [replyText, setReplyText] = useState("");
   const [chatInput, setChatInput] = useState("");
 
+  // Derived counts
+  const departmentStaffCount: Record<string, number> = {};
+  for (const dept of departments) {
+    if (dept.name) {
+      departmentStaffCount[dept.name] = (departmentStaffCount[dept.name] ?? 0) + 1;
+    }
+  }
+
   // New staff form
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "manager" | "staff">("staff");
-  const [newDept, setNewDept] = useState("Technology");
+  const roleOptions = useMemo(
+    () =>
+      [
+        { value: "admin", label: "Admin" },
+        { value: "manager", label: "Manager" },
+        { value: "staff", label: "Staff" },
+      ] as const,
+    [],
+  );
+  void roleOptions;
+  const [newDept, setNewDept] = useState("Operations");
   const [newResponsibilities, setNewResponsibilities] = useState("");
 
   // New department form
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptDesc, setNewDeptDesc] = useState("");
+  const [staffSignInEnabled, setStaffSignInEnabled] = useState(false);
+  void staffSignInEnabled;
+  void setStaffSignInEnabled;
 
   const handleSendChatMessage = async () => {
     if (!expandedChat || !chatInput.trim()) return;
@@ -205,6 +226,7 @@ export default function RBACPanel() {
                     </select>
                     <select value={newDept} onChange={(e) => setNewDept(e.target.value)} className={inputClass}>
                       {departments.map((d) => <option key={d._id} value={d.name}>{d.name}</option>)}
+                      {departments.length === 0 && <option value="Operations">Operations</option>}
                     </select>
                   </div>
                   <input placeholder="Responsibilities (comma separated)" value={newResponsibilities} onChange={(e) => setNewResponsibilities(e.target.value)} className={inputClass} />
@@ -238,6 +260,16 @@ export default function RBACPanel() {
                     </div>
                   </div>
                   <div className="col-span-2 text-xs text-muted-foreground truncate">{s.department}</div>
+                  {tab === "staff" && (
+                    <div className="col-span-1 text-[10px] text-muted-foreground text-right">
+                      {departmentStaffCount[s.department] ?? 0}
+                    </div>
+                  )}
+                  {tab === "staff" && (
+                    <div className="col-span-1 text-[10px] text-muted-foreground text-right">
+                      {departmentStaffCount[s.department] ?? 0}
+                    </div>
+                  )}
                   <div className="col-span-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${roleColors[s.role]}`}>{s.role.replace("_", " ")}</span></div>
                   <div className="col-span-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusColors[s.status]}`}>{s.status}</span></div>
                   <div className="col-span-3 flex items-center justify-end gap-1.5">
@@ -292,12 +324,14 @@ export default function RBACPanel() {
                   <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center"><Building2 className="w-5 h-5 text-electric" /></div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{dept.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Head: {dept.head}</p>
+                    <p className="text-[10px] text-muted-foreground">Head: {dept.head || "TBD"}</p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">{dept.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{dept.staffCount} staff</span>
+                  <span className="text-xs text-muted-foreground">
+                    {(departmentStaffCount[dept.name] ?? 0)} staff
+                  </span>
                   <button onClick={() => handleDeleteDept(dept._id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
