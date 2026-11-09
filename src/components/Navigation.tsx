@@ -10,7 +10,6 @@ const navLinks = [
   { label: "About", href: "/about" },
   { label: "Services", href: "/services" },
   { label: "FMCG", href: "/fmcg" },
-  { label: "FMCG Account", href: "/fmcg/account" },
   { label: "Tabloid", href: "/tabloid" },
   { label: "Pricing", href: "/pricing" },
   { label: "Contact", href: "/contact" },
