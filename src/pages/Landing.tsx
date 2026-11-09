@@ -6,6 +6,7 @@ import HeroCarousel from "@/components/HeroCarousel";
 import LatestIntelligence from "@/components/sections/LatestIntelligence";
 import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
 import { useSEO } from "@/lib/seo";
+import { isBackendConfigured } from "@/lib/backend";
 import IntroSection from "@/components/sections/IntroSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import AIIntegrationPreview from "@/components/sections/AIIntegrationPreview";
@@ -113,7 +114,7 @@ export default function Landing() {
       <Footer />
       <CookieNotice />
       <FloatingWidgets />
-      <NewsEngineBoot />
+      {isBackendConfigured && <NewsEngineBoot />}
     </div>
   );
 }

@@ -17,6 +17,11 @@ import {
   Bot,
   Zap,
   Calendar,
+  ClipboardList,
+  ShoppingCart,
+  Truck,
+  Store,
+  Tag,
 } from "lucide-react";
 
 const categories = [
@@ -25,6 +30,7 @@ const categories = [
   { id: "sales", label: "Sales" },
   { id: "marketing", label: "Marketing" },
   { id: "promotional", label: "Promotional" },
+  { id: "fmcg", label: "FMCG Services" },
   { id: "security", label: "Security" },
   { id: "digital", label: "Web Development" },
   { id: "wordpress", label: "WordPress" },
@@ -177,6 +183,66 @@ const services = [
     popular: false,
   },
   {
+    slug: "fmcg-order-booking",
+    title: "FMCG Order Booking",
+    category: "fmcg",
+    tagline: "Turn every outlet visit into an order",
+    description: "Structured order booking for distributors and field teams — capture, confirm and route FMCG orders with accuracy.",
+    icon: ClipboardList,
+    accentColor: "text-orange-400",
+    bgColor: "bg-orange-400/10",
+    price: "From $1,500",
+    popular: false,
+  },
+  {
+    slug: "fmcg-sales",
+    title: "FMCG Sales",
+    category: "fmcg",
+    tagline: "Win the shelf, grow the basket",
+    description: "Route-to-market sales programmes for fast-moving consumer goods, from distributor coverage to outlet-level execution.",
+    icon: ShoppingCart,
+    accentColor: "text-orange-400",
+    bgColor: "bg-orange-400/10",
+    price: "From $2,000",
+    popular: true,
+  },
+  {
+    slug: "fmcg-supplier-sourcing",
+    title: "FMCG Supplier Sourcing",
+    category: "fmcg",
+    tagline: "Reliable supply, better margins",
+    description: "Identify, vet and onboard FMCG suppliers and manufacturers with dependable quality, pricing and lead times.",
+    icon: Truck,
+    accentColor: "text-orange-400",
+    bgColor: "bg-orange-400/10",
+    price: "From $1,800",
+    popular: false,
+  },
+  {
+    slug: "fmcg-merchandizing",
+    title: "FMCG Merchandizing",
+    category: "fmcg",
+    tagline: "Make your products impossible to miss",
+    description: "Planograms, shelf placement and in-store display standards that lift visibility and sell-through at the point of purchase.",
+    icon: Store,
+    accentColor: "text-orange-400",
+    bgColor: "bg-orange-400/10",
+    price: "From $1,600",
+    popular: false,
+  },
+  {
+    slug: "fmcg-product-promotion",
+    title: "FMCG Product Promotion",
+    category: "fmcg",
+    tagline: "Move stock, build demand",
+    description: "Consumer promotions, trade offers and activation campaigns that drive trial, repeat purchase and distributor pull.",
+    icon: Tag,
+    accentColor: "text-orange-400",
+    bgColor: "bg-orange-400/10",
+    price: "From $2,200",
+    popular: false,
+  },
+  {
     slug: "cctv-surveillance-systems",
     title: "CCTV & Surveillance Systems",
     category: "security",
@@ -317,10 +383,10 @@ export default function Catalog() {
   useSEO({
     title: "Services — Business Development, Security, AI & Web Solutions",
     description:
-      "Explore Yasir Zayed's full service catalog: business development, sales and marketing strategy, CCTV and security systems, AI chatbots, workflow automation, corporate websites and WordPress development in Kenya and beyond.",
+      "Explore Yasir Zayed's full service catalog: business development, FMCG order booking, sales and merchandizing, supplier sourcing, marketing strategy, CCTV and security systems, AI chatbots, workflow automation, corporate websites and WordPress development in Kenya and beyond.",
     path: "/services",
     keywords:
-      "business development services, sales strategy, marketing strategy, CCTV installation Kenya, AI chatbots, workflow automation, web development services, WordPress development, Yasir Zayed services",
+      "business development services, FMCG order booking, FMCG sales Kenya, supplier sourcing, merchandizing, product promotion, sales strategy, marketing strategy, CCTV installation Kenya, AI chatbots, workflow automation, web development services, WordPress development, Yasir Zayed services",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
@@ -374,7 +440,7 @@ export default function Catalog() {
               Everything Your Business Needs
             </h1>
             <p className="text-lg sm:text-xl text-white/50 leading-relaxed mb-10 max-w-2xl">
-              From strategy and sales to security, technology and artificial intelligence — explore every way we help businesses grow, operate smarter and stay protected.
+              From strategy and sales to FMCG distribution, security, technology and artificial intelligence — explore every way we help businesses grow, operate smarter and stay protected.
             </p>
 
             {/* Search */}

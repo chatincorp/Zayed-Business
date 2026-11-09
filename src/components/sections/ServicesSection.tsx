@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import { useNavigate } from "react-router";
 import {
   TrendingUp,
   BarChart3,
@@ -8,6 +9,7 @@ import {
   Shield,
   Globe,
   Bot,
+  ShoppingCart,
   ArrowRight,
 } from "lucide-react";
 
@@ -68,10 +70,19 @@ const services = [
     color: "emerald-400",
     link: "/#ai",
   },
+  {
+    num: "08",
+    title: "FMCG Services",
+    description: "Order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion for fast-moving consumer goods.",
+    icon: ShoppingCart,
+    color: "orange-400",
+    link: "/services",
+  },
 ];
 
 export default function ServicesSection() {
   const [ref, inView] = useInView({ threshold: 0.1, triggerOnce: true });
+  const navigate = useNavigate();
 
   const scrollTo = (href: string) => {
     const id = href.replace("/#", "");
@@ -107,7 +118,7 @@ export default function ServicesSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto"
           >
-            Seven integrated service areas designed to help your business grow, operate smarter and stay secure.
+            Eight integrated service areas designed to help your business grow, operate smarter and stay secure.
           </motion.p>
         </div>
 
@@ -121,7 +132,10 @@ export default function ServicesSection() {
               transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
             >
               <button
-                onClick={() => scrollTo(service.link)}
+                onClick={() => {
+                  if (service.link.startsWith("/#")) scrollTo(service.link);
+                  else navigate(service.link);
+                }}
                 className="group relative w-full text-left p-6 sm:p-7 rounded-2xl bg-card border border-border/60 hover:border-border transition-all duration-500 hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1"
               >
                 {/* Number */}

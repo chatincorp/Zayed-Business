@@ -1,9 +1,12 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
 import { RequireAuth } from "@/components/RequireAuth";
+import { BackendOnly } from "@/components/BackendOnly";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { CONVEX_URL, isBackendConfigured } from "@/lib/backend";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
-import { ConvexReactClient } from "convex/react";
+import { ConvexAuthProvider, useAuthActions } from "@convex-dev/auth/react";
+import { ConvexReactClient, useConvexAuth } from "convex/react";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
@@ -94,8 +97,28 @@ class RootErrorBoundary extends React.Component<
   }
 }
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+/** Created only when VITE_CONVEX_URL is set, so the static bundle can boot
+ *  with no backend attached. */
+const convex = isBackendConfigured ? new ConvexReactClient(CONVEX_URL) : null;
 
+/**
+ * Mirror the local sign-in with a Convex anonymous session when a backend is
+ * configured. Purely additive: the static site works with or without it.
+ */
+function BackendSessionBridge() {
+  const { isAuthenticated: hasLocalSession } = useAuth();
+  const { isAuthenticated: hasBackendSession } = useConvexAuth();
+  const { signIn: convexSignIn } = useAuthActions();
+
+  useEffect(() => {
+    if (!hasLocalSession || hasBackendSession) return;
+    void convexSignIn("anonymous").catch((error: unknown) => {
+      console.warn("Convex anonymous session unavailable:", error);
+    });
+  }, [hasLocalSession, hasBackendSession, convexSignIn]);
+
+  return null;
+}
 
 function RouteSyncer() {
   const location = useLocation();
@@ -121,57 +144,72 @@ function RouteSyncer() {
 }
 
 
+const routes = (
+  <BrowserRouter>
+    <RouteSyncer />
+    <Suspense fallback={<RouteLoading />}>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/services" element={<Catalog />} />
+        <Route path="/services/:slug" element={<ServiceDetail />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route
+          path="/admin/*"
+          element={
+            <RequireAuth>
+              <BackendOnly>
+                <Admin />
+              </BackendOnly>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/auth"
+          element={<AuthPage redirectAfterAuth="/dashboard" />}
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route path="/demo/corporate" element={<DemoCorporate />} />
+        <Route path="/demo/webapp" element={<DemoWebapp />} />
+        <Route path="/demo/ecommerce" element={<DemoEcommerce />} />
+        <Route path="/tabloid" element={<TabloidIndex />} />
+        <Route path="/tabloid/:id" element={<TabloidArticlePage />} />
+        <Route path="/tabloid/markets" element={<FinancialMarkets />} />
+        <Route path="/tabloid/forex" element={<LiveForex />} />
+        <Route path="/tabloid/editorial" element={<EditorialDashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
+  </BrowserRouter>
+);
+
+const app = (
+  <RootErrorBoundary>
+    <ToolbarErrorBoundary>
+      <VlyToolbar />
+    </ToolbarErrorBoundary>
+    <AuthProvider>
+      {routes}
+      <Toaster />
+      {convex ? <BackendSessionBridge /> : null}
+    </AuthProvider>
+  </RootErrorBoundary>
+);
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RootErrorBoundary>
-      <ToolbarErrorBoundary>
-        <VlyToolbar />
-      </ToolbarErrorBoundary>
-      <ConvexAuthProvider client={convex}>
-        <BrowserRouter>
-          <RouteSyncer />
-          <Suspense fallback={<RouteLoading />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/services" element={<Catalog />} />
-              <Route path="/services/:slug" element={<ServiceDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route
-                path="/admin/*"
-                element={
-                  <RequireAuth>
-                    <Admin />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/auth"
-                element={<AuthPage redirectAfterAuth="/dashboard" />}
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <RequireAuth>
-                    <Dashboard />
-                  </RequireAuth>
-                }
-              />
-              <Route path="/demo/corporate" element={<DemoCorporate />} />
-              <Route path="/demo/webapp" element={<DemoWebapp />} />
-              <Route path="/demo/ecommerce" element={<DemoEcommerce />} />
-              <Route path="/tabloid" element={<TabloidIndex />} />
-              <Route path="/tabloid/:id" element={<TabloidArticlePage />} />
-              <Route path="/tabloid/markets" element={<FinancialMarkets />} />
-              <Route path="/tabloid/forex" element={<LiveForex />} />
-              <Route path="/tabloid/editorial" element={<EditorialDashboard />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-        <Toaster />
-      </ConvexAuthProvider>
-    </RootErrorBoundary>
+    {convex ? (
+      <ConvexAuthProvider client={convex}>{app}</ConvexAuthProvider>
+    ) : (
+      app
+    )}
   </StrictMode>,
 );

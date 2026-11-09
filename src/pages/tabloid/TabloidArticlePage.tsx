@@ -21,7 +21,8 @@ import {
   Bookmark,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { isBackendConfigured } from "@/lib/backend";
 import { mockArticles, newsSources } from "@/data/tabloidData";
 import StockTicker from "@/components/tabloid/StockTicker";
 import ForexTicker from "@/components/tabloid/ForexTicker";
@@ -70,6 +71,13 @@ interface ArticleView {
 }
 
 export default function TabloidArticlePage() {
+  if (!isBackendConfigured) {
+    return <TabloidArticleView live={undefined} />;
+  }
+  return <LiveTabloidArticle />;
+}
+
+function LiveTabloidArticle() {
   const { id } = useParams<{ id: string }>();
 
   // Live lookup when the id is a Convex id.
@@ -78,6 +86,15 @@ export default function TabloidArticlePage() {
     id && id.length > 20 ? { id: id as Id<"tabloidNews"> } : "skip"
   );
 
+  return <TabloidArticleView live={live} />;
+}
+
+function TabloidArticleView({
+  live,
+}: {
+  live: Doc<"tabloidNews"> | null | undefined;
+}) {
+  const { id } = useParams<{ id: string }>();
   const mock = mockArticles.find((a) => a.id === id);
 
   const article: ArticleView | null = live

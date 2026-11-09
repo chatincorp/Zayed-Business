@@ -27,8 +27,11 @@ import FloatingWidgets from "@/components/FloatingWidgets";
 import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
 import Navigation from "@/components/Navigation";
 import { useSEO } from "@/lib/seo";
+import { isBackendConfigured } from "@/lib/backend";
 
 type NewsDoc = Doc<"tabloidNews">;
+
+type NewsStats = { published: number; inPipeline: number; last24h: number };
 
 /** Unified shape so Convex docs and mock articles render identically. */
 interface FeedItem {
@@ -131,12 +134,28 @@ function imgFor(item: FeedItem): string {
 }
 
 export default function TabloidIndex() {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
+  if (!isBackendConfigured) {
+    return <TabloidIndexView liveNews={undefined} stats={undefined} />;
+  }
+  return <LiveTabloidIndex />;
+}
 
+function LiveTabloidIndex() {
   // Live subscription — Convex pushes updates the moment new items publish.
   const liveNews = useQuery(api.tabloidNews.listPublishedNews, { limit: 48 });
   const stats = useQuery(api.tabloidNews.getNewsStats, {});
+  return <TabloidIndexView liveNews={liveNews} stats={stats} />;
+}
+
+function TabloidIndexView({
+  liveNews,
+  stats,
+}: {
+  liveNews: NewsDoc[] | null | undefined;
+  stats: NewsStats | null | undefined;
+}) {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
 
   useSEO({
     title: "Zayed Tabloid — Business, Technology & Global Markets News",
@@ -408,7 +427,7 @@ export default function TabloidIndex() {
       </main>
 
       <FloatingWidgets />
-      <NewsEngineBoot />
+      {isBackendConfigured && <NewsEngineBoot />}
     </div>
   );
 }

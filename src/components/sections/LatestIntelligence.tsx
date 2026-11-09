@@ -12,8 +12,11 @@ import { Newspaper, ArrowRight, Radio, TrendingUp, Shield, Cpu } from "lucide-re
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { mockArticles } from "@/data/tabloidData";
+import { isBackendConfigured } from "@/lib/backend";
 
 type NewsDoc = Doc<"tabloidNews">;
+
+type NewsStats = { published: number; inPipeline: number; last24h: number };
 
 interface StripItem {
   id: string;
@@ -71,12 +74,28 @@ function Counter({
 /* ── Section ────────────────────────────────────────────────── */
 
 export default function LatestIntelligence() {
+  if (!isBackendConfigured) {
+    return <LatestIntelligenceView liveNews={undefined} stats={undefined} />;
+  }
+  return <LiveLatestIntelligence />;
+}
+
+function LiveLatestIntelligence() {
   const liveNews = useQuery(api.tabloidNews.listPublishedNews, { limit: 5 });
   const stats = useQuery(api.tabloidNews.getNewsStats, {});
+  return <LatestIntelligenceView liveNews={liveNews} stats={stats} />;
+}
 
+function LatestIntelligenceView({
+  liveNews,
+  stats,
+}: {
+  liveNews: NewsDoc[] | null | undefined;
+  stats: NewsStats | null | undefined;
+}) {
   const items: StripItem[] =
     liveNews && liveNews.length > 0
-      ? liveNews.map((d: NewsDoc) => ({
+      ? liveNews.map((d) => ({
           id: d._id,
           title: d.title,
           category: d.category,
@@ -137,7 +156,7 @@ export default function LatestIntelligence() {
                 Top Stories
               </span>
               <span className="text-[10px] text-white/25">
-                Auto-refreshing · Convex real-time
+                {isBackendConfigured ? "Auto-refreshing · Convex real-time" : "Curated · Zayed News Desk"}
               </span>
             </div>
             <div className="divide-y divide-white/5">

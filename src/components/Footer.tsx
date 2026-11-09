@@ -25,6 +25,16 @@ const footerNav = [
     ],
   },
   {
+    title: "FMCG",
+    links: [
+      { label: "Order Booking", href: "/services/fmcg-order-booking" },
+      { label: "FMCG Sales", href: "/services/fmcg-sales" },
+      { label: "Supplier Sourcing", href: "/services/fmcg-supplier-sourcing" },
+      { label: "Merchandizing", href: "/services/fmcg-merchandizing" },
+      { label: "Product Promotion", href: "/services/fmcg-product-promotion" },
+    ],
+  },
+  {
     title: "Technology",
     links: [
       { label: "Web Development", href: "/services/custom-corporate-websites" },
@@ -86,7 +96,7 @@ export default function Footer() {
 
           {/* Navigation columns — fill remaining space */}
           <div className="flex-1">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
               {footerNav.map((section) => (
                 <div key={section.title}>
                   <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">

@@ -8,14 +8,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 
 import { useAuth } from "@/hooks/use-auth";
-import { ArrowRight, Loader2, Mail, ArrowLeft } from "lucide-react";
+import { ArrowRight, Loader2, Mail, ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router";
 import PolicyConsent from "@/components/PolicyConsent";
@@ -34,6 +29,44 @@ function resolveRedirectAfterAuth(
   return fallback;
 }
 
+/* ── Math challenge ────────────────────────────────────────────────
+ * Replaces email verification codes. Reconstructed on every attempt so
+ * the answer is never reused, and simple enough to solve in seconds.
+ */
+
+interface Puzzle {
+  prompt: string;
+  answer: number;
+}
+
+const rand = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+function createPuzzle(): Puzzle {
+  switch (rand(1, 3)) {
+    case 1: {
+      const a = rand(12, 48);
+      const b = rand(4, 19);
+      const c = rand(2, 9);
+      return { prompt: `${a} + ${b} − ${c}`, answer: a + b - c };
+    }
+    case 2: {
+      const a = rand(2, 9);
+      const b = rand(2, 9);
+      const c = rand(1, 15);
+      return { prompt: `${a} × ${b} + ${c}`, answer: a * b + c };
+    }
+    default: {
+      const a = rand(30, 80);
+      const b = rand(4, 20);
+      const c = rand(1, 9);
+      return { prompt: `${a} − ${b} + ${c}`, answer: a - b + c };
+    }
+  }
+}
+
+type Step = "signIn" | "policyConsent" | "verify";
+
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
   const navigate = useNavigate();
@@ -42,13 +75,21 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
-  const [step, setStep] = useState<"signIn" | "policyConsent" | { email: string }>("signIn");
-  const [otp, setOtp] = useState("");
+
+  const [step, setStep] = useState<Step>("signIn");
+  const [email, setEmail] = useState("");
+  const [puzzle, setPuzzle] = useState<Puzzle>(createPuzzle);
+  const [answer, setAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [failedChecks, setFailedChecks] = useState(0);
 
   const [policyAccepted, setPolicyAccepted] = useState(() => {
-    return localStorage.getItem("yz-policy-accepted") === "true";
+    try {
+      return localStorage.getItem("yz-policy-accepted") === "true";
+    } catch {
+      return false;
+    }
   });
 
   useEffect(() => {
@@ -57,57 +98,84 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     }
   }, [authLoading, isAuthenticated, navigate, redirect]);
 
-  const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const startVerification = (nextEmail: string) => {
+    setEmail(nextEmail);
+    setPuzzle(createPuzzle());
+    setAnswer("");
+    setFailedChecks(0);
+    setError(null);
+    setStep("verify");
+  };
+
+  const handleEmailSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const submitted = email.trim().toLowerCase();
+    if (!submitted) {
+      setError("Please enter your email address.");
+      return;
+    }
 
     // Show policy consent before allowing registration/sign-in
     if (!policyAccepted) {
+      setEmail(submitted);
       setStep("policyConsent");
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    try {
-      const formData = new FormData(event.currentTarget);
-      await signIn("email-otp", formData);
-      setStep({ email: formData.get("email") as string });
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Email sign-in error:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to send verification code. Please try again.",
-      );
-      setIsLoading(false);
-    }
+    startVerification(submitted);
   };
 
   const handlePolicyAccept = () => {
-    localStorage.setItem("yz-policy-accepted", "true");
+    try {
+      localStorage.setItem("yz-policy-accepted", "true");
+    } catch {
+      // Storage unavailable — continue for this session.
+    }
     setPolicyAccepted(true);
-    setStep("signIn");
+    if (email.trim()) {
+      startVerification(email.trim().toLowerCase());
+    } else {
+      setStep("signIn");
+    }
   };
 
   const handlePolicyDecline = () => {
     setStep("signIn");
   };
 
-  const handleOtpSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handlePuzzleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
     setError(null);
-    try {
-      const formData = new FormData(event.currentTarget);
-      await signIn("email-otp", formData);
-      navigate(redirect);
-    } catch (error) {
-      console.error("OTP verification error:", error);
-      setError("The verification code you entered is incorrect.");
-      setIsLoading(false);
-      setOtp("");
+
+    const parsed = Number(answer.trim());
+    if (!answer.trim() || !Number.isFinite(parsed)) {
+      setError("Enter the answer to the puzzle.");
+      return;
     }
+
+    if (parsed !== puzzle.answer) {
+      setFailedChecks((count) => count + 1);
+      setPuzzle(createPuzzle());
+      setAnswer("");
+      setError("That answer isn't right. Here's a fresh puzzle — try again.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signIn({ email });
+      navigate(redirect);
+    } catch (signInError) {
+      console.error("Sign-in error:", signInError);
+      setError("We couldn't create your session. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewPuzzle = () => {
+    setPuzzle(createPuzzle());
+    setAnswer("");
+    setError(null);
   };
 
   return (
@@ -153,14 +221,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           )}
 
           <Card className="w-full border-white/10 bg-card/50 backdrop-blur-xl shadow-2xl shadow-black/20">
-            {step === "signIn" || step === "policyConsent" ? (
+            {step !== "verify" ? (
               <>
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl font-display">
                     Welcome Back
                   </CardTitle>
                   <CardDescription>
-                    Sign in to your account or create one in seconds
+                    Sign in with your email — no verification code required
                   </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleEmailSubmit}>
@@ -172,6 +240,9 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                           name="email"
                           placeholder="you@example.com"
                           type="email"
+                          autoComplete="email"
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
                           className="pl-9"
                           disabled={isLoading}
                           required
@@ -182,18 +253,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                         className="w-full"
                         disabled={isLoading}
                       >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Sending code...
-                          </>
-                        ) : (
-                          <>
-                            Continue with Email
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </>
-                        )}
+                        Continue with Email
+                        <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
+                      <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                        Email verification is replaced by a quick math check
+                      </p>
                     </div>
                     {error && (
                       <p className="mt-3 text-sm text-red-500 text-center">{error}</p>
@@ -204,67 +270,79 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             ) : (
               <>
                 <CardHeader className="text-center">
-                  <CardTitle className="text-xl font-display">Check Your Email</CardTitle>
+                  <CardTitle className="text-xl font-display">
+                    Verify You&apos;re Human
+                  </CardTitle>
                   <CardDescription>
-                    We sent a 6-digit code to{" "}
-                    <span className="font-medium text-foreground">{(step as { email: string }).email}</span>
+                    Solve the puzzle to continue as{" "}
+                    <span className="font-medium text-foreground">{email}</span>
                   </CardDescription>
                 </CardHeader>
-                <form onSubmit={handleOtpSubmit}>
+                <form onSubmit={handlePuzzleSubmit}>
                   <CardContent className="pb-4">
-                    <input type="hidden" name="email" value={(step as { email: string }).email} />
-                    <input type="hidden" name="code" value={otp} />
-
-                    <div className="flex justify-center mb-4">
-                      <InputOTP
-                        value={otp}
-                        onChange={setOtp}
-                        maxLength={6}
+                    <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-6 text-center">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35 mb-3">
+                        Math challenge
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <span className="font-display text-3xl font-bold tracking-tight text-white tabular-nums">
+                          {puzzle.prompt}
+                        </span>
+                        <span className="font-display text-3xl font-bold text-electric">=</span>
+                        <Input
+                          name="puzzleAnswer"
+                          inputMode="numeric"
+                          pattern="-?[0-9]*"
+                          autoFocus
+                          autoComplete="off"
+                          aria-label="Answer to the math challenge"
+                          value={answer}
+                          onChange={(event) => setAnswer(event.target.value)}
+                          disabled={isLoading}
+                          className="w-24 text-center text-xl font-bold tabular-nums"
+                          placeholder="?"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleNewPuzzle}
                         disabled={isLoading}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && otp.length === 6 && !isLoading) {
-                            const form = (e.target as HTMLElement).closest("form");
-                            if (form) form.requestSubmit();
-                          }
-                        }}
+                        className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-medium text-white/40 hover:text-white/70 transition-colors"
                       >
-                        <InputOTPGroup>
-                          {Array.from({ length: 6 }).map((_, index) => (
-                            <InputOTPSlot key={index} index={index} />
-                          ))}
-                        </InputOTPGroup>
-                      </InputOTP>
+                        <RefreshCw className="h-3 w-3" />
+                        New puzzle
+                      </button>
                     </div>
+
                     {error && (
-                      <p className="text-sm text-red-500 text-center mb-3">
+                      <p role="alert" className="mt-3 text-sm text-red-500 text-center">
                         {error}
                       </p>
                     )}
-                    <p className="text-sm text-muted-foreground text-center">
-                      Didn't receive a code?{" "}
-                      <button
-                        type="button"
-                        className="text-electric font-medium hover:underline"
-                        onClick={() => setStep("signIn")}
-                      >
-                        Try a different email
-                      </button>
+                    {failedChecks > 0 && !error && (
+                      <p className="mt-3 text-xs text-muted-foreground text-center">
+                        {failedChecks} incorrect {failedChecks === 1 ? "attempt" : "attempts"} — no account is locked.
+                      </p>
+                    )}
+                    <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
+                      No codes are sent to your inbox. Your session is stored in this
+                      browser, so you can sign back in instantly.
                     </p>
                   </CardContent>
                   <CardFooter className="flex-col gap-3">
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={isLoading || otp.length !== 6}
+                      disabled={isLoading || !answer.trim()}
                     >
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Verifying...
+                          Signing in...
                         </>
                       ) : (
                         <>
-                          Verify & Sign In
+                          Verify &amp; Sign In
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </>
                       )}
@@ -272,12 +350,16 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => setStep("signIn")}
+                      onClick={() => {
+                        setStep("signIn");
+                        setAnswer("");
+                        setError(null);
+                      }}
                       disabled={isLoading}
                       className="w-full text-muted-foreground"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back to email
+                      Use a different email
                     </Button>
                   </CardFooter>
                 </form>
@@ -286,7 +368,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           </Card>
 
           <p className="mt-8 text-center text-xs text-white/30 max-w-sm">
-            By continuing, you agree to Yasir Zayed's{" "}
+            By continuing, you agree to Yasir Zayed&apos;s{" "}
             <a href="#" className="underline hover:text-white/50">Terms of Service</a>{" "}
             and{" "}
             <a href="#" className="underline hover:text-white/50">Privacy Policy</a>.
