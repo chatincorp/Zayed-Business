@@ -377,9 +377,9 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
           <p className="mt-8 text-center text-xs text-white/30 max-w-sm">
             By continuing, you agree to Yasir Zayed&apos;s{" "}
-            <a href="#" className="underline hover:text-white/50">Terms of Service</a>{" "}
+            <Link to="/terms" className="underline hover:text-white/50">Terms of Service</Link>{" "}
             and{" "}
-            <a href="#" className="underline hover:text-white/50">Privacy Policy</a>.
+            <Link to="/privacy" className="underline hover:text-white/50">Privacy Policy</Link>.
           </p>
         </div>
       </div>

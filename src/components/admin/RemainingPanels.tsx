@@ -429,28 +429,60 @@ const mockCTAs: CTA[] = [
 ];
 
 export function CTAsPanel() {
+  const [ctas, setCtas] = useState<CTA[]>(mockCTAs);
+
+  const addCta = () => {
+    const label = window.prompt("New CTA label", "Get Started");
+    if (!label?.trim()) return;
+    setCtas((prev) => [
+      ...prev,
+      {
+        id: `cta-${Date.now()}`,
+        label: label.trim(),
+        url: "/contact",
+        style: "Primary Blue",
+        clicks: 0,
+        visible: true,
+      },
+    ]);
+  };
+
+  const editCta = (cta: CTA) => {
+    const label = window.prompt("CTA label", cta.label);
+    if (label === null) return;
+    const url = window.prompt("Destination URL", cta.url);
+    if (url === null) return;
+    setCtas((prev) =>
+      prev.map((item) =>
+        item.id === cta.id
+          ? { ...item, label: label.trim() || item.label, url: url.trim() || item.url }
+          : item,
+      ),
+    );
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">CTAs</h1>
-          <p className="text-muted-foreground text-sm mt-1">{mockCTAs.length} call-to-action buttons</p>
+          <p className="text-muted-foreground text-sm mt-1">{ctas.length} call-to-action buttons</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors"><Plus className="w-4 h-4" /> New CTA</button>
+        <button onClick={addCta} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors"><Plus className="w-4 h-4" /> New CTA</button>
       </div>
       <div className="rounded-xl bg-card border border-border overflow-hidden">
         <div className="divide-y divide-border">
-          {mockCTAs.map((cta) => (
+          {ctas.map((cta) => (
             <div key={cta.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors">
-              <button onClick={() => {}} className={`p-1 rounded ${cta.visible ? "text-emerald-500" : "text-muted-foreground"}`}>{cta.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+              <button onClick={() => setCtas((prev) => prev.map((item) => item.id === cta.id ? { ...item, visible: !item.visible } : item))} title={cta.visible ? "Hide CTA" : "Show CTA"} className={`p-1 rounded ${cta.visible ? "text-emerald-500" : "text-muted-foreground"}`}>{cta.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">{cta.label}</p>
                 <p className="text-[10px] text-muted-foreground">{cta.url}</p>
               </div>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{cta.style}</span>
               <span className="text-xs text-muted-foreground">{cta.clicks} clicks</span>
-              <button className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"><Edit3 className="w-3.5 h-3.5" /></button>
-              <button className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"><Trash2 className="w-3.5 h-3.5" /></button>
+              <button onClick={() => editCta(cta)} title="Edit CTA" className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"><Edit3 className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setCtas((prev) => prev.filter((item) => item.id !== cta.id))} title="Delete CTA" className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
           ))}
         </div>

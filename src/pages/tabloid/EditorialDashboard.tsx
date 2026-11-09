@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   PenTool,
   Eye,
@@ -56,8 +57,14 @@ export default function EditorialDashboard() {
   const [statusFilter, setStatusFilter] = useState<ArticleStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<TabloidArticle | null>(null);
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, ArticleStatus>>({});
 
-  const filtered = mockArticles
+  // Apply in-session editorial decisions on top of the mock pipeline data.
+  const articles = mockArticles.map((article) =>
+    statusOverrides[article.id] ? { ...article, status: statusOverrides[article.id] } : article,
+  );
+
+  const filtered = articles
     .filter((a) => statusFilter === "all" || a.status === statusFilter)
     .filter(
       (a) =>
@@ -68,12 +75,12 @@ export default function EditorialDashboard() {
 
   // Stats
   const stats = {
-    total: mockArticles.length,
-    drafts: mockArticles.filter((a) => a.status === "draft").length,
-    pending: mockArticles.filter((a) => a.status === "pending_review").length,
-    approved: mockArticles.filter((a) => a.status === "approved").length,
-    published: mockArticles.filter((a) => a.status === "published").length,
-    rejected: mockArticles.filter((a) => a.status === "rejected").length,
+    total: articles.length,
+    drafts: articles.filter((a) => a.status === "draft").length,
+    pending: articles.filter((a) => a.status === "pending_review").length,
+    approved: articles.filter((a) => a.status === "approved").length,
+    published: articles.filter((a) => a.status === "published").length,
+    rejected: articles.filter((a) => a.status === "rejected").length,
   };
 
   return (
@@ -183,7 +190,7 @@ export default function EditorialDashboard() {
             </button>
             {statusFilters.map((status) => {
               const Icon = statusIcons[status];
-              const count = mockArticles.filter((a) => a.status === status).length;
+              const count = articles.filter((a) => a.status === status).length;
               return (
                 <button
                   key={status}
@@ -239,7 +246,23 @@ export default function EditorialDashboard() {
 
         {/* Expanded detail panel */}
         {selectedArticle && (
-          <ArticleDetailPanel article={selectedArticle} />
+          <ArticleDetailPanel
+            article={{
+              ...selectedArticle,
+              status: statusOverrides[selectedArticle.id] ?? selectedArticle.status,
+            }}
+            onDecision={(status) => {
+              setStatusOverrides((prev) => ({ ...prev, [selectedArticle.id]: status }));
+              setSelectedArticle((prev) => (prev ? { ...prev, status } : prev));
+              toast.success(
+                status === "published"
+                  ? "Approved and published"
+                  : status === "rejected"
+                    ? "Article rejected"
+                    : "Revision requested",
+              );
+            }}
+          />
         )}
       </div>
 
@@ -317,7 +340,13 @@ function EditorialArticleRow({
   );
 }
 
-function ArticleDetailPanel({ article }: { article: TabloidArticle }) {
+function ArticleDetailPanel({
+  article,
+  onDecision,
+}: {
+  article: TabloidArticle;
+  onDecision: (status: ArticleStatus) => void;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
@@ -374,15 +403,15 @@ function ArticleDetailPanel({ article }: { article: TabloidArticle }) {
 
         {/* Action buttons */}
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-colors">
+          <button onClick={() => onDecision("published")} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-colors">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Approve & Publish
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors">
+          <button onClick={() => onDecision("draft")} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors">
             <RefreshCw className="w-3.5 h-3.5" />
             Request Revision
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors">
+          <button onClick={() => onDecision("rejected")} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors">
             <XCircle className="w-3.5 h-3.5" />
             Reject
           </button>

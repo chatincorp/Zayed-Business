@@ -5,9 +5,11 @@
  * and source attribution.
  */
 
+import { useState } from "react";
 import { useParams, Link } from "react-router";
 import { useQuery } from "convex/react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Clock,
@@ -81,9 +83,12 @@ function LiveTabloidArticle() {
   const { id } = useParams<{ id: string }>();
 
   // Live lookup when the id is a Convex id.
+  // Only Convex ids are lowercase alphanumeric; anything else is a mock slug
+  // and must never be passed to the query (invalid ids throw server-side).
+  const looksLikeConvexId = !!id && /^[a-z0-9]{28,}$/i.test(id);
   const live = useQuery(
     api.tabloidNews.getNewsItem,
-    id && id.length > 20 ? { id: id as Id<"tabloidNews"> } : "skip"
+    looksLikeConvexId ? { id: id as Id<"tabloidNews"> } : "skip"
   );
 
   return <TabloidArticleView live={live} />;
@@ -144,6 +149,33 @@ function TabloidArticleView({
   const related = mock
     ? mockArticles.filter((a) => a.id !== mock.id && a.category === mock.category).slice(0, 2)
     : [];
+
+  // Reading list (localStorage) — keeps the bookmark control functional offline.
+  const articleId = article?.id;
+  const [savedIds, setSavedIds] = useState<string[]>(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("yz-bookmarks") ?? "[]") as unknown;
+      return Array.isArray(parsed) ? (parsed as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
+  const bookmarked = !!articleId && savedIds.includes(articleId);
+
+  const toggleBookmark = () => {
+    if (!articleId) return;
+    const next = savedIds.includes(articleId)
+      ? savedIds.filter((id) => id !== articleId)
+      : [...savedIds, articleId];
+    const isSaved = next.includes(articleId);
+    setSavedIds(next);
+    try {
+      localStorage.setItem("yz-bookmarks", JSON.stringify(next));
+      toast.success(isSaved ? "Saved to reading list" : "Removed from reading list");
+    } catch {
+      toast.error("Could not save your reading list");
+    }
+  };
 
   /* ── SEO + NewsArticle structured data ── */
   const heroImage =
@@ -304,16 +336,32 @@ function TabloidArticleView({
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() =>
-                  navigator.clipboard?.writeText(shareUrl).catch(() => undefined)
-                }
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    toast.success("Link copied");
+                  } catch {
+                    toast.error("Could not copy the link");
+                  }
+                }}
                 className="p-2 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
                 title="Copy link"
+                aria-label="Copy link"
               >
                 <Share2 className="w-4 h-4" />
               </button>
-              <button className="p-2 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors" title="Bookmark">
-                <Bookmark className="w-4 h-4" />
+              <button
+                onClick={toggleBookmark}
+                aria-pressed={bookmarked}
+                aria-label={bookmarked ? "Remove bookmark" : "Bookmark article"}
+                className={`p-2 rounded-lg transition-colors ${
+                  bookmarked
+                    ? "bg-electric/10 text-electric hover:bg-electric/20"
+                    : "bg-white/5 text-white/40 hover:text-white hover:bg-white/10"
+                }`}
+                title={bookmarked ? "Remove bookmark" : "Bookmark article"}
+              >
+                <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
               </button>
             </div>
           </div>

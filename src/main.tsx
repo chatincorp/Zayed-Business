@@ -23,6 +23,7 @@ const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
+const Legal = lazy(() => import("./pages/Legal.tsx"));
 const DemoCorporate = lazy(() => import("./pages/demos/DemoCorporate.tsx"));
 const DemoWebapp = lazy(() => import("./pages/demos/DemoWebapp.tsx"));
 const DemoEcommerce = lazy(() => import("./pages/demos/DemoEcommerce.tsx"));
@@ -186,6 +187,9 @@ const routes = (
         <Route path="/services/:slug" element={<ServiceDetail />} />
         <Route path="/about" element={<About />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/privacy" element={<Legal />} />
+        <Route path="/terms" element={<Legal />} />
+        <Route path="/cookies" element={<Legal />} />
         <Route
           path="/admin/*"
           element={

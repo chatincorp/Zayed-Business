@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
@@ -377,8 +377,15 @@ const services = [
 ];
 
 export default function Catalog() {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
+  // Honour deep links such as /services?q=fmcg or /services?category=fmcg
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
+  const [activeCategory, setActiveCategory] = useState(() => {
+    const requested = searchParams.get("category");
+    return requested && categories.some((cat) => cat.id === requested)
+      ? requested
+      : "all";
+  });
 
   useSEO({
     title: "Services — Business Development, Security, AI & Web Solutions",

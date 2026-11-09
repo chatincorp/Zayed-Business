@@ -339,7 +339,7 @@ function InsightsSection() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            href="#"
+            href="/tabloid"
             className="hidden sm:flex items-center gap-2 text-[#60a5fa] text-sm font-semibold hover:underline"
           >
             View All <ArrowUpRight className="w-4 h-4" />
@@ -713,14 +713,14 @@ function Footer() {
             </span>
           </div>
           <div className="flex gap-8 text-white/30 text-sm">
-            <a href="#" className="hover:text-white/60 transition-colors">
+            <a href="/privacy" className="hover:text-white/60 transition-colors">
               Privacy
             </a>
-            <a href="#" className="hover:text-white/60 transition-colors">
+            <a href="/terms" className="hover:text-white/60 transition-colors">
               Terms
             </a>
-            <a href="#" className="hover:text-white/60 transition-colors">
-              Disclosures
+            <a href="/cookies" className="hover:text-white/60 transition-colors">
+              Cookies
             </a>
           </div>
           <div className="text-white/20 text-xs">

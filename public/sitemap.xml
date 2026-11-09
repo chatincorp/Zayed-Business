@@ -68,6 +68,11 @@
   <url><loc>https://yasirzayed.com/services/ecommerce-platforms</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://yasirzayed.com/services/crm-implementation</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
+  <!-- Legal -->
+  <url><loc>https://yasirzayed.com/privacy</loc><lastmod>2026-11-09</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://yasirzayed.com/terms</loc><lastmod>2026-11-09</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://yasirzayed.com/cookies</loc><lastmod>2026-11-09</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+
   <!-- Zayed Tabloid -->
   <url>
     <loc>https://yasirzayed.com/tabloid</loc>

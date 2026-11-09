@@ -152,15 +152,15 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Yasir Zayed. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-white/30 hover:text-white/50 text-xs transition-colors">
+            <Link to="/privacy" className="text-white/30 hover:text-white/50 text-xs transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="text-white/30 hover:text-white/50 text-xs transition-colors">
+            </Link>
+            <Link to="/terms" className="text-white/30 hover:text-white/50 text-xs transition-colors">
               Terms &amp; Conditions
-            </a>
-            <a href="#" className="text-white/30 hover:text-white/50 text-xs transition-colors">
+            </Link>
+            <Link to="/cookies" className="text-white/30 hover:text-white/50 text-xs transition-colors">
               Cookie Policy
-            </a>
+            </Link>
           </div>
         </div>
       </div>

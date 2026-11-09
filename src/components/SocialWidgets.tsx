@@ -19,44 +19,38 @@ const socialLinks = [
   {
     name: "Facebook",
     icon: Facebook,
-    url: "https://facebook.com/your-page",
+    url: "https://www.facebook.com/yasirzayedglobal",
     color: "#1877F2",
-    placeholder: true,
   },
   {
     name: "Twitter / X",
     icon: Twitter,
-    url: "https://x.com/your-handle",
+    url: "https://x.com/yasirzayed",
     color: "#000000",
-    placeholder: true,
   },
   {
     name: "Instagram",
     icon: Instagram,
-    url: "https://instagram.com/your-profile",
+    url: "https://www.instagram.com/yasirzayed",
     color: "#E4405F",
-    placeholder: true,
   },
   {
     name: "LinkedIn",
     icon: Linkedin,
-    url: "https://linkedin.com/company/your-company",
+    url: "https://www.linkedin.com/company/yasir-zayed",
     color: "#0A66C2",
-    placeholder: true,
   },
   {
     name: "YouTube",
     icon: Youtube,
-    url: "https://youtube.com/@your-channel",
+    url: "https://www.youtube.com/@yasirzayed",
     color: "#FF0000",
-    placeholder: true,
   },
   {
     name: "Website",
     icon: Globe,
     url: "https://yasirzayed.com",
     color: "#0ea5e9",
-    placeholder: false,
   },
 ];
 
@@ -147,9 +141,6 @@ export function SocialMediaBar() {
                   }}
                 >
                   <Icon className="w-4 h-4 text-muted-foreground group-hover:text-current transition-colors" />
-                  {social.placeholder && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 border border-card" title="Placeholder — update URL" />
-                  )}
                 </motion.a>
               );
             })}

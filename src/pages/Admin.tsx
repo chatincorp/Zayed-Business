@@ -146,12 +146,12 @@ const sidebarSections = [
 ];
 
 const quickActions = [
-  { label: "New Page", icon: FileText, color: "electric" },
-  { label: "New Service", icon: Target, color: "emerald-500" },
-  { label: "New Article", icon: BookOpen, color: "violet-500" },
-  { label: "New Partner", icon: Handshake, color: "blue-500" },
-  { label: "New Landing Page", icon: Layers, color: "amber-500" },
-  { label: "New CTA", icon: Tag, color: "rose-500" },
+  { label: "New Page", icon: FileText, color: "electric", section: "homepage" },
+  { label: "New Service", icon: Target, color: "emerald-500", section: "services" },
+  { label: "New Article", icon: BookOpen, color: "violet-500", section: "blog" },
+  { label: "New Partner", icon: Handshake, color: "blue-500", section: "partners" },
+  { label: "New Landing Page", icon: Layers, color: "amber-500", section: "homepage" },
+  { label: "New CTA", icon: Tag, color: "rose-500", section: "ctas" },
 ];
 
 const kpiCards = [
@@ -268,7 +268,7 @@ export default function Admin() {
         {/* Dashboard content */}
         <div className="p-6">
           <AnimatePresence mode="wait">
-            {activeSection === "dashboard" && <DashboardContent key="dashboard" />}
+            {activeSection === "dashboard" && <DashboardContent key="dashboard" onNavigate={setActiveSection} />}
             {activeSection === "services" && <ServicesManager key="services" />}
             {activeSection === "leads" && <LeadsTable key="leads" />}
             {activeSection === "testimonials" && <TestimonialsManager key="testimonials" />}
@@ -312,7 +312,7 @@ export default function Admin() {
   );
 }
 
-function DashboardContent() {
+function DashboardContent({ onNavigate }: { onNavigate: (section: string) => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -329,6 +329,7 @@ function DashboardContent() {
         {quickActions.map((action) => (
           <button
             key={action.label}
+            onClick={() => onNavigate(action.section)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border hover:border-border/80 hover:shadow-sm transition-all text-sm font-medium text-foreground"
           >
             <Plus className="w-3.5 h-3.5 text-muted-foreground" />
@@ -353,7 +354,7 @@ function DashboardContent() {
         <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground text-sm">Recent Leads</h3>
-            <button className="text-electric text-xs font-medium hover:underline">View All</button>
+            <button onClick={() => onNavigate("leads")} className="text-electric text-xs font-medium hover:underline">View All</button>
           </div>
           <div className="text-center py-8">
             <Users className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
@@ -366,7 +367,7 @@ function DashboardContent() {
         <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground text-sm">Upcoming Appointments</h3>
-            <button className="text-electric text-xs font-medium hover:underline">View All</button>
+            <button onClick={() => onNavigate("leads")} className="text-electric text-xs font-medium hover:underline">View All</button>
           </div>
           <div className="text-center py-8">
             <Calendar className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
@@ -378,7 +379,7 @@ function DashboardContent() {
         <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground text-sm">Recent Quotation Requests</h3>
-            <button className="text-electric text-xs font-medium hover:underline">View All</button>
+            <button onClick={() => onNavigate("leads")} className="text-electric text-xs font-medium hover:underline">View All</button>
           </div>
           <div className="text-center py-8">
             <FileText className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
@@ -390,7 +391,7 @@ function DashboardContent() {
         <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground text-sm">YASIR VERIFY™ Security</h3>
-            <button className="text-electric text-xs font-medium hover:underline">View Dashboard</button>
+            <button onClick={() => onNavigate("yasir-verify")} className="text-electric text-xs font-medium hover:underline">View Dashboard</button>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-3 rounded-lg bg-muted/50">
@@ -412,7 +413,7 @@ function DashboardContent() {
         <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground text-sm">Content Status</h3>
-            <button className="text-electric text-xs font-medium hover:underline">View Pages</button>
+            <button onClick={() => onNavigate("homepage")} className="text-electric text-xs font-medium hover:underline">View Pages</button>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">

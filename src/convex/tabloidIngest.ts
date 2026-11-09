@@ -37,6 +37,16 @@ function stripTags(s: string): string {
     .trim();
 }
 
+/** Trim text to a maximum length without cutting a word in half. */
+function clampAtWord(s: string, max: number): string {
+  const text = s.replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  const base = lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut;
+  return base.replace(/[\s,;:.\-–—]+$/, "");
+}
+
 interface RawItem {
   title: string;
   link: string;
@@ -503,7 +513,7 @@ export const ingestNews = action({
             if (ai) {
               rewrite = {
                 title: ai.title,
-                excerpt: (sentenceSplit(ai.body)[0] ?? rewrite.excerpt).slice(0, 180) + "…",
+                excerpt: clampAtWord(sentenceSplit(ai.body)[0] ?? rewrite.excerpt, 180) + "…",
                 body: ai.body,
                 aiRewrite: ai.body.split("\n\n").slice(0, 2).join(" ").slice(0, 500),
               };
@@ -515,10 +525,10 @@ export const ingestNews = action({
           const readTime = `${Math.max(3, Math.min(12, Math.round(words / 220) || 3))} min`;
 
           // SEO metadata — derived from the final title/body after any AI rewrite.
-          const seoTitle = `${rewrite.title.slice(0, 60)} | Zayed Tabloid`.slice(0, 100);
+          const seoTitle = clampAtWord(rewrite.title, 65);
           const seoDescription =
-            (sentenceSplit(rewrite.body)[0] ?? rewrite.excerpt).replace(/\s+/g, " ").trim().slice(0, 155) ||
-            rewrite.excerpt.slice(0, 155);
+            clampAtWord(sentenceSplit(rewrite.body)[0] ?? rewrite.excerpt, 155) ||
+            clampAtWord(rewrite.excerpt, 155);
           const seoKeywords = tags.join(", ");
 
           prepared.push({

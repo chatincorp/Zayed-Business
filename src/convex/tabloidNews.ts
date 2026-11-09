@@ -283,3 +283,46 @@ export const markFeedFetchedInternal = internalMutation({
     });
   },
 });
+
+/**
+ * Maintenance: rebuild SEO titles/descriptions for stored articles.
+ * Earlier ingests could cut a title mid-word and append a duplicate brand
+ * suffix, which the article page then combined with "| Yasir Zayed".
+ */
+export const repairSeoMetadata = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const clamp = (value: string, max: number) => {
+      const text = value.replace(/\s+/g, " ").trim();
+      if (text.length <= max) return text;
+      const cut = text.slice(0, max);
+      const lastSpace = cut.lastIndexOf(" ");
+      const base = lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut;
+      return base.replace(/[\s,;:.\-–—]+$/, "");
+    };
+
+    const firstSentence = (value: string) => {
+      const text = value.replace(/\s+/g, " ").trim();
+      return text.split(/(?<=[.!?])\s/)[0] ?? text;
+    };
+
+    const items = await ctx.db.query("tabloidNews").collect();
+    let updated = 0;
+
+    for (const item of items) {
+      const headline = item.title.replace(/\s*\|\s*Zayed Tabloid\s*$/i, "");
+      const seoTitle = clamp(headline, 65);
+      const seoDescription = clamp(
+        firstSentence(item.body || item.excerpt || item.title),
+        155,
+      );
+
+      if (seoTitle !== item.seoTitle || seoDescription !== item.seoDescription) {
+        await ctx.db.patch(item._id, { seoTitle, seoDescription });
+        updated++;
+      }
+    }
+
+    return { updated, total: items.length };
+  },
+});

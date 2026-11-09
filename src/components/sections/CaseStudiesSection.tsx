@@ -27,7 +27,7 @@ export default function CaseStudiesSection() {
   const [ref, inView] = useInView({ threshold: 0.15, triggerOnce: true });
 
   return (
-    <section className="relative py-24 sm:py-32 bg-navy overflow-hidden">
+    <section id="case-studies" className="relative py-24 sm:py-32 bg-navy overflow-hidden">
       <div className="absolute inset-0 bg-grid-pattern-dark" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" ref={ref}>
