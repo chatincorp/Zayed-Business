@@ -157,7 +157,7 @@ const serviceData: Record<string, {
     icon: "ClipboardList",
     accentColor: "text-orange-400",
     bgColor: "bg-orange-400/10",
-    price: "From $1,500",
+    price: "",
     benefits: [
       "Fewer order errors and delivery disputes",
       "Predictable call cycles and outlet coverage",
@@ -561,7 +561,7 @@ export default function ServiceDetail() {
                   className="inline-flex items-center gap-2 px-6 py-3 bg-electric text-white font-semibold text-sm rounded-lg hover:bg-electric-dark transition-all shadow-lg shadow-electric/20"
                 >
                   <Calendar className="w-4 h-4" />
-                  Book a Consultation
+                  Open an Account
                 </Link>
                 <Link
                   to="/contact"
@@ -581,18 +581,12 @@ export default function ServiceDetail() {
               className="hidden lg:block p-8 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-sm min-w-[240px]"
             >
               <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Starting At</p>
-              <p className="text-3xl font-bold text-white mb-4">{service.price}</p>
-              <Link
-                to="/pricing"
-                className="block text-center text-sm text-electric hover:underline mb-4"
-              >
-                View all pricing plans
-              </Link>
+              <p className="text-2xl font-bold text-white mb-4">Order-booking is set up through a live account</p>
               <Link
                 to="/contact"
                 className="block w-full text-center px-5 py-3 bg-electric text-white font-semibold text-sm rounded-lg hover:bg-electric-dark transition-all"
               >
-                Get Started
+                Book a Consultation
               </Link>
             </motion.div>
           </div>
@@ -700,15 +694,15 @@ export default function ServiceDetail() {
             <div className="lg:sticky lg:top-24 h-fit space-y-6">
               {/* CTA Card */}
               <div className="p-6 rounded-2xl bg-navy text-white">
-                <h3 className="font-display text-lg font-bold mb-2">Ready to get started?</h3>
+                <h3 className="font-display text-lg font-bold mb-2">Ready to set up order booking?</h3>
                 <p className="text-white/50 text-sm mb-5">
-                  Book a free consultation and let's discuss how this service can help your business.
+                  This service is activated for businesses that have an account with Yasir Zayed. Open an account first, then we configure the order-booking process for your outlets, pricing rules and dispatch handoff.
                 </p>
                 <Link
                   to="/contact"
                   className="block w-full text-center px-5 py-3 bg-electric text-white font-semibold text-sm rounded-lg hover:bg-electric-dark transition-all"
                 >
-                  Book a Consultation
+                  Open an Account
                 </Link>
               </div>
 
@@ -719,8 +713,8 @@ export default function ServiceDetail() {
                   <Link to="/services" className="block p-3 rounded-lg hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Browse All Services
                   </Link>
-                  <Link to="/pricing" className="block p-3 rounded-lg hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    View Pricing
+                  <Link to="/contact" className="block p-3 rounded-lg hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Open an Account
                   </Link>
                 </div>
               </div>
