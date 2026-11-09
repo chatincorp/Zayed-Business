@@ -21,7 +21,47 @@ import {
   Lightbulb,
   Handshake,
   Building2,
+  Truck,
+  ClipboardList,
+  ShoppingCart,
+  Store,
+  Tag,
 } from "lucide-react";
+
+/* ── FMCG capabilities for About ───────────────────────────────── */
+
+const fmcgCapabilities = [
+  {
+    icon: ClipboardList,
+    title: "FMCG Order Booking",
+    description:
+      "A disciplined order-capture process for distributors and depots, with planned call cycles, verified quantities, credit checks and confirmed dispatch dates.",
+  },
+  {
+    icon: ShoppingCart,
+    title: "FMCG Sales",
+    description:
+      "Route-to-market strategy and field execution that turns coverage into repeatable volume across modern and traditional trade.",
+  },
+  {
+    icon: Truck,
+    title: "FMCG Supplier Sourcing",
+    description:
+      "Vetted manufacturers and import partners, benchmarked landed cost, and supply plans that protect margin and availability.",
+  },
+  {
+    icon: Store,
+    title: "FMCG Merchandizing",
+    description:
+      "Shelf standards that sell: planograms, visibility audits and merchandiser coverage that convert footfall into basket share.",
+  },
+  {
+    icon: Tag,
+    title: "FMCG Product Promotion",
+    description:
+      "Trade and consumer promotions built around measurable lift, from sampling and activations to trade offers and shopper campaigns.",
+  },
+];
 
 /* ── Capabilities ──────────────────────────────────────────────── */
 
@@ -149,6 +189,10 @@ export default function About() {
   const [ref4, inView4] = useInView({ threshold: 0.1, triggerOnce: true });
   const [ref5, inView5] = useInView({ threshold: 0.1, triggerOnce: true });
   const [ref6, inView6] = useInView({ threshold: 0.1, triggerOnce: true });
+  const [ref7, inView7] = useInView({ threshold: 0.1, triggerOnce: true });
+  const [ref8, inView8] = useInView({ threshold: 0.1, triggerOnce: true });
+  void ref7;
+  void ref8;
 
   return (
     <div className="min-h-screen bg-background">
@@ -514,6 +558,62 @@ export default function About() {
               <h3 className="font-display text-xl font-bold text-white mb-3">
                 Our Philosophy
               </h3>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView7 ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {fmcgCapabilities.map((cap) => {
+              const Icon = cap.icon;
+              return (
+                <motion.div
+                  key={cap.title}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={inView7 ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50">
+                      <Icon className="h-5 w-5 text-amber-700" />
+                    </div>
+                    <span className="font-display text-base font-bold text-navy">{cap.title}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-600">{cap.description}</p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView8 ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-16 max-w-3xl mx-auto text-center rounded-2xl bg-navy-dark border border-white/5 p-8 sm:p-10"
+          >
+            <span className="text-amber-300 text-xs font-bold uppercase tracking-[0.2em] mb-3 block">
+              FMCG business growth
+            </span>
+            <h3 className="font-display text-xl font-bold text-white mb-4">
+              FMCG services turn distribution into a growth engine.
+            </h3>
+            <p className="text-white/50 leading-relaxed">
+              For manufacturers, importers, distributors and retailers, the FMCG
+              desk supports the whole trade chain — book the order, source the
+              supply, win the shelf and promote the product. That means fewer
+              stock-outs, stronger sell-through, better coverage and more
+              predictable volume from depot to point of purchase.
+            </p>
+            <Link
+              to="/fmcg"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-[#1a1305] transition-all hover:brightness-105"
+            >
+              Explore FMCG services
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
               <p className="text-white/50 leading-relaxed mb-4">
                 We believe technology should serve the business — not the other
                 way around. Every website, system, integration, automation, and
