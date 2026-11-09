@@ -15,6 +15,8 @@ import UsersManager from "@/components/admin/UsersManager";
 import RBACPanel from "@/components/admin/RBACPanel";
 import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
 import { HomepageManagerPanel, AIAssistantPanel, YasirVerifyPanel, CampaignsPanel, EmailTemplatesPanel, CTAsPanel, PartnersPanel, RateLimitingPanel, BlockedActivityPanel, AuditLogsPanel, AISettingsPanel, GenericAdminPanel } from "@/components/admin/RemainingPanels";
+import InternationalSourcingPanel from "@/pages/InternationalSourcingPanel";
+import { INTERNATIONAL_SOURCING_SECTORS, INTERNATIONAL_SOURCING_COUNTRIES } from "@/data/internationalSourcing";
 import {
   LayoutDashboard,
   FileText,
@@ -70,7 +72,8 @@ const sidebarSections = [
       { icon: Layers, label: "Landing Pages", id: "landing-pages" },
       { icon: Navigation, label: "Navigation", id: "navigation" },
       { icon: Target, label: "Services", id: "services" },
-      { icon: Globe, label: "Industries", id: "industries" },
+      { icon: Globe, label: "Industries & Sectors", id: "industries" },
+      { icon: Globe, label: "Target Countries", id: "countries" },
       { icon: Shield, label: "Security Solutions", id: "security" },
       { icon: Cpu, label: "Technology", id: "technology" },
       { icon: Bot, label: "AI Solutions", id: "ai" },
@@ -293,6 +296,15 @@ export default function Admin() {
             {activeSection === "system-health" && <SystemHealthPanel key="system-health" />}
             {activeSection === "security-logs" && <SecurityLogsPanel key="security-logs" />}
             {activeSection === "integrations" && <IntegrationsPanel key="integrations" />}
+            {activeSection === "industries" && <IndustriesPanel key="industries" />}
+            {activeSection === "countries" && <CountriesPanel key="countries" />}
+            {activeSection === "international-sourcing" && (
+              <InternationalSourcingPanel
+                key="international-sourcing"
+                hosts={INTERNATIONAL_SOURCING_SECTORS}
+                countries={INTERNATIONAL_SOURCING_COUNTRIES}
+              />
+            )}
             {(activeSection === "seo-dashboard" || activeSection === "page-seo" || activeSection === "keywords" || activeSection === "regional-seo" || activeSection === "technical-seo") && <SEOToolkitPanel key="seo" />}
             {activeSection === "media" && <MediaLibraryPanel key="media" />}
             {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
@@ -331,6 +343,16 @@ export default function Admin() {
     </div>
   );
 }
+
+function IndustriesPanel() {
+  return <GenericAdminPanel title="Industries & Sectors" description="Manage the industries and sectors available for International Sourcing." />;
+}
+
+function CountriesPanel() {
+  return <GenericAdminPanel title="Target Countries" description="Select and manage the target countries available for International Sourcing." />;
+}
+
+
 
 function DashboardContent({ onNavigate }: { onNavigate: (section: string) => void }) {
   return (

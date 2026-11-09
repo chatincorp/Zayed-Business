@@ -11,7 +11,7 @@ import { Link } from "react-router";
 export function BackendOnly({
   children,
   title = "Admin runs on the live backend",
-  description = "This static build has no Convex deployment attached, so management screens are unavailable. The public site, services and tabloid all work without it.",
+  description = "This static build has no Convex deployment attached, so management screens are unavailable. The public site, services, international sourcing sectors and countries panels all work without it.",
 }: {
   children: ReactNode;
   title?: string;
