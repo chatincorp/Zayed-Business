@@ -276,6 +276,123 @@ const schema = defineSchema(
       .index("by_dedupe", ["dedupeKey"])
       .index("by_published", ["publishedAt"]),
 
+    // --- FMCG: Suppliers ---
+    suppliers: defineTable({
+      fullName: v.string(),
+      idNumber: v.string(),
+      businessName: v.string(),
+      businessAddress: v.string(),
+      officialEmail: v.string(),
+      registrationNumber: v.string(),
+      countyPermitNumber: v.optional(v.string()),
+      countyPermitStorageId: v.optional(v.id("_storage")),
+      // Director ID copies + CR12 (companies)
+      documentStorageIds: v.array(v.id("_storage")),
+      personalPhone: v.string(),
+      companyPhone: v.string(),
+      storefrontStorageId: v.optional(v.id("_storage")),
+      // Chosen at registration; immutable afterwards
+      category: v.string(),
+      paymentTerms: v.string(),
+      status: v.union(
+        v.literal("pending"),
+        v.literal("approved"),
+        v.literal("rejected"),
+        v.literal("suspended"),
+      ),
+      reviewNotes: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_email", ["officialEmail"])
+      .index("by_status", ["status"])
+      .index("by_category", ["category"]),
+
+    // --- FMCG: Products listed by approved suppliers ---
+    fmcgProducts: defineTable({
+      supplierId: v.optional(v.id("suppliers")),
+      supplierName: v.string(),
+      name: v.string(),
+      description: v.optional(v.string()),
+      category: v.string(),
+      unit: v.string(),
+      caseSize: v.number(),
+      moq: v.number(),
+      pricePerUnit: v.number(),
+      currency: v.string(),
+      paymentTerms: v.string(),
+      imageUrl: v.optional(v.string()),
+      imageStorageId: v.optional(v.id("_storage")),
+      status: v.union(
+        v.literal("pending_review"),
+        v.literal("approved"),
+        v.literal("rejected"),
+        v.literal("archived"),
+      ),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_status", ["status"])
+      .index("by_supplier", ["supplierId"])
+      .index("by_category", ["category"]),
+
+    // --- FMCG: Wholesale order bookings (reviewed by the order desk) ---
+    wholesaleOrders: defineTable({
+      reference: v.string(),
+      clientName: v.string(),
+      businessName: v.string(),
+      email: v.string(),
+      phone: v.string(),
+      county: v.string(),
+      deliveryAddress: v.string(),
+      preferredDate: v.optional(v.string()),
+      notes: v.optional(v.string()),
+      items: v.array(
+        v.object({
+          productId: v.optional(v.id("fmcgProducts")),
+          name: v.string(),
+          supplierName: v.string(),
+          quantity: v.number(),
+          unit: v.string(),
+          caseSize: v.number(),
+          unitPrice: v.number(),
+          lineTotal: v.number(),
+        }),
+      ),
+      estimatedTotal: v.number(),
+      currency: v.string(),
+      status: v.union(
+        v.literal("pending_review"),
+        v.literal("confirmed"),
+        v.literal("processing"),
+        v.literal("fulfilled"),
+        v.literal("cancelled"),
+      ),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_status", ["status"])
+      .index("by_email", ["email"])
+      .index("by_created", ["createdAt"]),
+
+    // --- FMCG: Marketing enquiries from the FMCG page ---
+    fmcgEnquiries: defineTable({
+      name: v.string(),
+      businessName: v.string(),
+      email: v.string(),
+      phone: v.string(),
+      service: v.string(),
+      monthlyVolume: v.optional(v.string()),
+      message: v.string(),
+      status: v.union(
+        v.literal("new"),
+        v.literal("contacted"),
+        v.literal("qualified"),
+        v.literal("closed"),
+      ),
+      createdAt: v.number(),
+    }).index("by_created", ["createdAt"]),
+
     // --- Global Settings ---
     settings: defineTable({
       key: v.string(),

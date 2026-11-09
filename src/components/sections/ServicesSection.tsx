@@ -76,7 +76,7 @@ const services = [
     description: "Order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion for fast-moving consumer goods.",
     icon: ShoppingCart,
     color: "orange-400",
-    link: "/#fmcg",
+    link: "/fmcg",
   },
 ];
 

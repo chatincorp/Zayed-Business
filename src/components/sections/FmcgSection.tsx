@@ -181,7 +181,7 @@ export default function FmcgSection() {
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              to="/services"
+              to="/fmcg"
               className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-300 to-[#E8C56A] px-5 py-2.5 text-sm font-semibold text-[#1a1305] transition-all hover:brightness-105"
             >
               Explore FMCG services

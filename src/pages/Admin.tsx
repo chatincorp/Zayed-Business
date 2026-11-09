@@ -10,6 +10,7 @@ import TestimonialsManager from "@/components/admin/TestimonialsManager";
 import FAQManager from "@/components/admin/FAQManager";
 import BlogManager from "@/components/admin/BlogManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import FmcgAdmin from "@/components/admin/FmcgAdmin";
 import UsersManager from "@/components/admin/UsersManager";
 import RBACPanel from "@/components/admin/RBACPanel";
 import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
@@ -49,6 +50,9 @@ import {
   FileSearch,
   Map,
   Gauge,
+  ShoppingCart,
+  Package,
+  Store,
 } from "lucide-react";
 
 const sidebarSections = [
@@ -123,6 +127,15 @@ const sidebarSections = [
       { icon: FileText, label: "Security Logs", id: "security-logs" },
       { icon: Lock, label: "Rate Limiting", id: "rate-limiting" },
       { icon: AlertTriangle, label: "Blocked Activity", id: "blocked" },
+    ],
+  },
+  {
+    label: "FMCG COMMERCE",
+    items: [
+      { icon: Store, label: "Suppliers", id: "fmcg-suppliers" },
+      { icon: Package, label: "Products", id: "fmcg-products" },
+      { icon: ShoppingCart, label: "Wholesale Orders", id: "fmcg-orders" },
+      { icon: MessageSquare, label: "FMCG Enquiries", id: "fmcg-enquiries" },
     ],
   },
   {
@@ -284,6 +297,13 @@ export default function Admin() {
             {activeSection === "media" && <MediaLibraryPanel key="media" />}
             {activeSection === "global-settings" && <GlobalSettingsContent key="settings" />}
             {activeSection === "projects" && <AdminProjectsContent key="projects" />}
+            {/* FMCG commerce */}
+            {activeSection.startsWith("fmcg-") && (
+              <FmcgAdmin
+                key={activeSection}
+                initialTab={activeSection.replace("fmcg-", "") as "suppliers" | "products" | "orders" | "enquiries"}
+              />
+            )}
             {/* Homepage */}
             {activeSection === "homepage" && <HomepageManagerPanel key="homepage" />}
             {/* AI */}
@@ -302,7 +322,7 @@ export default function Admin() {
             {/* System */}
             {activeSection === "audit-logs" && <AuditLogsPanel key="audit-logs" />}
             {/* Catch-all for remaining sections */}
-            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs"].includes(activeSection) && (
+            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs"].includes(activeSection) && (
               <GenericAdminPanel key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
           </AnimatePresence>

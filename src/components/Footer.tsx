@@ -9,7 +9,7 @@ const footerNav = [
     links: [
       { label: "About Us", href: "/about" },
       { label: "Services", href: "/services" },
-      { label: "FMCG Services", href: "/#fmcg" },
+      { label: "FMCG Services", href: "/fmcg" },
       { label: "Pricing", href: "/pricing" },
       { label: "How We Work", href: "/#process" },
       { label: "Contact", href: "/contact" },
@@ -28,11 +28,14 @@ const footerNav = [
   {
     title: "FMCG",
     links: [
+      { label: "FMCG Services", href: "/fmcg" },
       { label: "Order Booking", href: "/services/fmcg-order-booking" },
       { label: "FMCG Sales", href: "/services/fmcg-sales" },
       { label: "Supplier Sourcing", href: "/services/fmcg-supplier-sourcing" },
       { label: "Merchandizing", href: "/services/fmcg-merchandizing" },
       { label: "Product Promotion", href: "/services/fmcg-product-promotion" },
+      { label: "Wholesale Ordering", href: "/wholesale" },
+      { label: "Supplier Registration", href: "/supplier/register" },
     ],
   },
   {

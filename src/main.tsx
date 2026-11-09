@@ -23,6 +23,10 @@ const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
+const Fmcg = lazy(() => import("./pages/Fmcg.tsx"));
+const Wholesale = lazy(() => import("./pages/Wholesale.tsx"));
+const SupplierRegister = lazy(() => import("./pages/SupplierRegister.tsx"));
+const SupplierDashboard = lazy(() => import("./pages/SupplierDashboard.tsx"));
 const Legal = lazy(() => import("./pages/Legal.tsx"));
 const DemoCorporate = lazy(() => import("./pages/demos/DemoCorporate.tsx"));
 const DemoWebapp = lazy(() => import("./pages/demos/DemoWebapp.tsx"));
@@ -185,6 +189,34 @@ const routes = (
         <Route path="/contact" element={<Contact />} />
         <Route path="/services" element={<Catalog />} />
         <Route path="/services/:slug" element={<ServiceDetail />} />
+        <Route path="/fmcg" element={<Fmcg />} />
+        <Route path="/wholesale" element={<Wholesale />} />
+        <Route
+          path="/supplier/register"
+          element={
+            <RequireAuth>
+              <BackendOnly
+                title="Supplier registration runs on the live backend"
+                description="This static build has no Convex deployment attached, so document uploads and supplier accounts are unavailable. You can still explore FMCG services and the wholesale catalogue."
+              >
+                <SupplierRegister />
+              </BackendOnly>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/supplier/dashboard"
+          element={
+            <RequireAuth>
+              <BackendOnly
+                title="The supplier dashboard runs on the live backend"
+                description="This static build has no Convex deployment attached, so supplier listings are unavailable. You can still explore FMCG services and the wholesale catalogue."
+              >
+                <SupplierDashboard />
+              </BackendOnly>
+            </RequireAuth>
+          }
+        />
         <Route path="/about" element={<About />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/privacy" element={<Legal />} />

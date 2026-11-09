@@ -8,7 +8,15 @@ import { Link } from "react-router";
  * On a purely static deployment this shows a friendly notice instead of
  * mounting components that expect a Convex client.
  */
-export function BackendOnly({ children }: { children: ReactNode }) {
+export function BackendOnly({
+  children,
+  title = "Admin runs on the live backend",
+  description = "This static build has no Convex deployment attached, so management screens are unavailable. The public site, services and tabloid all work without it.",
+}: {
+  children: ReactNode;
+  title?: string;
+  description?: string;
+}) {
   if (isBackendConfigured) return children;
 
   return (
@@ -18,12 +26,10 @@ export function BackendOnly({ children }: { children: ReactNode }) {
           <Database className="h-6 w-6 text-muted-foreground" />
         </div>
         <h1 className="font-display text-2xl font-bold text-foreground">
-          Admin runs on the live backend
+          {title}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          This static build has no Convex deployment attached, so management
-          screens are unavailable. The public site, services and tabloid all
-          work without it.
+          {description}
         </p>
         <Link
           to="/"
