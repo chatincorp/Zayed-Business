@@ -114,8 +114,6 @@ export default function RBACPanel() {
   const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptDesc, setNewDeptDesc] = useState("");
   const [staffSignInEnabled, setStaffSignInEnabled] = useState(false);
-  void staffSignInEnabled;
-  void setStaffSignInEnabled;
 
   const handleSendChatMessage = async () => {
     if (!expandedChat || !chatInput.trim()) return;
