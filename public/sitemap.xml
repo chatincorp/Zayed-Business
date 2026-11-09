@@ -39,6 +39,7 @@
 
   <!-- FMCG hub and wholesale booking -->
   <url><loc>https://yasirzayed.com/fmcg</loc><lastmod>2026-11-09</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://yasirzayed.com/fmcg/account</loc><lastmod>2026-11-09</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://yasirzayed.com/wholesale</loc><lastmod>2026-11-09</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
 
   <!-- Service detail pages (verified slugs from the services catalog) -->

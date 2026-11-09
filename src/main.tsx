@@ -24,6 +24,7 @@ const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Fmcg = lazy(() => import("./pages/Fmcg.tsx"));
+const FmcgAccountFlow = lazy(() => import("./pages/FmcgAccountFlow.tsx"));
 const Wholesale = lazy(() => import("./pages/Wholesale.tsx"));
 const SupplierRegister = lazy(() => import("./pages/SupplierRegister.tsx"));
 const SupplierDashboard = lazy(() => import("./pages/SupplierDashboard.tsx"));
@@ -190,6 +191,7 @@ const routes = (
         <Route path="/services" element={<Catalog />} />
         <Route path="/services/:slug" element={<ServiceDetail />} />
         <Route path="/fmcg" element={<Fmcg />} />
+        <Route path="/fmcg/account" element={<FmcgAccountFlow />} />
         <Route path="/wholesale" element={<Wholesale />} />
         <Route
           path="/supplier/register"
