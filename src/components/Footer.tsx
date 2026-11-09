@@ -9,6 +9,7 @@ const footerNav = [
     links: [
       { label: "About Us", href: "/about" },
       { label: "Services", href: "/services" },
+      { label: "FMCG Services", href: "/#fmcg" },
       { label: "Pricing", href: "/pricing" },
       { label: "How We Work", href: "/#process" },
       { label: "Contact", href: "/contact" },
@@ -42,7 +43,9 @@ const footerNav = [
       { label: "AI Chatbots", href: "/services/custom-ai-chatbots" },
       { label: "Workflow Automation", href: "/services/workflow-automation" },
     ],
-  },    { title: "Resources",
+  },
+  {
+    title: "Resources",
     links: [
       { label: "Pricing", href: "/pricing" },
       { label: "Case Studies", href: "/#case-studies" },
@@ -74,7 +77,7 @@ export default function Footer() {
               Building stronger businesses, smarter systems and secure futures. One partnership at a time.
             </p>
             <p className="text-white/30 text-xs leading-relaxed mb-5">
-              From business strategy and sales growth to security infrastructure, digital experiences and artificial intelligence — we help organizations build stronger foundations for sustainable growth.
+              From FMCG order booking, sales and merchandizing to business strategy, security infrastructure, digital experiences and artificial intelligence — we help organizations build stronger foundations for sustainable growth.
             </p>
 
             {/* Contact info */}
