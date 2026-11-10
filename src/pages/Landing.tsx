@@ -29,6 +29,7 @@ import TransformationSection from "@/components/sections/TransformationSection";
 import EngagementSection from "@/components/sections/EngagementSection";
 import CaseStudiesSection from "@/components/sections/CaseStudiesSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
+import HomepageTestimonialsCarousel from "@/components/sections/HomepageTestimonialsCarousel";
 import FinalCTASection from "@/components/sections/FinalCTASection";
 import Footer from "@/components/Footer";
 
@@ -54,6 +55,7 @@ const SECTION_COMPONENTS: Record<string, ComponentType> = {
   engagement: EngagementSection,
   "case-studies": CaseStudiesSection,
   testimonials: TestimonialsSection,
+  "homepage-testimonials-carousel": HomepageTestimonialsCarousel,
   "final-cta": FinalCTASection,
 };
 

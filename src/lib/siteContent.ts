@@ -255,7 +255,8 @@ export const HOME_SECTIONS: HomeSection[] = [
   { id: "engagement", label: "Engagement", order: 19, visible: true },
   { id: "case-studies", label: "Case Studies", order: 20, visible: true },
   { id: "testimonials", label: "Testimonials", order: 21, visible: true },
-  { id: "final-cta", label: "Final CTA", order: 22, visible: true },
+  { id: "homepage-testimonials-carousel", label: "Homepage Testimonials Carousel", order: 22, visible: true },
+  { id: "final-cta", label: "Final CTA", order: 23, visible: true },
 ];
 
 export interface HomepageSettings {
