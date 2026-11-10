@@ -602,6 +602,10 @@ const DEFAULT_SERVICES = [
   { title: "Digital Solutions", category: "digital", shortDescription: "Custom websites, web applications, e-commerce platforms and responsive digital experiences.", ctaUrl: "/#technology" },
   { title: "AI & Automation", category: "ai", shortDescription: "AI system integration, custom chatbots, workflow automation and intelligent business systems.", ctaUrl: "/#ai" },
   { title: "FMCG Services", category: "fmcg", shortDescription: "Order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion for fast-moving consumer goods.", ctaUrl: "/fmcg" },
+  { title: "Marketplace Product Listings", category: "digital", shortDescription: "List and manage products on Jumia, Jiji and Kilimall where buyers are already shopping.", ctaUrl: "/services/marketplace-listings" },
+  { title: "Account & Social Media Management", category: "digital", shortDescription: "Day-to-day management of your social accounts so your brand stays active, on-brand and growing.", ctaUrl: "/services/account-social-media-management" },
+  { title: "Content Generation", category: "digital", shortDescription: "Words, visuals and campaign content produced for your channels.", ctaUrl: "/services/content-generation" },
+  { title: "Ad Generation", category: "digital", shortDescription: "Natural and AI-generated ads in image, video or both, with natural or AI voice-overs for radio-style ads.", ctaUrl: "/services/ad-generation" },
 ];
 
 const DEFAULT_PAGES = [
