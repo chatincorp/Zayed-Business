@@ -12,19 +12,19 @@ const FALLBACK = [
   {
     quote: "Yasir Zayed restructured our sales process and our close rate nearly doubled in one quarter.",
     clientName: "Grace Mwangi",
-    company: "Rift Valley Distributors",
+    company: null,
     position: "Commercial Director",
   },
   {
     quote: "The security audit and camera deployment were handled end to end — professional from survey to handover.",
     clientName: "Peter Otieno",
-    company: "Nairobi Logistics Hub",
+    company: null,
     position: "Operations Manager",
   },
   {
     quote: "Their AI chatbot now handles most of our inbound enquiries, and the team finally has time to sell.",
     clientName: "Amina Hassan",
-    company: "Coastline Retail",
+    company: null,
     position: "Founder",
   },
 ];
@@ -71,9 +71,7 @@ export default function TestimonialsSection() {
               </blockquote>
               <figcaption className="mt-6 pt-5 border-t border-border/60">
                 <p className="text-sm font-semibold text-foreground">{t.clientName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {[t.position, t.company].filter(Boolean).join(" · ")}
-                </p>
+                <p className="text-xs text-muted-foreground">{t.position}</p>
               </figcaption>
             </motion.figure>
           ))}

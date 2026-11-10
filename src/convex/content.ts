@@ -363,7 +363,6 @@ export const upsertTestimonial = mutation({
     id: v.optional(v.id("testimonials")),
     quote: v.string(),
     clientName: v.string(),
-    company: v.optional(v.string()),
     position: v.optional(v.string()),
     status: testimonialStatus,
     displayOrder: v.number(),
@@ -373,7 +372,6 @@ export const upsertTestimonial = mutation({
       await ctx.db.patch(args.id, {
         quote: args.quote,
         clientName: args.clientName,
-        company: args.company,
         position: args.position,
         status: args.status,
         displayOrder: args.displayOrder,
@@ -383,7 +381,6 @@ export const upsertTestimonial = mutation({
     return await ctx.db.insert("testimonials", {
       quote: args.quote,
       clientName: args.clientName,
-      company: args.company,
       position: args.position,
       status: args.status,
       displayOrder: args.displayOrder,
@@ -668,9 +665,9 @@ const DEFAULT_FAQS = [
 ];
 
 const DEFAULT_TESTIMONIALS = [
-  { quote: "Yasir Zayed restructured our sales process and our close rate nearly doubled in one quarter.", clientName: "Grace Mwangi", company: "Rift Valley Distributors", position: "Commercial Director" },
-  { quote: "The security audit and camera deployment were handled end to end — professional from survey to handover.", clientName: "Peter Otieno", company: "Nairobi Logistics Hub", position: "Operations Manager" },
-  { quote: "Their AI chatbot now handles most of our inbound enquiries, and the team finally has time to sell.", clientName: "Amina Hassan", company: "Coastline Retail", position: "Founder" },
+  { quote: "Yasir Zayed restructured our sales process and our close rate nearly doubled in one quarter.", clientName: "Grace Mwangi", company: null, position: "Commercial Director" },
+  { quote: "The security audit and camera deployment were handled end to end — professional from survey to handover.", clientName: "Peter Otieno", company: null, position: "Operations Manager" },
+  { quote: "Their AI chatbot now handles most of our inbound enquiries, and the team finally has time to sell.", clientName: "Amina Hassan", company: null, position: "Founder" },
 ];
 
 const PARTNER_LOGO_FILES: Record<string, string> = {
@@ -807,7 +804,7 @@ export const seedDefaults = mutation({
         await ctx.db.insert("testimonials", {
           quote: t.quote,
           clientName: t.clientName,
-          company: t.company,
+          // company field removed from testimonials; previously t.company ?? undefined
           position: t.position,
           status: "published",
           displayOrder: i + 1,

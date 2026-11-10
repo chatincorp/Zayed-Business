@@ -6,7 +6,7 @@ interface Testimonial {
   id: string;
   name: string;
   role: string;
-  company: string;
+  company: string | null;
   quote: string;
   rating: number;
   featured: boolean;
@@ -14,10 +14,10 @@ interface Testimonial {
 }
 
 const mockTestimonials: Testimonial[] = [
-  { id: "1", name: "James Mwangi", role: "CTO", company: "TechCorp EA", quote: "Yasir Zayed transformed our digital presence. The AI chatbot alone reduced support tickets by 60%.", rating: 5, featured: true, avatar: "JM" },
-  { id: "2", name: "Sarah Williams", role: "Director", company: "Greenfield Consulting", quote: "Professional, strategic, and results-driven. They delivered a website that actually converts.", rating: 5, featured: true, avatar: "SW" },
-  { id: "3", name: "Ahmed Hassan", role: "CEO", company: "Al Baraka Group", quote: "The digital transformation roadmap they built was exactly what we needed to scale across the region.", rating: 4, featured: false, avatar: "AH" },
-  { id: "4", name: "Priya Patel", role: "Operations Lead", company: "Innovate India", quote: "Workflow automation saved us 200+ hours per month. Incredible ROI.", rating: 5, featured: false, avatar: "PP" },
+  { id: "1", name: "James Mwangi", role: "CTO", company: null, quote: "Yasir Zayed transformed our digital presence. The AI chatbot alone reduced support tickets by 60%.", rating: 5, featured: true, avatar: "JM" },
+  { id: "2", name: "Sarah Williams", role: "Director", company: null, quote: "Professional, strategic, and results-driven. They delivered a website that actually converts.", rating: 5, featured: true, avatar: "SW" },
+  { id: "3", name: "Ahmed Hassan", role: "CEO", company: null, quote: "The digital transformation roadmap they built was exactly what we needed to scale across the region.", rating: 4, featured: false, avatar: "AH" },
+  { id: "4", name: "Priya Patel", role: "Operations Lead", company: null, quote: "Workflow automation saved us 200+ hours per month. Incredible ROI.", rating: 5, featured: false, avatar: "PP" },
 ];
 
 export default function TestimonialsManager() {
@@ -25,7 +25,6 @@ export default function TestimonialsManager() {
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState("");
-  const [newCompany, setNewCompany] = useState("");
   const [newQuote, setNewQuote] = useState("");
   const [newRating, setNewRating] = useState(5);
   const [editId, setEditId] = useState<string | null>(null);
@@ -35,8 +34,8 @@ export default function TestimonialsManager() {
 
   const handleCreate = () => {
     if (!newName.trim() || !newQuote.trim()) return;
-    setTestimonials((prev) => [...prev, { id: Date.now().toString(), name: newName, role: newRole, company: newCompany, quote: newQuote, rating: newRating, featured: false, avatar: newName.split(" ").map((n) => n[0]).join("") }]);
-    setNewName(""); setNewRole(""); setNewCompany(""); setNewQuote(""); setNewRating(5);
+    setTestimonials((prev) => [...prev, { id: Date.now().toString(), name: newName, role: newRole, company: null, quote: newQuote, rating: newRating, featured: false, avatar: newName.split(" ").map((n) => n[0]).join("") }]);
+    setNewName(""); setNewRole(""); setNewQuote(""); setNewRating(5);
     setShowCreate(false);
   };
 
@@ -57,10 +56,9 @@ export default function TestimonialsManager() {
       {showCreate && (
         <div className="p-5 rounded-xl bg-card border border-border mb-6 space-y-4">
           <h3 className="font-semibold text-sm">Add Testimonial</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input placeholder="Name" value={newName} onChange={(e) => setNewName(e.target.value)} className={inputClass} />
             <input placeholder="Role" value={newRole} onChange={(e) => setNewRole(e.target.value)} className={inputClass} />
-            <input placeholder="Company" value={newCompany} onChange={(e) => setNewCompany(e.target.value)} className={inputClass} />
           </div>
           <textarea placeholder="Testimonial quote…" value={newQuote} onChange={(e) => setNewQuote(e.target.value)} rows={3} className={`${inputClass} resize-none`} />
           <div className="flex items-center gap-4">
@@ -83,7 +81,7 @@ export default function TestimonialsManager() {
                 <div className="w-10 h-10 rounded-full bg-electric/10 flex items-center justify-center text-electric text-xs font-bold">{t.avatar}</div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{t.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.role} · {t.company}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.role}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">

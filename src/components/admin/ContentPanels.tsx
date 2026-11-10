@@ -547,9 +547,7 @@ export function FaqsPanel() {
 
 /* ── Testimonials ─────────────────────────────────────────────── */
 
-type TestimonialRow = Doc<"testimonials">;
-
-export function TestimonialsPanel() {
+type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
   const content = useQuery(api.content.adminContent);
   const seed = useMutation(api.content.seedDefaults);
   const upsert = useMutation(api.content.upsertTestimonial);
@@ -560,11 +558,10 @@ export function TestimonialsPanel() {
   const [editing, setEditing] = useState<TestimonialRow | null>(null);
   const [quote, setQuote] = useState("");
   const [clientName, setClientName] = useState("");
-  const [company, setCompany] = useState("");
   const [position, setPosition] = useState("");
 
-  const reset = () => { setOpen(false); setEditing(null); setQuote(""); setClientName(""); setCompany(""); setPosition(""); };
-  const startEdit = (t: TestimonialRow) => { setEditing(t); setOpen(true); setQuote(t.quote); setClientName(t.clientName); setCompany(t.company ?? ""); setPosition(t.position ?? ""); };
+  const reset = () => { setOpen(false); setEditing(null); setQuote(""); setClientName(""); setPosition(""); };
+  const startEdit = (t: TestimonialRow) => { setEditing(t); setOpen(true); setQuote(t.quote); setClientName(t.clientName); setPosition(t.position ?? ""); };
   const save = async () => {
     if (!quote.trim() || !clientName.trim()) return;
     const items = content?.testimonials ?? [];
@@ -572,7 +569,6 @@ export function TestimonialsPanel() {
       id: editing?._id,
       quote: quote.trim(),
       clientName: clientName.trim(),
-      company: company.trim() || undefined,
       position: position.trim() || undefined,
       status: editing?.status ?? "published",
       displayOrder: editing?.displayOrder ?? items.length + 1,
@@ -592,7 +588,6 @@ export function TestimonialsPanel() {
           <Field label="Quote"><textarea rows={3} className={inputCls} value={quote} onChange={(e) => setQuote(e.target.value)} /></Field>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Client name"><input className={inputCls} value={clientName} onChange={(e) => setClientName(e.target.value)} /></Field>
-            <Field label="Company"><input className={inputCls} value={company} onChange={(e) => setCompany(e.target.value)} /></Field>
             <Field label="Position"><input className={inputCls} value={position} onChange={(e) => setPosition(e.target.value)} /></Field>
           </div>
           <div className="flex gap-2">
@@ -613,7 +608,7 @@ export function TestimonialsPanel() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">{t.clientName}</p>
-                  <p className="text-xs text-muted-foreground">{[t.position, t.company].filter(Boolean).join(" · ")}</p>
+                  <p className="text-xs text-muted-foreground">{t.position}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => void setStatus({ id: t._id, status: t.status === "published" ? "draft" : "published" })} className={`p-1.5 rounded hover:bg-muted ${t.status === "published" ? "text-emerald-500" : "text-muted-foreground"}`}>
