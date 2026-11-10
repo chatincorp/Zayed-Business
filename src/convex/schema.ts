@@ -193,6 +193,8 @@ const schema = defineSchema(
       company: v.optional(v.string()),
       position: v.optional(v.string()),
       photo: v.optional(v.string()),
+      rating: v.number(),
+      service: v.optional(v.string()),
       status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
       displayOrder: v.number(),
       createdAt: v.number(),

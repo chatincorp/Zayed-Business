@@ -13,7 +13,7 @@ import { GATED_ROUTES, SECTION_FLAG_LABELS } from "@/lib/siteContent";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, FileText, Navigation as NavIcon,
   Layers, HelpCircle, MessageSquare, Handshake, ToggleLeft,
-  ToggleRight, CheckCircle2, Save, RefreshCw,
+  ToggleRight, CheckCircle2, Save, RefreshCw, StarIcon,
 } from "lucide-react";
 
 /* ── Shared shell ─────────────────────────────────────────────── */
@@ -44,6 +44,7 @@ const inputCls = "w-full px-3 py-2 rounded-lg border bg-background text-sm text-
 const labelCls = "block text-xs font-medium text-muted-foreground mb-1.5";
 const primaryBtn = "flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors";
 const ghostBtn = "px-4 py-2 border border-border rounded-lg text-sm text-foreground hover:bg-muted transition-colors";
+const secondaryBtn = "flex items-center gap-2 px-4 py-2 border border-border bg-card text-sm font-medium text-foreground hover:bg-muted transition-colors rounded-lg disabled:opacity-40 disabled:cursor-not-allowed";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -551,6 +552,7 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
   const content = useQuery(api.content.adminContent);
   const seed = useMutation(api.content.seedDefaults);
   const upsert = useMutation(api.content.upsertTestimonial);
+  const seedBulk100 = useMutation(api.testimonials.bulkSeedTestimonials);
   const setStatus = useMutation(api.content.setTestimonialStatus);
   const remove = useMutation(api.content.deleteTestimonial);
 
@@ -558,10 +560,11 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
   const [editing, setEditing] = useState<TestimonialRow | null>(null);
   const [quote, setQuote] = useState("");
   const [clientName, setClientName] = useState("");
+  const [rating, setRating] = useState(5);
   const [position, setPosition] = useState("");
 
-  const reset = () => { setOpen(false); setEditing(null); setQuote(""); setClientName(""); setPosition(""); };
-  const startEdit = (t: TestimonialRow) => { setEditing(t); setOpen(true); setQuote(t.quote); setClientName(t.clientName); setPosition(t.position ?? ""); };
+  const reset = () => { setOpen(false); setEditing(null); setQuote(""); setClientName(""); setPosition(""); setRating(5); };
+  const startEdit = (t: TestimonialRow) => { setEditing(t); setOpen(true); setQuote(t.quote); setClientName(t.clientName); setPosition(t.position ?? ""); setRating(t.rating ?? 5); };
   const save = async () => {
     if (!quote.trim() || !clientName.trim()) return;
     const items = content?.testimonials ?? [];
@@ -569,6 +572,7 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
       id: editing?._id,
       quote: quote.trim(),
       clientName: clientName.trim(),
+      rating: editing?.rating ?? 5,
       position: position.trim() || undefined,
       status: editing?.status ?? "published",
       displayOrder: editing?.displayOrder ?? items.length + 1,
@@ -581,7 +585,10 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
     <Shell
       title="Testimonials"
       subtitle={`${items.length} testimonials · ${items.filter((t) => t.status === "published").length} published`}
-      action={<button onClick={() => { reset(); setOpen(true); }} className={primaryBtn}><Plus className="w-4 h-4" /> New Testimonial</button>}
+      action={<div className="flex gap-2">
+        <button onClick={() => { reset(); setOpen(true); }} className={primaryBtn}><Plus className="w-4 h-4" /> New Testimonial</button>
+        <button onClick={() => { reset(); seedBulk100({ count: 100 }); }} className={secondaryBtn} disabled={items.length > 0}><RefreshCw className="w-4 h-4" /> Seed 100+</button>
+      </div>}
     >
       {open && (
         <div className="p-5 rounded-xl border bg-card mb-6 space-y-4">
@@ -589,6 +596,15 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Client name"><input className={inputCls} value={clientName} onChange={(e) => setClientName(e.target.value)} /></Field>
             <Field label="Position"><input className={inputCls} value={position} onChange={(e) => setPosition(e.target.value)} /></Field>
+            <Field label="Rating (1-5)">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((v) => (
+                  <button key={v} onClick={() => setRating(v)} className={`px-2 py-1 rounded text-xs font-medium ${v === rating ? "bg-sky-500 text-white" : "bg-muted text-muted-foreground"} hover:bg-muted transition-colors`}>
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </Field>
           </div>
           <div className="flex gap-2">
             <button onClick={save} className={primaryBtn}><Save className="w-4 h-4" /> Save</button>
@@ -609,6 +625,12 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
                 <div>
                   <p className="text-sm font-medium text-foreground">{t.clientName}</p>
                   <p className="text-xs text-muted-foreground">{t.position}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    {Array.from({ length: t.rating ?? 5 }).map((_, i) => (
+                      <StarIcon key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
+                    ))}
+                    <span className="ml-2 text-[10px] text-muted-foreground">{t.rating}/5</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => void setStatus({ id: t._id, status: t.status === "published" ? "draft" : "published" })} className={`p-1.5 rounded hover:bg-muted ${t.status === "published" ? "text-emerald-500" : "text-muted-foreground"}`}>

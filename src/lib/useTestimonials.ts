@@ -1,0 +1,43 @@
+import { useSiteTestimonials } from "./siteContent";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
+
+export interface TestimonialWithRating {
+  _id?: string;
+  quote: string;
+  clientName: string;
+  position?: string;
+  rating: number;
+  service?: string;
+  status: string;
+  displayOrder: number;
+}
+
+export interface TestimonialStats {
+  count: number;
+  averageRating: number;
+  fiveStarCount: number;
+  fourStarCount: number;
+}
+
+/** Published testimonials, enriched with rating defaults when the field is absent. */
+export function useTestimonials(): TestimonialWithRating[] | undefined {
+  const data = useSiteTestimonials();
+  if (!data) return undefined;
+  return data.map((t) => ({
+    _id: (t as TestimonialWithRating)._id,
+    quote: t.quote,
+    clientName: t.clientName,
+    position: (t as TestimonialWithRating).position,
+    rating: (t as TestimonialWithRating).rating ?? 5,
+    service: (t as TestimonialWithRating).service,
+    status: t.status,
+    displayOrder: t.displayOrder,
+  }));
+}
+
+/** Live rating aggregates for published testimonials. Returns undefined until
+ * the Convex client is mounted and the query resolves. */
+export function useTestimonialStats(): TestimonialStats | undefined {
+  return useQuery(api.testimonials.testimonialStats) as TestimonialStats | undefined;
+}

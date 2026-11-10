@@ -364,6 +364,8 @@ export const upsertTestimonial = mutation({
     quote: v.string(),
     clientName: v.string(),
     position: v.optional(v.string()),
+    rating: v.number(),
+    service: v.optional(v.string()),
     status: testimonialStatus,
     displayOrder: v.number(),
   },
@@ -373,6 +375,8 @@ export const upsertTestimonial = mutation({
         quote: args.quote,
         clientName: args.clientName,
         position: args.position,
+        rating: args.rating,
+        service: args.service,
         status: args.status,
         displayOrder: args.displayOrder,
       });
@@ -382,6 +386,8 @@ export const upsertTestimonial = mutation({
       quote: args.quote,
       clientName: args.clientName,
       position: args.position,
+      rating: args.rating,
+      service: args.service,
       status: args.status,
       displayOrder: args.displayOrder,
       createdAt: Date.now(),
@@ -665,9 +671,9 @@ const DEFAULT_FAQS = [
 ];
 
 const DEFAULT_TESTIMONIALS = [
-  { quote: "Yasir Zayed restructured our sales process and our close rate nearly doubled in one quarter.", clientName: "Grace Mwangi", company: null, position: "Commercial Director" },
-  { quote: "The security audit and camera deployment were handled end to end — professional from survey to handover.", clientName: "Peter Otieno", company: null, position: "Operations Manager" },
-  { quote: "Their AI chatbot now handles most of our inbound enquiries, and the team finally has time to sell.", clientName: "Amina Hassan", company: null, position: "Founder" },
+  { quote: "Yasir Zayed restructured our sales process and our close rate nearly doubled in one quarter.", clientName: "Grace Mwangi", company: null, position: "Commercial Director", rating: 5, service: "Fmcg Sales" },
+  { quote: "The security audit and camera deployment were handled end to end — professional from survey to handover.", clientName: "Peter Otieno", company: null, position: "Operations Manager", rating: 5, service: "Security Audit" },
+  { quote: "Their AI chatbot now handles most of our inbound enquiries, and the team finally has time to sell.", clientName: "Amina Hassan", company: null, position: "Founder", rating: 5, service: "Chatbot" },
 ];
 
 const PARTNER_LOGO_FILES: Record<string, string> = {
@@ -800,12 +806,12 @@ export const seedDefaults = mutation({
     const testimonialCount = (await ctx.db.query("testimonials").collect()).length;
     if (testimonialCount === 0) {
       for (let i = 0; i < DEFAULT_TESTIMONIALS.length; i++) {
-        const t = DEFAULT_TESTIMONIALS[i];
-        await ctx.db.insert("testimonials", {
+        const t = DEFAULT_TESTIMONIALS[i];          await ctx.db.insert("testimonials", {
           quote: t.quote,
           clientName: t.clientName,
-          // company field removed from testimonials; previously t.company ?? undefined
           position: t.position,
+          rating: t.rating,
+          service: t.service,
           status: "published",
           displayOrder: i + 1,
           createdAt: now,
