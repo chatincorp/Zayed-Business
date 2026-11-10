@@ -8,8 +8,9 @@ import { Check, ArrowRight, Zap, Shield, Crown } from "lucide-react";
 import PaystackCheckout from "@/components/PaystackCheckout";
 import { useSEO } from "@/lib/seo";
 import { usdToKes, formatUsd, formatKes } from "@/lib/currency";
+import { useSiteFaqs, useSitePlans } from "@/lib/siteContent";
 
-const plans = [
+const staticPlans = [
   {
     id: "starter",
     name: "Starter",
@@ -80,6 +81,29 @@ const plans = [
   },
 ];
 
+const staticFaqs = [
+  {
+    q: "Can I switch plans at any time?",
+    a: "Absolutely. You can upgrade, downgrade or cancel your plan at any time. Changes take effect at the start of your next billing cycle.",
+  },
+  {
+    q: "Is there a free trial?",
+    a: "We offer a free initial consultation for all new clients so you can experience our approach before committing to a plan.",
+  },
+  {
+    q: "What payment methods do you accept?",
+    a: "We accept all major credit cards, bank transfers and mobile payments. Enterprise clients can arrange custom invoicing.",
+  },
+  {
+    q: "Do you offer refunds?",
+    a: "If you're not satisfied within the first 14 days, we'll issue a full refund — no questions asked.",
+  },
+  {
+    q: "Can I add team members to my account?",
+    a: "Yes. Growth and Enterprise plans support multiple team members. Contact us for team pricing.",
+  },
+];
+
 const addOns = [
   {
     name: "Security Assessment",
@@ -116,6 +140,30 @@ export default function Pricing() {
     keywords:
       "Yasir Zayed pricing, business consultancy cost Kenya, company registration Kenya, technology retainer, security solutions pricing",
   });
+
+  // Live plans from the admin Checkout panel, with the bundled plan metadata
+  // (icon, accent, description) applied by position.
+  const sitePlans = useSitePlans();
+  const plans = sitePlans.map((p, i) => {
+    const base = staticPlans[i % staticPlans.length];
+    return {
+      ...base,
+      id: p._id ?? base.id,
+      name: p.name,
+      tagline: p.tagline ?? base.tagline,
+      price: p.priceUsd ?? null,
+      period: p.period,
+      popular: Boolean(p.popular),
+      features: p.features,
+    };
+  });
+
+  // FAQs managed in the admin FAQ panel (fallback to the bundled list).
+  const dbFaqs = useSiteFaqs();
+  const faqs =
+    dbFaqs && dbFaqs.length > 0
+      ? dbFaqs.map((f) => ({ q: f.question, a: f.answer }))
+      : staticFaqs;
 
   const [annual, setAnnual] = useState(false);
   const [currency, setCurrency] = useState<"USD" | "KES">("USD");
@@ -390,28 +438,7 @@ export default function Pricing() {
             Frequently Asked Questions
           </h2>
           <div className="space-y-4">
-            {[
-              {
-                q: "Can I switch plans at any time?",
-                a: "Absolutely. You can upgrade, downgrade or cancel your plan at any time. Changes take effect at the start of your next billing cycle.",
-              },
-              {
-                q: "Is there a free trial?",
-                a: "We offer a free initial consultation for all new clients so you can experience our approach before committing to a plan.",
-              },
-              {
-                q: "What payment methods do you accept?",
-                a: "We accept all major credit cards, bank transfers and mobile payments. Enterprise clients can arrange custom invoicing.",
-              },
-              {
-                q: "Do you offer refunds?",
-                a: "If you're not satisfied within the first 14 days, we'll issue a full refund — no questions asked.",
-              },
-              {
-                q: "Can I add team members to my account?",
-                a: "Yes. Growth and Enterprise plans support multiple team members. Contact us for team pricing.",
-              },
-            ].map((faq) => (
+            {faqs.map((faq) => (
               <div key={faq.q} className="p-5 rounded-xl bg-muted/50 border border-border/50">
                 <h3 className="font-semibold text-foreground text-sm mb-2">{faq.q}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{faq.a}</p>

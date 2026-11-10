@@ -3,24 +3,16 @@ import { Link, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSiteNav } from "@/lib/siteContent";
 import YasirZayedLogo from "./YasirZayedLogo";
-
-const navLinks = [
-  { label: "Home", href: "/#hero" },
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "FMCG", href: "/fmcg" },
-  { label: "Tabloid", href: "/tabloid" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Contact", href: "/contact" },
-];
-
-
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  // Menu items come from the admin Navigation panel; bundled defaults are
+  // used until a Convex deployment is attached.
+  const navLinks = useSiteNav();
 
   const handleScroll = useCallback(() => {
     setScrolled(window.scrollY > 50);

@@ -1,160 +1,150 @@
+/**
+ * ServicesManager — Convex-backed service catalogue.
+ * Edits here drive the public services page and the homepage service grid.
+ */
+
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, Search, Eye, EyeOff, GripVertical, Edit3, Trash2,
-  ExternalLink,
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
+import { Plus, Search, Eye, EyeOff, Pencil, Trash2, Save, ExternalLink, RefreshCw } from "lucide-react";
 
-interface Service {
-  id: string;
-  title: string;
-  slug: string;
-  category: string;
-  description: string;
-  visible: boolean;
-  order: number;
-}
+type ServiceDoc = Doc<"services">;
 
-const initialServices: Service[] = [
-  { id: "1", title: "Strategic Business Planning", slug: "strategic-business-planning", category: "Business Development", description: "Develop growth strategies and market positioning.", visible: true, order: 1 },
-  { id: "2", title: "Sales Strategy Development", slug: "sales-strategy-development", category: "Business Development", description: "Build sales pipelines and conversion frameworks.", visible: true, order: 2 },
-  { id: "3", title: "Marketing Strategy Planning", slug: "marketing-strategy-planning", category: "Business Development", description: "Digital marketing and lead generation strategies.", visible: true, order: 3 },
-  { id: "4", title: "Custom Corporate Websites", slug: "custom-corporate-websites", category: "Technology", description: "Modern responsive websites built for business growth.", visible: true, order: 4 },
-  { id: "5", title: "Custom WordPress Themes", slug: "custom-wordpress-themes", category: "Technology", description: "Tailored WordPress solutions beyond generic templates.", visible: true, order: 5 },
-  { id: "6", title: "AI System Integration", slug: "ai-system-integration", category: "Technology", description: "Integrate AI into business processes and platforms.", visible: true, order: 6 },
-  { id: "7", title: "Custom AI Chatbots", slug: "custom-ai-chatbots", category: "Technology", description: "Intelligent conversational systems for customer engagement.", visible: true, order: 7 },
-  { id: "8", title: "Workflow Automation", slug: "workflow-automation", category: "Technology", description: "Streamline repetitive processes with intelligent automation.", visible: true, order: 8 },
-  { id: "9", title: "CCTV & Surveillance Systems", slug: "cctv-surveillance-systems", category: "Security", description: "Complete security infrastructure and monitoring.", visible: true, order: 9 },
-  { id: "10", title: "Access Control Systems", slug: "access-control-systems", category: "Security", description: "Physical and digital access control solutions.", visible: false, order: 10 },
-];
+const CATEGORIES = ["business", "sales", "marketing", "promotional", "security", "digital", "ai", "fmcg"];
 
-const categories = ["All", "Business Development", "Technology", "Security"];
+const inputCls = "w-full px-3 py-2 rounded-lg border bg-background text-sm text-foreground";
+const labelCls = "block text-xs font-medium text-muted-foreground mb-1.5";
+
+const slugify = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 export default function ServicesManager() {
-  const [services, setServices] = useState(initialServices);
+  const services = useQuery(api.content.adminContent);
+  const seed = useMutation(api.content.seedDefaults);
+  const upsert = useMutation(api.content.upsertService);
+  const setStatus = useMutation(api.content.setServiceStatus);
+  const remove = useMutation(api.content.deleteService);
+
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
-  const [showCreate, setShowCreate] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [newTitle, setNewTitle] = useState("");
-  const [newCat, setNewCat] = useState("Technology");
-  const [newDesc, setNewDesc] = useState("");
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<ServiceDoc | null>(null);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("business");
+  const [description, setDescription] = useState("");
+  const [ctaUrl, setCtaUrl] = useState("");
 
-  const filtered = services
+  const all = services?.services ?? [];
+  const filtered = all
     .filter((s) => catFilter === "All" || s.category === catFilter)
     .filter((s) => s.title.toLowerCase().includes(search.toLowerCase()));
 
-  const toggleVisible = (id: string) => {
-    setServices((prev) => prev.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)));
+  const reset = () => { setOpen(false); setEditing(null); setTitle(""); setCategory("business"); setDescription(""); setCtaUrl(""); };
+  const startEdit = (s: ServiceDoc) => {
+    setEditing(s); setOpen(true); setTitle(s.title); setCategory(s.category);
+    setDescription(s.shortDescription ?? ""); setCtaUrl(s.ctaUrl ?? "");
   };
-
-  const deleteService = (id: string) => {
-    setServices((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  const handleCreate = () => {
-    if (!newTitle.trim()) return;
-    const slug = newTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    setServices((prev) => [
-      ...prev,
-      { id: Date.now().toString(), title: newTitle, slug, category: newCat, description: newDesc, visible: true, order: prev.length + 1 },
-    ]);
-    setNewTitle("");
-    setNewDesc("");
-    setShowCreate(false);
-  };
-
-  const handleEdit = (id: string, title: string, desc: string) => {
-    setServices((prev) => prev.map((s) => (s.id === id ? { ...s, title, description: desc } : s)));
-    setEditId(null);
+  const save = async () => {
+    if (!title.trim()) return;
+    await upsert({
+      id: editing?._id,
+      title: title.trim(),
+      slug: editing?.slug ?? slugify(title),
+      category,
+      shortDescription: description.trim() || undefined,
+      ctaUrl: ctaUrl.trim() || undefined,
+      displayOrder: editing?.displayOrder ?? all.length + 1,
+      status: editing?.status ?? "published",
+    });
+    reset();
   };
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Service Manager</h1>
-          <p className="text-muted-foreground text-sm mt-1">{services.length} services · {services.filter((s) => s.visible).length} visible</p>
+          <h1 className="text-2xl font-bold text-foreground">Services</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {all.length} service areas · {all.filter((s) => s.status === "published").length} published on the homepage
+          </p>
         </div>
-        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
+        <button onClick={() => { reset(); setOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">
           <Plus className="w-4 h-4" /> New Service
         </button>
       </div>
 
-      {/* Create form */}
-      <AnimatePresence>
-        {showCreate && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-6">
-            <div className="p-5 rounded-xl bg-card border border-border space-y-4">
-              <h3 className="font-semibold text-sm">Create New Service</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input placeholder="Service title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
-                <select value={newCat} onChange={(e) => setNewCat(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm">
-                  {categories.filter((c) => c !== "All").map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <textarea placeholder="Description" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none" />
-              <div className="flex gap-2">
-                <button onClick={handleCreate} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Create</button>
-                <button onClick={() => setShowCreate(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-              </div>
+      {open && (
+        <div className="p-5 rounded-xl border bg-card mb-6 space-y-4">
+          <h3 className="font-semibold text-sm">{editing ? "Edit service" : "New service"}</h3>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className={labelCls}>Title</label>
+              <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Business Development" />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div>
+              <label className={labelCls}>Category</label>
+              <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>CTA link</label>
+              <input className={inputCls} value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} placeholder="/#services" />
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Short description</label>
+            <textarea rows={3} className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={save} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark"><Save className="w-4 h-4" /> Save service</button>
+            <button onClick={reset} className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted">Cancel</button>
+          </div>
+        </div>
+      )}
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-wrap items-center gap-3 mb-5">
+        <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services…" className="w-full pl-9 pr-4 py-2 rounded-lg bg-card border border-border text-sm" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services…" className="w-full pl-9 pr-3 py-2 rounded-lg border bg-card text-sm" />
         </div>
-        <div className="flex gap-1.5">
-          {categories.map((c) => (
-            <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${catFilter === c ? "bg-electric text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>{c}</button>
+        <div className="flex flex-wrap gap-2">
+          {["All", ...CATEGORIES].map((c) => (
+            <button key={c} onClick={() => setCatFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${catFilter === c ? "bg-electric text-white" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+              {c}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl bg-card border border-border overflow-hidden">
-        <div className="grid grid-cols-12 gap-2 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border bg-muted/30">
-          <div className="col-span-1" />
-          <div className="col-span-4">Service</div>
-          <div className="col-span-2">Category</div>
-          <div className="col-span-2 text-center">Status</div>
-          <div className="col-span-3 text-right">Actions</div>
+      {all.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border p-10 text-center">
+          <p className="text-sm text-muted-foreground mb-4">No services yet.</p>
+          <button onClick={() => void seed()} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm mx-auto">
+            <RefreshCw className="w-4 h-4" /> Load website defaults
+          </button>
         </div>
-        <div className="divide-y divide-border">
-          {filtered.map((service) => (
-            <div key={service.id} className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/30 transition-colors group">
-              <div className="col-span-1"><GripVertical className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground cursor-grab" /></div>
-              <div className="col-span-4">
-                {editId === service.id ? (
-                  <input defaultValue={service.title} onBlur={(e) => handleEdit(service.id, e.target.value, service.description)} className="w-full px-2 py-1 rounded border bg-background text-sm" autoFocus />
-                ) : (
-                  <>
-                    <p className="text-sm font-medium text-foreground">{service.title}</p>
-                    <p className="text-[10px] text-muted-foreground">/{service.slug}</p>
-                  </>
-                )}
+      ) : (
+        <div className="rounded-xl bg-card border border-border overflow-hidden divide-y divide-border">
+          {filtered.map((s) => (
+            <div key={s._id} className="flex flex-wrap items-center gap-3 px-5 py-4 hover:bg-muted/30">
+              <span className="text-xs text-muted-foreground w-5">{s.displayOrder}</span>
+              <div className="flex-1 min-w-40">
+                <p className="text-sm font-medium text-foreground">{s.title}</p>
+                <p className="text-[10px] text-muted-foreground capitalize">{s.category} · {s.shortDescription ?? "No description"}</p>
               </div>
-              <div className="col-span-2"><span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{service.category}</span></div>
-              <div className="col-span-2 flex justify-center">
-                <button onClick={() => toggleVisible(service.id)} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${service.visible ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"}`}>
-                  {service.visible ? <><Eye className="w-3 h-3" /> Visible</> : <><EyeOff className="w-3 h-3" /> Hidden</>}
-                </button>
-              </div>
-              <div className="col-span-3 flex items-center justify-end gap-2">
-                <a href={`/services/${service.slug}`} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ExternalLink className="w-3.5 h-3.5" /></a>
-                <button onClick={() => setEditId(editId === service.id ? null : service.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                <button onClick={() => deleteService(service.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${s.status === "published" ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"}`}>{s.status}</span>
+              <button onClick={() => void setStatus({ id: s._id, status: s.status === "published" ? "draft" : "published" })} className={`p-1.5 rounded hover:bg-muted ${s.status === "published" ? "text-emerald-500" : "text-muted-foreground"}`} title={s.status === "published" ? "Unpublish" : "Publish"}>
+                {s.status === "published" ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              </button>
+              {s.ctaUrl && <a href={s.ctaUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded hover:bg-muted text-muted-foreground"><ExternalLink className="w-4 h-4" /></a>}
+              <button onClick={() => startEdit(s)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><Pencil className="w-4 h-4" /></button>
+              <button onClick={() => void remove({ id: s._id })} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
-        {filtered.length === 0 && <div className="py-12 text-center text-muted-foreground text-sm">No services match your filter.</div>}
-      </div>
+      )}
     </motion.div>
   );
 }

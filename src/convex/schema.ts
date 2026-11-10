@@ -393,6 +393,33 @@ const schema = defineSchema(
       createdAt: v.number(),
     }).index("by_created", ["createdAt"]),
 
+    // --- FAQs (site-facing) ---
+    faqs: defineTable({
+      question: v.string(),
+      answer: v.string(),
+      category: v.string(),
+      visible: v.boolean(),
+      order: v.number(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }).index("by_order", ["order"]),
+
+    // --- Subscription / Checkout Plans ---
+    plans: defineTable({
+      name: v.string(),
+      tagline: v.optional(v.string()),
+      priceUsd: v.optional(v.number()),
+      priceLabel: v.optional(v.string()),
+      period: v.string(),
+      features: v.array(v.string()),
+      active: v.boolean(),
+      popular: v.optional(v.boolean()),
+      taxNote: v.string(),
+      order: v.number(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }).index("by_order", ["order"]),
+
     // --- Global Settings ---
     settings: defineTable({
       key: v.string(),

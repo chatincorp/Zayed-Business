@@ -12,77 +12,39 @@ import {
   ShoppingCart,
   ArrowRight,
 } from "lucide-react";
+import { useSiteServices } from "@/lib/siteContent";
 
-const services = [
-  {
-    num: "01",
-    title: "Business Development",
-    description: "Strategic planning, market intelligence and growth strategies for sustainable business expansion.",
-    icon: TrendingUp,
-    color: "electric",
-    link: "/#business-dev",
-  },
-  {
-    num: "02",
-    title: "Sales Services",
-    description: "Sales strategy, process optimization, CRM implementation and team development for predictable revenue.",
-    icon: BarChart3,
-    color: "blue-400",
-    link: "/#sales",
-  },
-  {
-    num: "03",
-    title: "Marketing Services",
-    description: "Brand positioning, digital marketing, content strategy and customer experience optimization.",
-    icon: Megaphone,
-    color: "indigo-400",
-    link: "/#marketing",
-  },
-  {
-    num: "04",
-    title: "Promotional Services",
-    description: "Campaign development, product launches, event marketing and partnership promotion programs.",
-    icon: Radio,
-    color: "violet-400",
-    link: "/#promotional",
-  },
-  {
-    num: "05",
-    title: "Security Solutions",
-    description: "Professional CCTV, surveillance, access control and security technology solutions for all sectors.",
-    icon: Shield,
-    color: "cyan-400",
-    link: "/#security",
-  },
-  {
-    num: "06",
-    title: "Digital Solutions",
-    description: "Custom websites, web applications, e-commerce platforms and responsive digital experiences.",
-    icon: Globe,
-    color: "sky-400",
-    link: "/#technology",
-  },
-  {
-    num: "07",
-    title: "AI & Automation",
-    description: "AI system integration, custom chatbots, workflow automation and intelligent business systems.",
-    icon: Bot,
-    color: "emerald-400",
-    link: "/#ai",
-  },
-  {
-    num: "08",
-    title: "FMCG Services",
-    description: "Order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion for fast-moving consumer goods.",
-    icon: ShoppingCart,
-    color: "orange-400",
-    link: "/fmcg",
-  },
-];
+/** Icon + accent per service category, so admin-created services still look right. */
+const CATEGORY_STYLE: Record<string, { icon: typeof TrendingUp; color: string }> = {
+  business: { icon: TrendingUp, color: "electric" },
+  sales: { icon: BarChart3, color: "blue-400" },
+  marketing: { icon: Megaphone, color: "indigo-400" },
+  promotional: { icon: Radio, color: "violet-400" },
+  security: { icon: Shield, color: "cyan-400" },
+  digital: { icon: Globe, color: "sky-400" },
+  ai: { icon: Bot, color: "emerald-400" },
+  fmcg: { icon: ShoppingCart, color: "orange-400" },
+};
 
 export default function ServicesSection() {
   const [ref, inView] = useInView({ threshold: 0.1, triggerOnce: true });
   const navigate = useNavigate();
+  const siteServices = useSiteServices();
+
+  // Published services from the admin panel, styled by category. Falls back to
+  // the bundled list when no backend is attached.
+  const services = siteServices.map((s, i) => {
+    const style = CATEGORY_STYLE[s.category] ?? CATEGORY_STYLE.business;
+    return {
+      num: String(i + 1).padStart(2, "0"),
+      title: s.title,
+      description: s.shortDescription ?? "",
+      icon: style.icon,
+      color: style.color,
+      link: s.ctaUrl ?? "/services",
+    };
+  });
+
 
   const scrollTo = (href: string) => {
     const id = href.replace("/#", "");

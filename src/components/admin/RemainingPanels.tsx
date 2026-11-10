@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { HOME_SECTIONS, type HomeSection } from "@/lib/siteContent";
 import {
   Plus, Trash2, Edit3, Eye, EyeOff, GripVertical, ArrowUp, ArrowDown,
   Bot, Sparkles, FileText, Wand2, Search,  Zap,
@@ -12,107 +15,109 @@ import {
  *  HOMEPAGE MANAGER
  * ══════════════════════════════════════════════════════════════ */
 
-interface HeroSlide {
-  id: string;
-  title: string;
-  subtitle: string;
-  visible: boolean;
-  order: number;
-}
-
-interface SectionItem {
-  id: string;
-  name: string;
-  visible: boolean;
-  order: number;
-}
-
-const initialSlides: HeroSlide[] = [
-  { id: "1", title: "Building Stronger Businesses", subtitle: "Main hero — business development focus", visible: true, order: 1 },
-  { id: "2", title: "Smarter Systems", subtitle: "Technology and AI focus", visible: true, order: 2 },
-  { id: "3", title: "Secure Futures", subtitle: "Security solutions focus", visible: true, order: 3 },
-];
-
-const initialSections: SectionItem[] = [
-  { id: "intro", name: "Introduction", visible: true, order: 1 },
-  { id: "services", name: "Services Overview", visible: true, order: 2 },
-  { id: "ai-preview", name: "AI Integration Preview", visible: true, order: 3 },
-  { id: "business-dev", name: "Business Development", visible: true, order: 4 },
-  { id: "sales", name: "Sales & Marketing", visible: true, order: 5 },
-  { id: "technology", name: "Technology", visible: true, order: 6 },
-  { id: "security", name: "Security Solutions", visible: true, order: 7 },
-  { id: "chatbot-demo", name: "Chatbot Demo", visible: true, order: 8 },
-  { id: "workflow", name: "Workflow Automation", visible: true, order: 9 },
-  { id: "live-demos", name: "Live Demo Previews", visible: true, order: 10 },
-  { id: "case-studies", name: "Case Studies", visible: true, order: 11 },
-  { id: "testimonials", name: "Testimonials", visible: true, order: 12 },
-  { id: "process", name: "How We Work", visible: true, order: 13 },
-  { id: "final-cta", name: "Final CTA", visible: true, order: 14 },
-];
-
 export function HomepageManagerPanel() {
-  const [slides, setSlides] = useState(initialSlides);
-  const [sections, setSections] = useState(initialSections);
+  const saved = useQuery(api.content.homepageSettings);
+  const save = useMutation(api.content.setHomepageSettings);
 
-  const toggleSlide = (id: string) => setSlides((prev) => prev.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)));
-  const toggleSection = (id: string) => setSections((prev) => prev.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)));
-  const moveSection = (id: string, dir: -1 | 1) => setSections((prev) => {
-    const idx = prev.findIndex((s) => s.id === id);
-    if (idx < 0) return prev;
-    const arr = [...prev];
-    const target = arr[idx + dir];
-    if (!target) return prev;
-    [arr[idx], arr[idx + dir]] = [arr[idx + dir], arr[idx]];
-    return arr;
-  });
+  const [draft, setDraft] = useState<HomeSection[] | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const stored: HomeSection[] = HOME_SECTIONS.map((base) => {
+    const row = saved?.sections?.find((s) => s.id === base.id);
+    return { ...base, visible: row?.visible ?? base.visible, order: row?.order ?? base.order };
+  }).sort((a, b) => a.order - b.order);
+
+  const sections = draft ?? stored;
+  const notificationMessage = message ?? saved?.notification?.message ?? "";
+  const notificationEnabled = enabled ?? saved?.notification?.enabled ?? true;
+
+  const update = (fn: (items: HomeSection[]) => HomeSection[]) => setDraft(fn(sections));
+  const toggleSection = (id: string) =>
+    update((items) => items.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)));
+  const moveSection = (id: string, dir: -1 | 1) =>
+    update((items) => {
+      const idx = items.findIndex((s) => s.id === id);
+      const target = items[idx + dir];
+      if (idx < 0 || !target) return items;
+      const arr = [...items];
+      [arr[idx], arr[idx + dir]] = [arr[idx + dir], arr[idx]];
+      return arr;
+    });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await save({
+        sections: sections.map((s, i) => ({ id: s.id, visible: s.visible, order: i + 1 })),
+        notification: { enabled: notificationEnabled, message: notificationMessage },
+      });
+      setDraft(null);
+      setMessage(null);
+      setEnabled(null);
+      setSavedAt(new Date().toLocaleTimeString());
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const dirty = draft !== null || message !== null || enabled !== null;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Homepage Manager</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage hero carousel slides and section visibility.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Homepage Manager</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Control homepage section order, visibility and the announcement bar. Changes go live immediately after saving.
+          </p>
+          {savedAt && <p className="text-xs text-emerald-500 mt-1">Saved at {savedAt}</p>}
+        </div>
+        <button
+          onClick={() => void handleSave()}
+          disabled={!dirty || saving}
+          className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving ? "Saving…" : "Save changes"}
+        </button>
       </div>
 
-      {/* Hero Slides */}
       <div className="rounded-xl bg-card border border-border p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm">Hero Carousel Slides</h3>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-electric text-white rounded-lg text-xs font-medium hover:bg-electric-dark"><Plus className="w-3 h-3" /> Add Slide</button>
-        </div>
-        <div className="space-y-2">
-          {slides.map((slide) => (
-            <div key={slide.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-              <GripVertical className="w-4 h-4 text-muted-foreground/30 cursor-grab" />
-              <span className="text-xs font-bold text-muted-foreground w-6">#{slide.order}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{slide.title}</p>
-                <p className="text-[10px] text-muted-foreground">{slide.subtitle}</p>
-              </div>
-              <button onClick={() => toggleSlide(slide.id)} className={`p-1.5 rounded-lg transition-colors ${slide.visible ? "text-emerald-500" : "text-muted-foreground"}`}>
-                {slide.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              </button>
-              <button className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-            </div>
-          ))}
+        <h3 className="font-semibold text-sm mb-1">Announcement Bar</h3>
+        <p className="text-xs text-muted-foreground mb-4">Shown at the very top of every public page.</p>
+        <div className="flex flex-col gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={notificationEnabled} onChange={(e) => setEnabled(e.target.checked)} />
+            Show the announcement bar
+          </label>
+          <input
+            value={notificationMessage}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Announcement message"
+            className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+          />
         </div>
       </div>
 
-      {/* Page Sections */}
       <div className="rounded-xl bg-card border border-border p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm">Page Sections (order = display order)</h3>
-          <span className="text-xs text-muted-foreground">{sections.filter((s) => s.visible).length} of {sections.length} visible</span>
+          <h3 className="font-semibold text-sm">Sections (order = display order)</h3>
+          <span className="text-xs text-muted-foreground">
+            {sections.filter((s) => s.visible).length} of {sections.length} visible
+          </span>
         </div>
         <div className="space-y-1.5">
-          {sections.map((sec) => (
-            <div key={sec.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/30 transition-colors group">
-              <GripVertical className="w-4 h-4 text-muted-foreground/30 cursor-grab" />
+          {sections.map((sec, i) => (
+            <div key={sec.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/30 transition-colors">
+              <GripVertical className="w-4 h-4 text-muted-foreground/30" />
               <div className="flex items-center gap-1">
-                <button onClick={() => moveSection(sec.id, -1)} className="p-0.5 rounded text-muted-foreground/40 hover:text-muted-foreground"><ArrowUp className="w-3 h-3" /></button>
-                <button onClick={() => moveSection(sec.id, 1)} className="p-0.5 rounded text-muted-foreground/40 hover:text-muted-foreground"><ArrowDown className="w-3 h-3" /></button>
+                <button onClick={() => moveSection(sec.id, -1)} disabled={i === 0} className="p-0.5 rounded text-muted-foreground/40 hover:text-muted-foreground disabled:opacity-30"><ArrowUp className="w-3 h-3" /></button>
+                <button onClick={() => moveSection(sec.id, 1)} disabled={i === sections.length - 1} className="p-0.5 rounded text-muted-foreground/40 hover:text-muted-foreground disabled:opacity-30"><ArrowDown className="w-3 h-3" /></button>
               </div>
-              <span className="text-xs text-muted-foreground w-5">{sec.order}</span>
-              <span className="text-sm text-foreground flex-1">{sec.name}</span>
+              <span className="text-xs text-muted-foreground w-5">{i + 1}</span>
+              <span className="text-sm text-foreground flex-1">{sec.label}</span>
               <button onClick={() => toggleSection(sec.id)} className={`p-1 rounded transition-colors ${sec.visible ? "text-emerald-500" : "text-muted-foreground/40"}`}>
                 {sec.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
@@ -730,8 +735,11 @@ export function GenericAdminPanel({ title, description }: { title: string; descr
         <div className="w-16 h-16 mx-auto rounded-xl bg-muted flex items-center justify-center mb-4">
           <Layers className="w-7 h-7 text-muted-foreground/40" />
         </div>
-        <h3 className="font-semibold text-foreground mb-2">Coming Soon</h3>
-        <p className="text-muted-foreground text-sm max-w-sm mx-auto">This section will be connected to the backend for full management capabilities.</p>
+        <h3 className="font-semibold text-foreground mb-2">Not enabled yet</h3>
+        <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+          This module is not enabled for this deployment. Website content, plans, staff and leads are fully
+          manageable from the other panels in the sidebar.
+        </p>
       </div>
     </motion.div>
   );

@@ -12,7 +12,9 @@ interface Partner {
   color: string;
 }
 
-const partners: Partner[] = [
+import { useSitePartners } from "@/lib/siteContent";
+
+const staticPartners: Partner[] = [
   { name: "Dahua", logo: "/logos/dahua.svg", color: "#e11d2e" },
   { name: "OpenAI", logo: "/logos/openai.svg", color: "#412991" },
   { name: "Anthropic (Claude)", logo: "/logos/anthropic.svg", color: "#191919" },
@@ -33,9 +35,19 @@ const partners: Partner[] = [
   { name: "Vercel", logo: "/logos/vercel.svg", color: "#000000" },
 ];
 
-const loopPartners = [...partners, ...partners];
-
 export default function PartnerLogosCarousel() {
+  // Active partners from the admin panel, keeping the bundled brand colors.
+  const dbPartners = useSitePartners();
+  const livePartners = (dbPartners ?? [])
+    .filter((p) => Boolean(p.logo))
+    .map((p) => ({
+      name: p.name,
+      logo: p.logo as string,
+      color: staticPartners.find((s) => s.name === p.name)?.color ?? "#111111",
+    }));
+  const partners = livePartners.length > 0 ? livePartners : staticPartners;
+  const loopPartners = [...partners, ...partners];
+
   return (
     <section className="py-6">
       <p className="text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30 mb-4 select-none">

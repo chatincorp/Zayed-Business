@@ -1,6 +1,7 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
 import { RequireAuth } from "@/components/RequireAuth";
+import { SectionGate } from "@/components/SectionGate";
 import { BackendOnly } from "@/components/BackendOnly";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { CONVEX_URL, isBackendConfigured } from "@/lib/backend";
@@ -191,20 +192,22 @@ const routes = (
         <Route path="/contact" element={<Contact />} />
         <Route path="/services" element={<Catalog />} />
         <Route path="/services/:slug" element={<ServiceDetail />} />
-        <Route path="/fmcg" element={<Fmcg />} />
+        <Route path="/fmcg" element={<SectionGate title="FMCG Services" section="fmcg" slug="/fmcg"><Fmcg /></SectionGate>} />
         <Route path="/fmcg/account" element={<FmcgAccountFlow />} />
-        <Route path="/wholesale" element={<Wholesale />} />
+        <Route path="/wholesale" element={<SectionGate title="Wholesale Ordering" section="wholesale" slug="/wholesale"><Wholesale /></SectionGate>} />
         <Route
           path="/supplier/register"
           element={
-            <RequireAuth>
-              <BackendOnly
-                title="Supplier registration runs on the live backend"
-                description="This static build has no Convex deployment attached, so document uploads and supplier accounts are unavailable. You can still explore FMCG services and the wholesale catalogue."
-              >
-                <SupplierRegister />
-              </BackendOnly>
-            </RequireAuth>
+            <SectionGate title="Supplier Registration" section="supplier_register">
+              <RequireAuth>
+                <BackendOnly
+                  title="Supplier registration runs on the live backend"
+                  description="This static build has no Convex deployment attached, so document uploads and supplier accounts are unavailable. You can still explore FMCG services and the wholesale catalogue."
+                >
+                  <SupplierRegister />
+                </BackendOnly>
+              </RequireAuth>
+            </SectionGate>
           }
         />
         <Route
@@ -221,8 +224,8 @@ const routes = (
           }
         />
         <Route path="/about" element={<About />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/pricing" element={<SectionGate title="Pricing" section="pricing" slug="/pricing"><Pricing /></SectionGate>} />
+        <Route path="/checkout" element={<SectionGate title="Checkout" section="checkout" slug="/checkout"><Checkout /></SectionGate>} />
         <Route path="/privacy" element={<Legal />} />
         <Route path="/terms" element={<Legal />} />
         <Route path="/cookies" element={<Legal />} />
@@ -248,10 +251,10 @@ const routes = (
             </RequireAuth>
           }
         />
-        <Route path="/demo/corporate" element={<DemoCorporate />} />
-        <Route path="/demo/webapp" element={<DemoWebapp />} />
-        <Route path="/demo/ecommerce" element={<DemoEcommerce />} />
-        <Route path="/tabloid" element={<TabloidIndex />} />
+        <Route path="/demo/corporate" element={<SectionGate title="Live Demos" section="ai_demos"><DemoCorporate /></SectionGate>} />
+        <Route path="/demo/webapp" element={<SectionGate title="Live Demos" section="ai_demos"><DemoWebapp /></SectionGate>} />
+        <Route path="/demo/ecommerce" element={<SectionGate title="Live Demos" section="ai_demos"><DemoEcommerce /></SectionGate>} />
+        <Route path="/tabloid" element={<SectionGate title="Zayed Tabloid" section="tabloid" slug="/tabloid"><TabloidIndex /></SectionGate>} />
         <Route path="/tabloid/:id" element={<TabloidArticlePage />} />
         <Route path="/tabloid/markets" element={<FinancialMarkets />} />
         <Route path="/tabloid/forex" element={<LiveForex />} />

@@ -1,20 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Admin panel uses intentional type-unsafe casts for demo select values */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import ServicesManager from "@/components/admin/ServicesManager";
 import LeadsTable from "@/components/admin/LeadsTable";
-import TestimonialsManager from "@/components/admin/TestimonialsManager";
-import FAQManager from "@/components/admin/FAQManager";
 import BlogManager from "@/components/admin/BlogManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import FmcgAdmin from "@/components/admin/FmcgAdmin";
 import UsersManager from "@/components/admin/UsersManager";
 import RBACPanel from "@/components/admin/RBACPanel";
 import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
-import { HomepageManagerPanel, AIAssistantPanel, YasirVerifyPanel, CampaignsPanel, EmailTemplatesPanel, CTAsPanel, PartnersPanel, RateLimitingPanel, BlockedActivityPanel, AuditLogsPanel, AISettingsPanel, GenericAdminPanel } from "@/components/admin/RemainingPanels";
+import { HomepageManagerPanel, AIAssistantPanel, YasirVerifyPanel, CampaignsPanel, EmailTemplatesPanel, CTAsPanel, RateLimitingPanel, BlockedActivityPanel, AuditLogsPanel, AISettingsPanel, GenericAdminPanel } from "@/components/admin/RemainingPanels";
+import { PagesPanel, NavigationPanel, LandingPagesPanel, PlansPanel, FaqsPanel, TestimonialsPanel, PartnersPanel, SiteSectionsPanel, CategoryServicesPanel, FormsPanel } from "@/components/admin/ContentPanels";
 import InternationalSourcingPanel from "@/pages/InternationalSourcingPanel";
 import { INTERNATIONAL_SOURCING_SECTORS, INTERNATIONAL_SOURCING_COUNTRIES } from "@/data/internationalSourcing";
 import {
@@ -55,9 +54,6 @@ import {
   ShoppingCart,
   Package,
   Store,
-  Eye,
-  EyeOff,
-  CheckCircle2,
 } from "lucide-react";
 
 const sidebarSections = [
@@ -74,6 +70,7 @@ const sidebarSections = [
       { icon: FileText, label: "Pages", id: "pages" },
       { icon: Layers, label: "Landing Pages", id: "landing-pages" },
       { icon: Navigation, label: "Navigation", id: "navigation" },
+      { icon: Settings, label: "Site Sections", id: "site-sections" },
       { icon: Target, label: "Services", id: "services" },
       { icon: ShoppingCart, label: "Checkout", id: "checkout" },
       { icon: Globe, label: "Industries & Sectors", id: "industries" },
@@ -176,18 +173,17 @@ const quickActions = [
   { label: "New Checkout Plan", icon: ShoppingCart, color: "emerald-500", section: "checkout" },
 ];
 
-const kpiCards = [
-  { label: "Total Staff", value: "—", change: "", color: "electric" },
-  { label: "Active Staff", value: "—", change: "", color: "emerald-500" },
-  { label: "Total Leads", value: "—", change: "", color: "blue-500" },
-  { label: "Subscribers", value: "—", change: "", color: "violet-500" },
-  { label: "Checkout Plan", value: "—", change: "", color: "amber-500" },
-  { label: "Conversion Rate", value: "—", change: "", color: "rose-500" },
-];
-
 export default function Admin() {
   const [activeSection, setActiveSection] = useState("staff");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const content = useQuery(api.content.adminContent);
+  const seedContent = useMutation(api.content.seedDefaults);
+
+  // First run: mirror the bundled website content into Convex so every panel
+  // (and the public site) starts populated and editable.
+  useEffect(() => {
+    if (content && content.pages.length === 0) void seedContent();
+  }, [content, seedContent]);
 
   return (
     <div className="min-h-screen bg-muted/30 flex">
@@ -293,17 +289,22 @@ export default function Admin() {
             {activeSection === "dashboard" && <DashboardContent key="dashboard" onNavigate={setActiveSection} />}
             {activeSection === "services" && <ServicesManager key="services" />}
             {activeSection === "leads" && <LeadsTable key="leads" />}
-            {activeSection === "testimonials" && <TestimonialsManager key="testimonials" />}
-            {activeSection === "faq" && <FAQManager key="faq" />}
+            {activeSection === "testimonials" && <TestimonialsPanel key="testimonials" />}
+            {activeSection === "faq" && <FaqsPanel key="faq" />}
             {activeSection === "blog" && <BlogManager key="blog" />}
             {activeSection === "analytics" && <AnalyticsDashboard key="analytics" />}
             {activeSection === "users" && <UsersManager key="users" />}
             {activeSection === "staff" && <RBACPanel key="staff" />}
             {activeSection === "roles" && <RBACPanel key="roles" />}
-            {activeSection === "checkout" && <CheckoutManager key="checkout" />}
-            {activeSection === "pages" && <PagesManager key="pages" />}
-            {activeSection === "navigation" && <NavigationManager key="navigation" />}
-            {activeSection === "landing-pages" && <LandingPagesManager key="landing-pages" />}
+            {activeSection === "checkout" && <PlansPanel key="checkout" />}
+            {activeSection === "pages" && <PagesPanel key="pages" />}
+            {activeSection === "navigation" && <NavigationPanel key="navigation" />}
+            {activeSection === "landing-pages" && <LandingPagesPanel key="landing-pages" />}
+            {activeSection === "site-sections" && <SiteSectionsPanel key="site-sections" />}
+            {activeSection === "security" && <CategoryServicesPanel key="security" category="security" title="Security Solutions" subtitle="Security services published on the website." />}
+            {activeSection === "technology" && <CategoryServicesPanel key="technology" category="digital" title="Technology" subtitle="Web, platform and technology services published on the website." />}
+            {activeSection === "ai" && <CategoryServicesPanel key="ai" category="ai" title="AI Solutions" subtitle="AI and automation services published on the website." />}
+            {activeSection === "forms" && <FormsPanel key="forms" />}
             {activeSection === "system-health" && <SystemHealthPanel key="system-health" />}
             {activeSection === "security-logs" && <SecurityLogsPanel key="security-logs" />}
             {activeSection === "integrations" && <IntegrationsPanel key="integrations" />}
@@ -345,7 +346,7 @@ export default function Admin() {
             {/* System */}
             {activeSection === "audit-logs" && <AuditLogsPanel key="audit-logs" />}
             {/* Catch-all for remaining sections */}
-            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "staff", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs"].includes(activeSection) && (
+            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "staff", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs", "pages", "navigation", "landing-pages", "checkout", "site-sections", "security", "technology", "ai", "forms"].includes(activeSection) && (
               <GenericAdminPanel key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
           </AnimatePresence>
@@ -356,16 +357,72 @@ export default function Admin() {
 }
 
 function IndustriesPanel() {
-  return <GenericAdminPanel title="Industries & Sectors" description="Manage the industries and sectors available for International Sourcing." />;
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Industries &amp; Sectors</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          {INTERNATIONAL_SOURCING_SECTORS.length} sourcing sectors offered on the International Sourcing panel.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {INTERNATIONAL_SOURCING_SECTORS.map((sector) => (
+          <div key={sector} className="rounded-xl bg-card border border-border p-5 flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-foreground">{sector}</p>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">Active</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-xs text-muted-foreground">
+        Sector details, media and sourcing requests are managed in the International Sourcing panel.
+      </p>
+    </motion.div>
+  );
 }
 
 function CountriesPanel() {
-  return <GenericAdminPanel title="Target Countries" description="Select and manage the target countries available for International Sourcing." />;
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Target Countries</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          {INTERNATIONAL_SOURCING_COUNTRIES.length} target countries · {INTERNATIONAL_SOURCING_COUNTRIES.filter((c) => c.enabled).length} enabled
+        </p>
+      </div>
+      <div className="rounded-xl bg-card border border-border overflow-hidden divide-y divide-border">
+        {INTERNATIONAL_SOURCING_COUNTRIES.map((country) => (
+          <div key={country.code} className="flex flex-wrap items-center gap-3 px-5 py-3.5 hover:bg-muted/30">
+            <span className="text-lg">{country.flag}</span>
+            <div className="flex-1 min-w-32">
+              <p className="text-sm font-medium text-foreground">{country.name}</p>
+              <p className="text-[10px] text-muted-foreground">{country.region} · {country.dial}</p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${country.enabled ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"}`}>
+              {country.enabled ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
 }
 
 
 
 function DashboardContent({ onNavigate }: { onNavigate: (section: string) => void }) {
+  const content = useQuery(api.content.adminContent);
+  const staff = useQuery(api.adminRbac.listStaff);
+  const leads = useQuery(api.leads.list, { limit: 5 });
+
+  const kpis = [
+    { label: "Staff Accounts", value: String(staff?.length ?? 0) },
+    { label: "Active Staff", value: String(staff?.filter((s) => s.status === "active").length ?? 0) },
+    { label: "Total Leads", value: String(leads?.length ?? 0) },
+    { label: "Live Plans", value: String(content?.plans.filter((p) => p.active).length ?? 0) },
+    { label: "Published Services", value: String(content?.services.filter((s) => s.status === "published").length ?? 0) },
+    { label: "Published Pages", value: String(content?.pages.filter((p) => p.status === "published").length ?? 0) },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -393,7 +450,7 @@ function DashboardContent({ onNavigate }: { onNavigate: (section: string) => voi
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        {kpiCards.map((kpi) => (
+        {kpis.map((kpi) => (
           <div key={kpi.label} className="p-4 rounded-xl bg-card border border-border">
             <p className="text-muted-foreground text-xs font-medium mb-2">{kpi.label}</p>
             <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
@@ -409,11 +466,25 @@ function DashboardContent({ onNavigate }: { onNavigate: (section: string) => voi
             <h3 className="font-semibold text-foreground text-sm">Recent Leads</h3>
             <button onClick={() => onNavigate("leads")} className="text-electric text-xs font-medium hover:underline">View All</button>
           </div>
-          <div className="text-center py-8">
-            <Users className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-muted-foreground text-sm">No leads yet.</p>
-            <p className="text-muted-foreground/60 text-xs mt-1">Leads will appear here once contact forms are submitted.</p>
-          </div>
+          {leads && leads.length > 0 ? (
+            <div className="divide-y divide-border">
+              {leads.map((lead) => (
+                <div key={lead._id} className="flex items-center gap-3 py-2.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{lead.name}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{lead.service ?? lead.leadType}</p>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-electric/10 text-electric">{lead.status}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Users className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-muted-foreground text-sm">No leads yet.</p>
+              <p className="text-muted-foreground/60 text-xs mt-1">Leads will appear here once contact forms are submitted.</p>
+            </div>
+          )}
         </div>
 
         {/* Upcoming Appointments */}
@@ -471,15 +542,15 @@ function DashboardContent({ onNavigate }: { onNavigate: (section: string) => voi
           <div className="space-y-3">
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">
               <span className="text-sm text-foreground">Draft Pages</span>
-              <span className="text-sm font-medium text-foreground">0</span>
+              <span className="text-sm font-medium text-foreground">{content?.pages.filter((p) => p.status !== "published").length ?? 0}</span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">
-              <span className="text-sm text-foreground">Scheduled Articles</span>
-              <span className="text-sm font-medium text-foreground">0</span>
+              <span className="text-sm text-foreground">Draft Landing Pages</span>
+              <span className="text-sm font-medium text-foreground">{content?.landingPages.filter((p) => p.status !== "published").length ?? 0}</span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">
-              <span className="text-sm text-foreground">Pending Reviews</span>
-              <span className="text-sm font-medium text-foreground">0</span>
+              <span className="text-sm text-foreground">Hidden FAQs</span>
+              <span className="text-sm font-medium text-foreground">{content?.faqs.filter((f) => !f.visible).length ?? 0}</span>
             </div>
           </div>
         </div>
@@ -681,233 +752,6 @@ function GlobalSettingsContent() {
             </p>
           </div>
         </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function CheckoutManager() {
-  const [plans, setPlans] = useState([
-    { id: "1", name: "Basic", price: "KES 5,000", period: "/month", features: ["1 Workspace", "3 Team Members", "Email Support"], active: true, taxNote: "Prices are not inclusive of Tax" },
-    { id: "2", name: "Professional", price: "KES 15,000", period: "/month", features: ["5 Workspaces", "10 Team Members", "Priority Support", "API Access"], active: true, taxNote: "Prices are not inclusive of Tax" },
-    { id: "3", name: "Enterprise", price: "KES 50,000", period: "/month", features: ["Unlimited Workspaces", "Unlimited Team Members", "24/7 Support", "Full API Access", "Custom Integrations"], active: true, taxNote: "Prices are not inclusive of Tax" },
-  ]);
-  const [showAddPlan, setShowAddPlan] = useState(false);
-  const [newPlanName, setNewPlanName] = useState("");
-  const [newPlanPrice, setNewPlanPrice] = useState("");
-
-  const handleAddPlan = () => {
-    if (!newPlanName || !newPlanPrice) return;
-    const newPlan = {
-      id: `plan-${Date.now()}`,
-      name: newPlanName,
-      price: newPlanPrice,
-      period: "/month",
-      features: ["Custom feature"],
-      active: true,
-      taxNote: "Prices are not inclusive of Tax",
-    };
-    setPlans((prev) => [...prev, newPlan]);
-    setNewPlanName("");
-    setNewPlanPrice("");
-    setShowAddPlan(false);
-  };
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Checkout & Subscription Plans</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage pricing plans and subscription checkout configuration.</p>
-        </div>
-        <button onClick={() => setShowAddPlan(!showAddPlan)} className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
-          <Plus className="w-4 h-4" /> Add Plan
-        </button>
-      </div>
-
-      {showAddPlan && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-xl border bg-card space-y-4 mb-6">
-          <h3 className="font-semibold text-sm">Add New Subscription Plan</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input placeholder="Plan name (e.g. Premium)" value={newPlanName} onChange={(e) => setNewPlanName(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
-            <input placeholder="Price (e.g. KES 25,000)" value={newPlanPrice} onChange={(e) => setNewPlanPrice(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={handleAddPlan} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Create Plan</button>
-            <button onClick={() => setShowAddPlan(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-          </div>
-        </motion.div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <div key={plan.id} className="rounded-xl bg-card border border-border p-6 hover:border-border/80 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-              {plan.active ? (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">Active</span>
-              ) : (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Inactive</span>
-              )}
-            </div>
-            <div className="mb-4">
-              <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-              <span className="text-muted-foreground">{plan.period}</span>
-            </div>
-            <div className="space-y-2 mb-4">
-              {plan.features.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-foreground">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  {f}
-                </div>
-              ))}
-            </div>
-            <div className="p-3 rounded-lg bg-muted/50 mb-4">
-              <p className="text-xs text-muted-foreground">{plan.taxNote}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="flex-1 px-3 py-2 rounded-lg border text-sm hover:bg-muted transition-colors">Edit</button>
-              <button className="px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive">Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 p-4 rounded-xl bg-muted/50">
-        <p className="text-muted-foreground text-xs leading-relaxed">
-          Note: All prices displayed on the checkout page are exclusive of tax. Applicable taxes will be calculated and shown during the checkout process based on the customer's location.
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
-function PagesManager() {
-  const [pages] = useState([
-    { id: "1", title: "Home", slug: "/", status: "published", lastEdited: "2026-09-15" },
-    { id: "2", title: "Services", slug: "/services", status: "published", lastEdited: "2026-09-10" },
-    { id: "3", title: "About Us", slug: "/about", status: "published", lastEdited: "2026-09-08" },
-    { id: "4", title: "Pricing", slug: "/pricing", status: "published", lastEdited: "2026-09-12" },
-    { id: "5", title: "Contact", slug: "/contact", status: "published", lastEdited: "2026-09-14" },
-    { id: "6", title: "Zayed Tabloid", slug: "/tabloid", status: "published", lastEdited: "2026-09-13" },
-    { id: "7", title: "Portfolio", slug: "/portfolio", status: "draft", lastEdited: "2026-09-11" },
-    { id: "8", title: "Careers", slug: "/careers", status: "draft", lastEdited: "2026-09-09" },
-  ]);
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Pages</h1>
-          <p className="text-muted-foreground text-sm mt-1">{pages.length} pages · {pages.filter((p) => p.status === "published").length} published</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
-          <Plus className="w-4 h-4" /> New Page
-        </button>
-      </div>
-
-      <div className="rounded-xl bg-card border border-border overflow-hidden">
-        <div className="divide-y divide-border">
-          {pages.map((page) => (
-            <div key={page.id} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors">
-              <FileText className="w-5 h-5 text-muted-foreground" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{page.title}</p>
-                <p className="text-[10px] text-muted-foreground">{page.slug}</p>
-              </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${page.status === "published" ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"}`}>{page.status}</span>
-              <span className="text-xs text-muted-foreground">{page.lastEdited}</span>
-              <button className="text-xs text-electric hover:underline">Edit</button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function NavigationManager() {
-  const [menuItems] = useState([
-    { id: "1", label: "Home", url: "/", position: 1, visible: true },
-    { id: "2", label: "Services", url: "/services", position: 2, visible: true },
-    { id: "3", label: "About", url: "/about", position: 3, visible: true },
-    { id: "4", label: "Pricing", url: "/pricing", position: 4, visible: true },
-    { id: "5", label: "Contact", url: "/contact", position: 5, visible: true },
-    { id: "6", label: "Blog", url: "/tabloid", position: 6, visible: true },
-  ]);
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Navigation</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage main menu items and site navigation.</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
-          <Plus className="w-4 h-4" /> Add Item
-        </button>
-      </div>
-
-      <div className="rounded-xl bg-card border border-border overflow-hidden">
-        <div className="divide-y divide-border">
-          {menuItems.map((item) => (
-            <div key={item.id} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors">
-              <span className="text-xs text-muted-foreground w-6">#{item.position}</span>
-              <Navigation className="w-5 h-5 text-muted-foreground" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{item.label}</p>
-                <p className="text-[10px] text-muted-foreground">{item.url}</p>
-              </div>
-              <button onClick={() => {}} className={`p-1 rounded ${item.visible ? "text-emerald-500" : "text-muted-foreground"}`}>
-                {item.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              </button>
-              <button className="text-xs text-electric hover:underline">Edit</button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function LandingPagesManager() {
-  const [landingPages] = useState([
-    { id: "1", title: "AI Solutions Landing", url: "/ai", visits: "1,234", conversions: 45, status: "active" },
-    { id: "2", title: "Security Services", url: "/security", visits: "890", conversions: 28, status: "active" },
-    { id: "3", title: "Business Development", url: "/business-dev", visits: "654", conversions: 19, status: "paused" },
-    { id: "4", title: "Technology Consulting", url: "/tech", visits: "432", conversions: 12, status: "active" },
-  ]);
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Landing Pages</h1>
-          <p className="text-muted-foreground text-sm mt-1">{landingPages.length} landing pages · {landingPages.filter((p) => p.status === "active").length} active</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark transition-colors">
-          <Plus className="w-4 h-4" /> New Landing Page
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {landingPages.map((lp) => (
-          <div key={lp.id} className="rounded-xl bg-card border border-border p-5 hover:border-border/80 transition-all">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-foreground truncate">{lp.title}</h3>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${lp.status === "active" ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"}`}>{lp.status}</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground mb-3">{lp.url}</p>
-            <div className="grid grid-cols-2 gap-3 text-center">
-              <div><p className="text-sm font-bold text-foreground">{lp.visits}</p><p className="text-[9px] text-muted-foreground">Visits</p></div>
-              <div><p className="text-sm font-bold text-foreground">{lp.conversions}</p><p className="text-[9px] text-muted-foreground">Conversions</p></div>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <button className="flex-1 px-2 py-1.5 rounded text-xs border hover:bg-muted transition-colors">Edit</button>
-              <button className="flex-1 px-2 py-1.5 rounded text-xs bg-electric text-white hover:bg-electric-dark">View</button>
-            </div>
-          </div>
-        ))}
       </div>
     </motion.div>
   );

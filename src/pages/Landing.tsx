@@ -8,6 +8,8 @@ import LatestIntelligence from "@/components/sections/LatestIntelligence";
 import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
 import { useSEO } from "@/lib/seo";
 import { isBackendConfigured } from "@/lib/backend";
+import { HOME_SECTIONS, useHomepageSettings } from "@/lib/siteContent";
+import type { ComponentType } from "react";
 import IntroSection from "@/components/sections/IntroSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import AIIntegrationPreview from "@/components/sections/AIIntegrationPreview";
@@ -25,10 +27,46 @@ import ProcessSection from "@/components/sections/ProcessSection";
 import TransformationSection from "@/components/sections/TransformationSection";
 import EngagementSection from "@/components/sections/EngagementSection";
 import CaseStudiesSection from "@/components/sections/CaseStudiesSection";
+import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import FinalCTASection from "@/components/sections/FinalCTASection";
 import Footer from "@/components/Footer";
 
+const SECTION_COMPONENTS: Record<string, ComponentType> = {
+  fmcg: FmcgSection,
+  intro: IntroSection,
+  intelligence: LatestIntelligence,
+  services: ServicesSection,
+  "ai-preview": AIIntegrationPreview,
+  "live-demos": LiveDemoPreviews,
+  "business-dev": BusinessDevSection,
+  sales: SalesSection,
+  marketing: MarketingSection,
+  promotional: PromotionalSection,
+  security: SecuritySection,
+  technology: TechnologySection,
+  ai: AISection,
+  "chatbot-demo": ChatbotDemo,
+  workflow: WorkflowAutomation,
+  process: ProcessSection,
+  transformation: TransformationSection,
+  engagement: EngagementSection,
+  "case-studies": CaseStudiesSection,
+  testimonials: TestimonialsSection,
+  "final-cta": FinalCTASection,
+};
+
 export default function Landing() {
+  // Section order and visibility are managed in the admin Homepage Manager.
+  const homepage = useHomepageSettings();
+  const sections = HOME_SECTIONS.map((base) => {
+    const saved = homepage?.sections.find((s) => s.id === base.id);
+    return {
+      ...base,
+      visible: saved?.visible ?? base.visible,
+      order: saved?.order ?? base.order,
+    };
+  }).sort((a, b) => a.order - b.order);
+
   useSEO({
     title: "Yasir Zayed — Business, FMCG, Security & Technology Solutions in Kenya",
     description:
@@ -163,26 +201,11 @@ export default function Landing() {
       <NotificationBar />
       <Navigation />
       <HeroCarousel />
-      <FmcgSection />
-      <IntroSection />
-      <LatestIntelligence />
-      <ServicesSection />
-      <AIIntegrationPreview />
-      <LiveDemoPreviews />
-      <BusinessDevSection />
-      <SalesSection />
-      <MarketingSection />
-      <PromotionalSection />
-      <SecuritySection />
-      <TechnologySection />
-      <AISection />
-      <ChatbotDemo />
-      <WorkflowAutomation />
-      <ProcessSection />
-      <TransformationSection />
-      <EngagementSection />
-      <CaseStudiesSection />
-      <FinalCTASection />
+      {sections.map((section) => {
+        if (!section.visible) return null;
+        const Section = SECTION_COMPONENTS[section.id];
+        return Section ? <Section key={section.id} /> : null;
+      })}
       <Footer />
       <CookieNotice />
       <FloatingWidgets />
