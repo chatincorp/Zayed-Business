@@ -12,9 +12,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useSEO } from "@/lib/seo";
 import { ArrowRight, Loader2, Mail, ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useCallback, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router";
 import PolicyConsent from "@/components/PolicyConsent";
+import StaffSignInChoice from "@/components/StaffSignInChoice";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -84,6 +85,22 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     redirectAfterAuth,
   );
 
+  // Derive the staff sign-in mode from the RBAC panel toggle, falling back
+  // to the default visitor mode when storage is unavailable.
+  useEffect(() => {
+    try {
+      const enabled = localStorage.getItem("yz-staff-sign-in-enabled") === "true";
+      if (!enabled) {
+        setStaffSignInMode("disabled");
+        return;
+      }
+      const action = localStorage.getItem("yz-staff-sign-in-action");
+      setStaffSignInMode(action === "accept" ? "staff-only" : "all");
+    } catch {
+      setStaffSignInMode("disabled");
+    }
+  }, []);
+
   const [step, setStep] = useState<Step>("signIn");
   const [email, setEmail] = useState("");
   const [puzzle, setPuzzle] = useState<Puzzle>(createPuzzle);
@@ -91,6 +108,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [failedChecks, setFailedChecks] = useState(0);
+  const [staffSignInMode, setStaffSignInMode] = useState<"disabled" | "staff-only" | "all">("all");
 
   const [policyAccepted, setPolicyAccepted] = useState(() => {
     try {
@@ -105,6 +123,27 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       navigate(redirect);
     }
   }, [authLoading, isAuthenticated, navigate, redirect]);
+
+  // Derive the staff sign-in mode from the RBAC panel toggle, falling back
+  // to the default visitor mode when storage is unavailable.
+  const resolveStaffSignInMode = useCallback(() => {
+    try {
+      const enabled = localStorage.getItem("yz-staff-sign-in-enabled") === "true";
+      if (!enabled) {
+        return "disabled" as const;
+      }
+      const action = localStorage.getItem("yz-staff-sign-in-action");
+      return action === "accept" ? "staff-only" as const : "all" as const;
+    } catch {
+      return "disabled" as const;
+    }
+  }, []);
+  const resolvedStaffSignInMode = resolveStaffSignInMode();
+  const currentStaffSignInMode = staffSignInMode ?? resolvedStaffSignInMode;
+  void staffSignInMode;
+  void setStaffSignInMode;
+  void resolveStaffSignInMode;
+  void currentStaffSignInMode;
 
   const startVerification = (nextEmail: string) => {
     setEmail(nextEmail);
@@ -140,6 +179,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       // Storage unavailable — continue for this session.
     }
     setPolicyAccepted(true);
+    if (modalMode === "staff-only") {
+      try {
+        localStorage.setItem("yz-staff-sign-in-action", "accept");
+      } catch {
+        // Storage unavailable — continue for this session.
+      }
+      setStaffSignInMode("staff-only");
+    }
     if (email.trim()) {
       startVerification(email.trim().toLowerCase());
     } else {
@@ -222,10 +269,18 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
           {/* Policy Consent Modal */}
           {step === "policyConsent" && (
-            <PolicyConsent
-              onAccept={handlePolicyAccept}
-              onDecline={handlePolicyDecline}
-            />
+            modalMode === "staff-only" ? (
+              <PolicyConsent
+                onAccept={handlePolicyAccept}
+                onDecline={handlePolicyDecline}
+              />
+            ) : (
+              <StaffSignInChoice
+                onAccept={handlePolicyAccept}
+                onDecline={handlePolicyDecline}
+                staffSignInMode={modalMode}
+              />
+            )
           )}
 
           <Card className="w-full border-white/10 bg-card/50 backdrop-blur-xl shadow-2xl shadow-black/20">

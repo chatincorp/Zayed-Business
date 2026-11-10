@@ -1,10 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, FileText, AlertTriangle, CheckCircle2, X, ArrowRight } from "lucide-react";
 
 interface PolicyConsentProps {
   onAccept: () => void;
   onDecline: () => void;
+}
+
+function resolveStaffSignInMode(): "disabled" | "staff-only" | "all" {
+  try {
+    const enabled = localStorage.getItem("yz-staff-sign-in-enabled") === "true";
+    if (!enabled) return "disabled";
+  } catch {
+    return "disabled";
+  }
+
+  try {
+    const action = localStorage.getItem("yz-staff-sign-in-action");
+    if (action === "accept") {
+      return "staff-only";
+    }
+  } catch {
+    // Storage unavailable — fall through to the default.
+  }
+
+  return "all";
 }
 
 const policies = [
@@ -190,6 +210,13 @@ export default function PolicyConsent({ onAccept, onDecline }: PolicyConsentProp
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [agreedToConsultancy, setAgreedToConsultancy] = useState(false);
 
+  const [staffSignInAcknowledged, setStaffSignInAcknowledged] = useState<"pending" | "accepted" | "declined">(
+    "pending",
+  );
+  const staffSignInMode = resolveStaffSignInMode();
+  void staffSignInMode;
+  void staffSignInAcknowledged;
+  void setStaffSignInAcknowledged;
 
   const handleScroll = (policyId: string, e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -198,8 +225,8 @@ export default function PolicyConsent({ onAccept, onDecline }: PolicyConsentProp
       setScrolledToEnd((prev) => ({ ...prev, [policyId]: true }));
     }
   };
-
   const allAgreed = agreedToTerms && agreedToPrivacy && agreedToConsultancy;
+
 
 
   return (

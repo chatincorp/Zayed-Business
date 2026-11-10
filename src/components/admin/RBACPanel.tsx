@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -113,7 +113,23 @@ export default function RBACPanel() {
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptDesc, setNewDeptDesc] = useState("");
-  const [staffSignInEnabled, setStaffSignInEnabled] = useState(false);
+  const [staffSignInEnabled] = useState(false);
+  void staffSignInEnabled;
+
+  // Wire the staff sign-in toggle into the public auth page so a staff
+  // account can actually reach the admin panel once enabled here.
+  const storeStaffSignInFlag = useCallback(() => {
+    try {
+      if (staffSignInEnabled) {
+        localStorage.setItem("yz-staff-sign-in-enabled", "true");
+      } else {
+        localStorage.removeItem("yz-staff-sign-in-enabled");
+      }
+    } catch {
+      // Storage unavailable for this session — continue without it.
+    }
+  }, [staffSignInEnabled]);
+  storeStaffSignInFlag();
 
   const handleSendChatMessage = async () => {
     if (!expandedChat || !chatInput.trim()) return;
@@ -258,11 +274,6 @@ export default function RBACPanel() {
                     </div>
                   </div>
                   <div className="col-span-2 text-xs text-muted-foreground truncate">{s.department}</div>
-                  {tab === "staff" && (
-                    <div className="col-span-1 text-[10px] text-muted-foreground text-right">
-                      {departmentStaffCount[s.department] ?? 0}
-                    </div>
-                  )}
                   {tab === "staff" && (
                     <div className="col-span-1 text-[10px] text-muted-foreground text-right">
                       {departmentStaffCount[s.department] ?? 0}
