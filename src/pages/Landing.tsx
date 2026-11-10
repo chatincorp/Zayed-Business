@@ -13,6 +13,7 @@ import type { ComponentType } from "react";
 import IntroSection from "@/components/sections/IntroSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import AIIntegrationPreview from "@/components/sections/AIIntegrationPreview";
+import AddedServicesBriefing from "@/components/sections/AddedServicesBriefing";
 import ChatbotDemo from "@/components/sections/ChatbotDemo";
 import LiveDemoPreviews from "@/components/sections/LiveDemoPreviews";
 import BusinessDevSection from "@/components/sections/BusinessDevSection";
@@ -37,6 +38,7 @@ const SECTION_COMPONENTS: Record<string, ComponentType> = {
   intelligence: LatestIntelligence,
   services: ServicesSection,
   "ai-preview": AIIntegrationPreview,
+  "added-services-briefing": AddedServicesBriefing,
   "live-demos": LiveDemoPreviews,
   "business-dev": BusinessDevSection,
   sales: SalesSection,
