@@ -614,6 +614,7 @@ const DEFAULT_PAGES = [
   { title: "Checkout", slug: "/checkout" },
   { title: "Zayed Tabloid", slug: "/tabloid" },
   { title: "Contact", slug: "/contact" },
+  { title: "Supplier Registration", slug: "/supplier/register" },
 ];
 
 const DEFAULT_NAV = [

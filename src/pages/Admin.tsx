@@ -343,11 +343,17 @@ export default function Admin() {
             {activeSection === "ctas" && <CTAsPanel key="ctas" />}
             {/* Website */}
             {activeSection === "partners" && <PartnersPanel key="partners" />}
+            {activeSection === "tabloid" && <TabloidPanel key="tabloid" />}
             {/* System */}
             {activeSection === "audit-logs" && <AuditLogsPanel key="audit-logs" />}
             {/* Catch-all for remaining sections */}
-            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "staff", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs", "pages", "navigation", "landing-pages", "checkout", "site-sections", "security", "technology", "ai", "forms"].includes(activeSection) && (
-              <GenericAdminPanel key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
+            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "staff", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "tabloid", "audit-logs", "pages", "navigation", "landing-pages", "checkout", "site-sections", "security", "technology", "ai", "forms"].includes(activeSection) && (
+              <GenericAdminPanel
+                key={activeSection}
+                title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection}
+                description="Content management for this section."
+                reason={DISABLED_MODULES[activeSection]}
+              />
             )}
           </AnimatePresence>
         </div>
@@ -409,15 +415,48 @@ function CountriesPanel() {
 
 
 
+const DISABLED_MODULES: Record<string, string> = {
+  blocks:
+    "Reusable blocks aren't part of this site's content model yet. Sections are edited directly under Pages, Site Sections and Homepage.",
+  "content-gen": "AI content generation needs a provider key. Configure one under AI Settings to turn this on.",
+  "page-gen": "AI page generation needs a provider key. Configure one under AI Settings to turn this on.",
+  "seo-assistant": "The SEO assistant needs a provider key. Configure one under AI Settings to turn this on.",
+  "tabloid-rewriter": "The AI rewriter needs a provider key. Configure one under AI Settings to turn this on.",
+};
+
+function TabloidPanel() {
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Zayed Tabloid</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Editorial workflow for articles, markets and forex coverage.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+        <a href="/tabloid/editorial" className="rounded-xl bg-card border border-border p-6 hover:border-electric/40 hover:shadow-sm transition-all">
+          <p className="font-semibold text-foreground">Editorial Dashboard</p>
+          <p className="text-xs text-muted-foreground mt-1">Drafts, review queue and publishing controls.</p>
+        </a>
+        <a href="/tabloid" className="rounded-xl bg-card border border-border p-6 hover:border-electric/40 hover:shadow-sm transition-all">
+          <p className="font-semibold text-foreground">View Public Tabloid</p>
+          <p className="text-xs text-muted-foreground mt-1">Opens the reader-facing edition in a new tab.</p>
+        </a>
+      </div>
+    </motion.div>
+  );
+}
+
 function DashboardContent({ onNavigate }: { onNavigate: (section: string) => void }) {
   const content = useQuery(api.content.adminContent);
   const staff = useQuery(api.adminRbac.listStaff);
   const leads = useQuery(api.leads.list, { limit: 5 });
+  const leadCounts = useQuery(api.leads.counts);
 
   const kpis = [
     { label: "Staff Accounts", value: String(staff?.length ?? 0) },
     { label: "Active Staff", value: String(staff?.filter((s) => s.status === "active").length ?? 0) },
-    { label: "Total Leads", value: String(leads?.length ?? 0) },
+    { label: "Total Leads", value: String(leadCounts?.total ?? 0) },
     { label: "Live Plans", value: String(content?.plans.filter((p) => p.active).length ?? 0) },
     { label: "Published Services", value: String(content?.services.filter((s) => s.status === "published").length ?? 0) },
     { label: "Published Pages", value: String(content?.pages.filter((p) => p.status === "published").length ?? 0) },

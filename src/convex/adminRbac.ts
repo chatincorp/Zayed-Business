@@ -233,6 +233,13 @@ export const updateSubmissionStatus = mutation({
  *  LIVE CHATS
  * ══════════════════════════════════════════════════════════════ */
 
+export const deleteSubmission = mutation({
+  args: { id: v.id("formSubmissions") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});
+
 export const listChats = query({
   handler: async (ctx) => {
     return await ctx.db.query("chats").collect();

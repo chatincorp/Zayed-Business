@@ -16,6 +16,7 @@ import {
   Building2,
 } from "lucide-react";
 import { useSEO } from "@/lib/seo";
+import { useContactSubmitter } from "@/lib/siteContent";
 
 const tabs = [
   { id: "appointment", label: "Book an Appointment", icon: Calendar },
@@ -100,10 +101,38 @@ export default function Contact() {
   const [activeTab, setActiveTab] = useState("appointment");
   const [submitted, setSubmitted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("KE");
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const submitContact = useContactSubmitter();
+  const office = getOfficeForCountry(selectedCountry);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    const data = new FormData(e.currentTarget);
+    const get = (key: string) => String(data.get(key) ?? "").trim();
+
+    setSending(true);
+    setSendError(null);
+    try {
+      const stored = await submitContact({
+        name: get("fullName") || "Website visitor",
+        email: get("email"),
+        subject: get("subject") || tabs.find((t) => t.id === activeTab)?.label || "Website inquiry",
+        message: get("message"),
+        phone: get("phone") ? `${selectedCountry} ${get("phone")}` : undefined,
+        company: get("company") || undefined,
+        inquiryType: activeTab,
+        department: office.name,
+      });
+      if (!stored) throw new Error("offline");
+      setSubmitted(true);
+    } catch {
+      setSendError(
+        `We couldn't send your request just now. Please email us directly at ${office.email} and we'll pick it up from there.`
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -219,6 +248,8 @@ export default function Contact() {
                   onSubmit={handleSubmit}
                   selectedCountry={selectedCountry}
                   onCountryChange={setSelectedCountry}
+                  sending={sending}
+                  sendError={sendError}
                 />
               </motion.div>
             )}
@@ -237,11 +268,15 @@ function ContactForm({
   onSubmit,
   selectedCountry,
   onCountryChange,
+  sending,
+  sendError,
 }: {
   type: string;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
   selectedCountry: string;
   onCountryChange: (code: string) => void;
+  sending: boolean;
+  sendError: string | null;
 }) {
   const inputClass =
     "w-full px-4 py-3 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric transition-all";
@@ -265,6 +300,7 @@ function ContactForm({
         </label>
         <input
           type="text"
+          name="subject"
           required
           className={inputClass}
           placeholder={
@@ -285,7 +321,7 @@ function ContactForm({
           <label className="block text-sm font-medium text-foreground mb-1.5">
             Full Name <span className="text-destructive">*</span>
           </label>
-          <input type="text" required className={inputClass} placeholder="Your full name" />
+          <input type="text" name="fullName" required className={inputClass} placeholder="Your full name" />
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -303,20 +339,20 @@ function ContactForm({
                 </option>
               ))}
             </select>
-            <input type="tel" required className={`${inputClass} flex-1`} placeholder="Phone number" />
+            <input type="tel" name="phone" required className={`${inputClass} flex-1`} placeholder="Phone number" />
           </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">
             Personal Email <span className="text-destructive">*</span>
           </label>
-          <input type="email" required className={inputClass} placeholder="you@example.com" />
+          <input type="email" name="email" required className={inputClass} placeholder="you@example.com" />
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">
             Confirm Personal Email <span className="text-destructive">*</span>
           </label>
-          <input type="email" required className={inputClass} placeholder="Confirm your email" />
+          <input type="email" name="confirmEmail" required className={inputClass} placeholder="Confirm your email" />
         </div>
       </div>
 
@@ -326,7 +362,7 @@ function ContactForm({
           <label className="block text-sm font-medium text-foreground mb-1.5">
             Company / Business Name {type !== "inquiry" && <span className="text-destructive">*</span>}
           </label>
-          <input type="text" className={inputClass} placeholder="Company name" />
+          <input type="text" name="company" className={inputClass} placeholder="Company name" />
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -341,11 +377,11 @@ function ContactForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">Position in Company</label>
-          <input type="text" className={inputClass} placeholder="Your position" />
+          <input type="text" name="position" className={inputClass} placeholder="Your position" />
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">Official Business Email</label>
-          <input type="email" className={inputClass} placeholder="you@company.com" />
+          <input type="email" name="businessEmail" className={inputClass} placeholder="you@company.com" />
         </div>
       </div>
 
@@ -427,7 +463,7 @@ function ContactForm({
             <label className="block text-sm font-medium text-foreground mb-1.5">
               Service Required <span className="text-destructive">*</span>
             </label>
-            <select className={inputClass} required>
+            <select name="service" className={inputClass} required>
               <option value="">Select service</option>
               {services.map((s) => (
                 <option key={s}>{s}</option>
@@ -459,6 +495,7 @@ function ContactForm({
             : "Additional Information"}
         </label>
         <textarea
+          name="message"
           rows={5}
           required={type === "inquiry" || type === "quotation"}
           className={`${inputClass} resize-none`}
@@ -483,12 +520,19 @@ function ContactForm({
       </div>
 
       {/* Submit */}
+      {sendError && (
+        <p role="alert" className="text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-4 py-3">
+          {sendError}
+        </p>
+      )}
+
       <div className="pt-2">
         <button
           type="submit"
-          className="group inline-flex items-center gap-2 px-8 py-3.5 bg-electric text-white font-semibold text-sm rounded-lg hover:bg-electric-dark transition-all duration-200 shadow-lg shadow-electric/20 hover:shadow-electric/30"
+          disabled={sending}
+          className="group inline-flex items-center gap-2 px-8 py-3.5 bg-electric text-white font-semibold text-sm rounded-lg hover:bg-electric-dark transition-all duration-200 shadow-lg shadow-electric/20 hover:shadow-electric/30 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Request a Consultation
+          {sending ? "Sending…" : "Request a Consultation"}
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>

@@ -724,7 +724,15 @@ export function AISettingsPanel() {
  *  GENERIC PLACEHOLDER for remaining sections
  * ══════════════════════════════════════════════════════════════ */
 
-export function GenericAdminPanel({ title, description }: { title: string; description: string }) {
+export function GenericAdminPanel({
+  title,
+  description,
+  reason,
+}: {
+  title: string;
+  description: string;
+  reason?: string;
+}) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       <div className="mb-6">
@@ -735,10 +743,10 @@ export function GenericAdminPanel({ title, description }: { title: string; descr
         <div className="w-16 h-16 mx-auto rounded-xl bg-muted flex items-center justify-center mb-4">
           <Layers className="w-7 h-7 text-muted-foreground/40" />
         </div>
-        <h3 className="font-semibold text-foreground mb-2">Not enabled yet</h3>
-        <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-          This module is not enabled for this deployment. Website content, plans, staff and leads are fully
-          manageable from the other panels in the sidebar.
+        <h3 className="font-semibold text-foreground mb-2">Not enabled</h3>
+        <p className="text-muted-foreground text-sm max-w-md mx-auto">
+          {reason ??
+            "This module is not enabled for this deployment. Website content, plans, staff and leads are fully manageable from the other panels in the sidebar."}
         </p>
       </div>
     </motion.div>

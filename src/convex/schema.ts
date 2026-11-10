@@ -655,6 +655,9 @@ const schema = defineSchema(
       status: v.union(v.literal("unread"), v.literal("replied"), v.literal("escalated")),
       createdAt: v.number(),
       repliedAt: v.optional(v.number()),
+      phone: v.optional(v.string()),
+      company: v.optional(v.string()),
+      inquiryType: v.optional(v.string()),
     })
       .index("by_status", ["status"]),
 

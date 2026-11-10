@@ -188,9 +188,9 @@ const routes = (
     <HashScroller />
     <Suspense fallback={<RouteLoading />}>
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/services" element={<Catalog />} />
+        <Route path="/" element={<SectionGate title="Home" slug="/"><Landing /></SectionGate>} />
+        <Route path="/contact" element={<SectionGate title="Contact" slug="/contact"><Contact /></SectionGate>} />
+        <Route path="/services" element={<SectionGate title="Services" slug="/services"><Catalog /></SectionGate>} />
         <Route path="/services/:slug" element={<ServiceDetail />} />
         <Route path="/fmcg" element={<SectionGate title="FMCG Services" section="fmcg" slug="/fmcg"><Fmcg /></SectionGate>} />
         <Route path="/fmcg/account" element={<FmcgAccountFlow />} />
@@ -198,7 +198,7 @@ const routes = (
         <Route
           path="/supplier/register"
           element={
-            <SectionGate title="Supplier Registration" section="supplier_register">
+            <SectionGate title="Supplier Registration" section="supplier_register" slug="/supplier/register">
               <RequireAuth>
                 <BackendOnly
                   title="Supplier registration runs on the live backend"
@@ -223,7 +223,7 @@ const routes = (
             </RequireAuth>
           }
         />
-        <Route path="/about" element={<About />} />
+        <Route path="/about" element={<SectionGate title="About Us" slug="/about"><About /></SectionGate>} />
         <Route path="/pricing" element={<SectionGate title="Pricing" section="pricing" slug="/pricing"><Pricing /></SectionGate>} />
         <Route path="/checkout" element={<SectionGate title="Checkout" section="checkout" slug="/checkout"><Checkout /></SectionGate>} />
         <Route path="/privacy" element={<Legal />} />

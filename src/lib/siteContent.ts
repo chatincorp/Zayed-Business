@@ -7,7 +7,7 @@
  * fallbacks as soon as the deployment is reachable.
  */
 
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { isBackendConfigured } from "@/lib/backend";
 
@@ -189,6 +189,46 @@ export interface HomeSection {
 }
 
 /** Canonical homepage section registry — shared by the admin manager and the page. */
+export interface ContactPayload {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  phone?: string;
+  company?: string;
+  inquiryType?: string;
+  department?: string;
+}
+
+/**
+ * Returns a submitter that persists contact-form messages to Convex.
+ * Resolves `true` when stored, `false` when no backend is attached.
+ */
+export function useContactSubmitter() {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const submit = isBackendConfigured ? useMutation(api.contact.submitContact) : null;
+
+  return async (payload: ContactPayload): Promise<boolean> => {
+    if (!submit) return false;
+    await submit(payload);
+    return true;
+  };
+}
+
+/** Public routes whose publish state is controlled by a record in the pages table. */
+export const GATED_ROUTES = [
+  "/",
+  "/about",
+  "/services",
+  "/contact",
+  "/fmcg",
+  "/wholesale",
+  "/supplier/register",
+  "/pricing",
+  "/checkout",
+  "/tabloid",
+] as const;
+
 export const HOME_SECTIONS: HomeSection[] = [
   { id: "fmcg", label: "FMCG Section", order: 1, visible: true },
   { id: "intro", label: "Introduction", order: 2, visible: true },

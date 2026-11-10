@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { SECTION_FLAG_LABELS } from "@/lib/siteContent";
+import { GATED_ROUTES, SECTION_FLAG_LABELS } from "@/lib/siteContent";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, FileText, Navigation as NavIcon,
   Layers, HelpCircle, MessageSquare, Handshake, ToggleLeft,
@@ -105,7 +105,7 @@ export function PagesPanel() {
   return (
     <Shell
       title="Pages"
-      subtitle={`${pages.length} pages · ${pages.filter((p) => p.status === "published").length} published · published pages are live on the site`}
+      subtitle={`${pages.length} pages · ${pages.filter((p) => p.status === "published").length} published · publishing controls whether that route is live`}
       action={
         <button onClick={() => { reset(); setOpen(true); }} className={primaryBtn}>
           <Plus className="w-4 h-4" /> New Page
@@ -145,6 +145,11 @@ export function PagesPanel() {
                 <p className="text-sm font-medium text-foreground">{page.title}</p>
                 <p className="text-[10px] text-muted-foreground">{page.slug}</p>
               </div>
+              {!(GATED_ROUTES as readonly string[]).includes(page.slug) && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground" title="No public route uses this slug, so its status has no effect">
+                  no route
+                </span>
+              )}
               <StatusPill active={page.status === "published"} labels={[page.status, page.status]} />
               <span className="text-xs text-muted-foreground hidden sm:block">
                 {new Date(page.updatedAt).toLocaleDateString()}
@@ -714,6 +719,7 @@ export function PartnersPanel() {
 export function FormsPanel() {
   const submissions = useQuery(api.adminRbac.listFormSubmissions);
   const setStatus = useMutation(api.adminRbac.updateSubmissionStatus);
+  const removeSubmission = useMutation(api.adminRbac.deleteSubmission);
   const unread = (submissions ?? []).filter((s) => s.status === "unread").length;
 
   return (
@@ -733,6 +739,8 @@ export function FormsPanel() {
               <div className="flex flex-wrap items-center gap-3 mb-1">
                 <p className="text-sm font-medium text-foreground">{s.name}</p>
                 <span className="text-xs text-muted-foreground">{s.email}</span>
+                {s.phone && <span className="text-xs text-muted-foreground">· {s.phone}</span>}
+                {s.company && <span className="text-xs text-muted-foreground">· {s.company}</span>}
                 <span className="ml-auto">
                   <StatusPill
                     active={s.status !== "unread"}
@@ -747,6 +755,7 @@ export function FormsPanel() {
                 <button onClick={() => void setStatus({ id: s._id, status: "replied" })} className="px-3 py-1.5 rounded-lg text-xs border border-border hover:bg-muted">Mark replied</button>
                 <button onClick={() => void setStatus({ id: s._id, status: "escalated" })} className="px-3 py-1.5 rounded-lg text-xs border border-border hover:bg-muted">Escalate</button>
                 <span className="text-[10px] text-muted-foreground ml-auto">{new Date(s.createdAt).toLocaleString()}</span>
+                <button onClick={() => { if (window.confirm("Delete this submission?")) void removeSubmission({ id: s._id }); }} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
               </div>
             </div>
           ))}
