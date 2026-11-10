@@ -85,8 +85,7 @@ const sidebarSections = [
   },
   {
     label: "CONTENT",
-    items: [
-      { icon: BookOpen, label: "Zayed Tabloid", id: "tabloid" },
+    items: [      { icon: BookOpen, label: "Zayed Tabloid", id: "tabloid" },
       { icon: FileText, label: "Blog / Insights", id: "blog" },
       { icon: Image, label: "Media Library", id: "media" },
       { icon: Layers, label: "Reusable Blocks", id: "blocks" },
@@ -291,7 +290,7 @@ export default function Admin() {
             {activeSection === "leads" && <LeadsTable key="leads" />}
             {activeSection === "testimonials" && <TestimonialsPanel key="testimonials" />}
             {activeSection === "faq" && <FaqsPanel key="faq" />}
-            {activeSection === "blog" && <BlogManager key="blog" />}
+            {activeSection === "blog" && <GenericAdminPanel id="blog" reason={DISABLED_MODULES.blog ?? "No blog module configured."} />}
             {activeSection === "analytics" && <AnalyticsDashboard key="analytics" />}
             {activeSection === "users" && <UsersManager key="users" />}
             {activeSection === "staff" && <RBACPanel key="staff" />}
