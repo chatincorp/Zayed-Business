@@ -119,6 +119,8 @@ export default function Pricing() {
 
   const [annual, setAnnual] = useState(false);
   const [currency, setCurrency] = useState<"USD" | "KES">("USD");
+  const [selectedPlan, setSelectedPlan] = useState<typeof plans[number] | null>(null);
+  const [, setTaxNote] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -276,13 +278,38 @@ export default function Pricing() {
                     {plan.description}
                   </p>
 
-                  {plan.id === "enterprise" ? (
-                    <Link
-                      to="/contact"
-                      className="block w-full text-center py-3 rounded-lg text-sm font-semibold transition-all duration-200 bg-foreground text-primary-foreground hover:opacity-90"
+                  {selectedPlan?.id === plan.id ? (
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPlan(null);
+                          window.location.href = "/checkout";
+                        }}
+                        className="w-full text-center py-3 rounded-lg text-sm font-semibold transition-all duration-200 bg-foreground text-primary-foreground hover:opacity-90"
+                      >
+                        Go to Checkout
+                      </button>
+                      {!setTaxNote && (
+                        <p className="mt-2 text-xs text-muted-foreground text-center">
+                          Prices are not inclusive of Tax.
+                        </p>
+                      )}
+                    </div>
+                  ) : selectedPlan !== null ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlan(plan);
+                      }}
+                      className={`w-full text-center py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                        plan.popular
+                          ? "bg-foreground text-primary-foreground hover:opacity-90"
+                          : "bg-white/10 text-white/80 hover:bg-white/5"
+                      }`}
                     >
                       {plan.cta}
-                    </Link>
+                    </button>
                   ) : (
                     <PaystackCheckout
                       planName={`${plan.name} Plan`}
@@ -331,6 +358,9 @@ export default function Pricing() {
             >
               Enhance any plan with specialized services whenever you need them.
             </motion.p>
+            <p className="mt-4 text-xs text-muted-foreground">
+              All prices are not inclusive of Tax.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

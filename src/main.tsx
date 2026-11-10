@@ -22,6 +22,7 @@ const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
+const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Fmcg = lazy(() => import("./pages/Fmcg.tsx"));
 const FmcgAccountFlow = lazy(() => import("./pages/FmcgAccountFlow.tsx"));
@@ -221,6 +222,7 @@ const routes = (
         />
         <Route path="/about" element={<About />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/privacy" element={<Legal />} />
         <Route path="/terms" element={<Legal />} />
         <Route path="/cookies" element={<Legal />} />
