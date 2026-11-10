@@ -92,11 +92,11 @@ export default function AISection() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-4 text-white/50 text-lg max-w-2xl mx-auto"
             >
-              AI can connect with existing business workflows and systems to automate processes, improve decisions and create smarter experiences.
+              AI that gives your team more time back, a higher success rate on the work it touches, and the feeling of winning more often — by taking on the routine so your people can focus on the work that matters and actually enjoy a break.
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {aiServices.map((s, i) => (
               <motion.div
                 key={s.title}
@@ -123,7 +123,7 @@ export default function AISection() {
             What Happens When Your Business Becomes Intelligent?
           </h3>
           <p className="text-center text-white/50 mb-10 max-w-xl mx-auto">
-            We don't just add AI. We connect AI to the way your business actually works.
+            We don't just add AI. We connect AI to the way your business actually works — and price it transparently: AI Agents from $3,000, management and maintenance at $250 monthly plus $100 per agent, a multi-agent framework at $5,000 per skill per agent, and agent training at $300 per agent.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -148,7 +148,7 @@ export default function AISection() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="font-display text-3xl sm:text-4xl font-bold text-white leading-tight mb-4"
             >
-              An AI Assistant Built for Your Business
+              AI Agents, Management & Multi-Agent Frameworks
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -156,7 +156,7 @@ export default function AISection() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-white/50 text-lg max-w-2xl mx-auto"
             >
-              Intelligent custom chatbots designed around your business to answer questions, assist customers, capture leads and connect users to your systems.
+              AI agents that handle real work across your business — with a clear, all-in cost: $3,000 per AI agent setup, $250 monthly management and maintenance, $100 per agent each month on subscription, a multi-agent framework at $5,000 per skill per agent, and $300 training per agent.
             </motion.p>
           </div>
 
@@ -209,7 +209,7 @@ export default function AISection() {
               to="/contact"
               className="group inline-flex items-center gap-2 px-6 py-3 bg-electric text-white font-semibold text-sm rounded-lg hover:bg-electric-dark transition-all duration-200 shadow-lg shadow-electric/20"
             >
-              Build an AI Chatbot
+              Talk to Us About AI Agents, Management & Multi-Agent Frameworks
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </RouterLink>
           </div>

@@ -6,7 +6,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import ServicesManager from "@/components/admin/ServicesManager";
 import LeadsTable from "@/components/admin/LeadsTable";
-import BlogManager from "@/components/admin/BlogManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import FmcgAdmin from "@/components/admin/FmcgAdmin";
 import UsersManager from "@/components/admin/UsersManager";

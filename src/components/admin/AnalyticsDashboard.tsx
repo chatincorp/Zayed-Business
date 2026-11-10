@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Users, Eye, Clock, Globe, BarChart3, FileText } from "lucide-react";
+import { TrendingUp, Users, BarChart3, FileText } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
@@ -11,9 +11,6 @@ export default function AnalyticsDashboard() {
   const byStatus = leads.byStatus ?? {};
   const byType = leads.byType ?? {};
   const formRows = (formSubmissions ?? []) as { status: string }[];
-
-  const inboxes =
-    typeof formRows === "number" ? formRows : formRows.filter((r) => r.status === "new").length;
 
   const metrics = [
     { label: "Total Leads", value: String(leads.total), change: "live", up: true, icon: Users },

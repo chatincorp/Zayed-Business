@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Search, Mail, Phone, CheckCircle2, Clock, MessageSquare, ChevronDown } from "lucide-react";
+import { Search, Mail, Phone, ChevronDown } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   new: { color: "bg-blue-500/10 text-blue-500", label: "New" },
