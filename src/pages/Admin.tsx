@@ -163,6 +163,7 @@ const sidebarSections = [
 
 const quickActions = [
   { label: "New Page", icon: FileText, color: "electric", section: "homepage" },
+  { label: "New Staff Account", icon: Users, color: "electric", section: "staff" },
   { label: "New Service", icon: Target, color: "emerald-500", section: "services" },
   { label: "New Article", icon: BookOpen, color: "violet-500", section: "blog" },
   { label: "New Partner", icon: Handshake, color: "blue-500", section: "partners" },
@@ -180,7 +181,7 @@ const kpiCards = [
 ];
 
 export default function Admin() {
-  const [activeSection, setActiveSection] = useState("dashboard");
+  const [activeSection, setActiveSection] = useState("staff");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
@@ -292,6 +293,7 @@ export default function Admin() {
             {activeSection === "blog" && <BlogManager key="blog" />}
             {activeSection === "analytics" && <AnalyticsDashboard key="analytics" />}
             {activeSection === "users" && <UsersManager key="users" />}
+            {activeSection === "staff" && <RBACPanel key="staff" />}
             {activeSection === "roles" && <RBACPanel key="roles" />}
             {activeSection === "system-health" && <SystemHealthPanel key="system-health" />}
             {activeSection === "security-logs" && <SecurityLogsPanel key="security-logs" />}
@@ -334,7 +336,7 @@ export default function Admin() {
             {/* System */}
             {activeSection === "audit-logs" && <AuditLogsPanel key="audit-logs" />}
             {/* Catch-all for remaining sections */}
-            {!["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs"].includes(activeSection) && (
+            {          !["dashboard", "homepage", "services", "leads", "testimonials", "faq", "blog", "analytics", "users", "staff", "roles", "system-health", "security-logs", "integrations", "seo-dashboard", "page-seo", "keywords", "regional-seo", "technical-seo", "media", "global-settings", "projects", "fmcg-suppliers", "fmcg-products", "fmcg-orders", "fmcg-enquiries", "ai-assistant", "ai-settings", "yasir-verify", "rate-limiting", "blocked", "campaigns", "email-templates", "ctas", "partners", "audit-logs"].includes(activeSection) && (
               <GenericAdminPanel key={activeSection} title={sidebarSections.flatMap(s => s.items).find(i => i.id === activeSection)?.label || activeSection} description="Content management for this section." />
             )}
           </AnimatePresence>
