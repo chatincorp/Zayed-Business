@@ -290,7 +290,7 @@ export default function Admin() {
             {activeSection === "leads" && <LeadsTable key="leads" />}
             {activeSection === "testimonials" && <TestimonialsPanel key="testimonials" />}
             {activeSection === "faq" && <FaqsPanel key="faq" />}
-            {activeSection === "blog" && <GenericAdminPanel id="blog" reason={DISABLED_MODULES.blog ?? "No blog module configured."} />}
+            {activeSection === "blog" && <GenericAdminPanel title="Blog / Insights" description="No blog module configured for this site." reason={DISABLED_MODULES.blog ?? "No blog module configured."} />}
             {activeSection === "analytics" && <AnalyticsDashboard key="analytics" />}
             {activeSection === "users" && <UsersManager key="users" />}
             {activeSection === "staff" && <RBACPanel key="staff" />}
