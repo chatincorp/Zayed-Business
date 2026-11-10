@@ -125,7 +125,11 @@ export const FALLBACK_SERVICES: SiteService[] = [
   { title: "Security Solutions", slug: "security-solutions", category: "security", shortDescription: "Professional CCTV, surveillance, access control and security technology solutions for all sectors.", ctaUrl: "/#security", status: "published", displayOrder: 5 },
   { title: "Digital Solutions", slug: "digital-solutions", category: "digital", shortDescription: "Custom websites, web applications, e-commerce platforms and responsive digital experiences.", ctaUrl: "/#technology", status: "published", displayOrder: 6 },
   { title: "AI & Automation", slug: "ai-automation", category: "ai", shortDescription: "AI system integration, custom chatbots, workflow automation and intelligent business systems.", ctaUrl: "/#ai", status: "published", displayOrder: 7 },
-  { title: "FMCG Services", slug: "fmcg-services", category: "fmcg", shortDescription: "Order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion.", ctaUrl: "/fmcg", status: "published", displayOrder: 8 },
+  { title: "Marketplace Product Listings", slug: "marketplace-listings", category: "digital", shortDescription: "List and manage products on Jumia, Jiji and Kilimall where buyers are already shopping.", ctaUrl: "/services/marketplace-listings", status: "published", displayOrder: 8 },
+  { title: "Account & Social Media Management", slug: "account-social-media-management", category: "digital", shortDescription: "Day-to-day management of your social accounts so your brand stays active, on-brand and growing.", ctaUrl: "/services/account-social-media-management", status: "published", displayOrder: 9 },
+  { title: "Content Generation", slug: "content-generation", category: "digital", shortDescription: "Words, visuals and campaign content produced for your channels.", ctaUrl: "/services/content-generation", status: "published", displayOrder: 10 },
+  { title: "Ad Generation", slug: "ad-generation", category: "digital", shortDescription: "Natural and AI-generated ads in image, video or both, with natural or AI voice-overs for radio-style ads.", ctaUrl: "/services/ad-generation", status: "published", displayOrder: 11 },
+  { title: "FMCG Services", slug: "fmcg-services", category: "fmcg", shortDescription: "Order booking, route-to-market sales, supplier sourcing, merchandizing and product promotion.", ctaUrl: "/fmcg", status: "published", displayOrder: 12 },
 ];
 
 export const DEFAULT_SECTION_FLAGS: Record<string, boolean> = {
