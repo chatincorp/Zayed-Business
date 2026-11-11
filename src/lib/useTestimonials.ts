@@ -18,6 +18,9 @@ export interface TestimonialStats {
   averageRating: number;
   fiveStarCount: number;
   fourStarCount: number;
+  threeStarCount: number;
+  twoStarCount: number;
+  oneStarCount: number;
 }
 
 /** Published testimonials, enriched with rating defaults when the field is absent. */

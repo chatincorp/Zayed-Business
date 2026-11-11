@@ -553,6 +553,7 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
   const seed = useMutation(api.content.seedDefaults);
   const upsert = useMutation(api.content.upsertTestimonial);
   const seedBulk100 = useMutation(api.testimonials.bulkSeedTestimonials);
+  const clearAll = useMutation(api.testimonials.clearTestimonials);
   const setStatus = useMutation(api.content.setTestimonialStatus);
   const remove = useMutation(api.content.deleteTestimonial);
 
@@ -588,6 +589,7 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
       action={<div className="flex gap-2">
         <button onClick={() => { reset(); setOpen(true); }} className={primaryBtn}><Plus className="w-4 h-4" /> New Testimonial</button>
         <button onClick={() => { reset(); seedBulk100({ count: 100 }); }} className={secondaryBtn} disabled={items.length > 0}><RefreshCw className="w-4 h-4" /> Seed 100+</button>
+        <button onClick={() => { void clearAll(); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/60 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" disabled={items.length === 0}><Trash2 className="w-3.5 h-3.5" /> Clear</button>
       </div>}
     >
       {open && (

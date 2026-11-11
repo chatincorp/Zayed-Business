@@ -201,10 +201,10 @@ const POSITIONLESS_ROLES = [
 
 function ratingFor() {
   const r = Math.random();
-  if (r < 0.62) return 5;
-  if (r < 0.84) return 4;
-  if (r < 0.94) return 3;
-  if (r < 0.98) return 2;
+  if (r < 0.74) return 5;
+  if (r < 0.93) return 4;
+  if (r < 0.975) return 3;
+  if (r < 0.995) return 2;
   return 1;
 }
 
@@ -478,16 +478,22 @@ export const testimonialStats = query({
     const published = rows.filter((r) => r.status === "published");
     const count = published.length;
     if (count === 0) {
-      return { count: 0, averageRating: 0, fiveStarCount: 0, fourStarCount: 0 };
+      return { count: 0, averageRating: 0, fiveStarCount: 0, fourStarCount: 0, threeStarCount: 0, twoStarCount: 0, oneStarCount: 0 };
     }
     const total = published.reduce((acc, row) => acc + (row.rating ?? 5), 0);
-    const fiveStarCount = published.filter((row) => row.rating >= 5).length;
+    const fiveStarCount = published.filter((row) => row.rating === 5).length;
     const fourStarCount = published.filter((row) => row.rating === 4).length;
+    const threeStarCount = published.filter((row) => row.rating === 3).length;
+    const twoStarCount = published.filter((row) => row.rating === 2).length;
+    const oneStarCount = published.filter((row) => row.rating === 1).length;
     return {
       count,
       averageRating: total / count,
       fiveStarCount,
       fourStarCount,
+      threeStarCount,
+      twoStarCount,
+      oneStarCount,
     };
   },
 });
