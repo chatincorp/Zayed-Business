@@ -4,6 +4,7 @@ import { useInView } from "react-intersection-observer";
 import { StarIcon, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { useSiteTestimonials } from "@/lib/siteContent";
 import { useTestimonialStats, TestimonialWithRating } from "@/lib/useTestimonials";
+import { TestimonialRatingChart } from "@/components/ui/testimonial-rating-chart";
 
 function avatarFor(name: string) {
   return name
@@ -167,34 +168,15 @@ export default function HomepageTestimonialsCarousel() {
             <span className="text-white/80 font-medium text-sm">
               {displayAvg > 0 ? `${displayAvg.toFixed(1)} out of 5` : "4.5 out of 5"}
             </span>
-            <span className="text-muted-foreground/60 text-sm">·</span>              <span className="text-muted-foreground text-sm">{displayCount}+ ratings</span>
-              {stats && stats.count > 0 && (
-                <div className="mt-6 flex flex-col gap-1.5 text-sm">
-                  {[5, 4, 3, 2, 1].map((stars) => {
-                    const count = (stars === 5 ? stats.fiveStarCount
-                      : stars === 4 ? stats.fourStarCount
-                      : stars === 3 ? stats.threeStarCount
-                      : stars === 2 ? stats.twoStarCount
-                      : stats.oneStarCount) ?? 0;
-                    const max = Math.max(1, stats.fiveStarCount, stats.fourStarCount, stats.threeStarCount, stats.twoStarCount, stats.oneStarCount);
-                    const width = (count / max) * 100;
-                    return (
-                      <div key={stars} className="flex items-center gap-3">
-                        <span className="w-6 flex items-center justify-end text-muted-foreground text-xs tabular-nums">
-                          {stars}
-                        </span>
-                        <div className="flex-1 h-2.5 rounded-full bg-white/5 overflow-hidden">
-                          <div className="h-full rounded-full bg-amber-400/80" style={{ width: `${width}%` }} />
-                        </div>
-                        <span className="w-8 text-right text-muted-foreground text-xs tabular-nums">
-                          {count}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+            <span className="text-muted-foreground/60 text-sm">·</span>
+            <span className="text-muted-foreground text-sm">{displayCount}+ ratings</span>
           </motion.div>
+
+          {stats && stats.count > 0 && (
+            <div className="mx-auto max-w-md">
+              <TestimonialRatingChart stats={stats} />
+            </div>
+          )}
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}

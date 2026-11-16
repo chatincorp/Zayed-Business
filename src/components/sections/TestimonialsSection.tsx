@@ -7,9 +7,7 @@ import { TestimonialRatingChart } from "@/components/ui/testimonial-rating-chart
 export default function TestimonialsSection() {
   const inView = useInView({ threshold: 0.15, triggerOnce: true });
   const stats = useTestimonialStats();
-
-  const displayCount = stats?.count ?? 0;
-  const displayAvg = stats && stats.count > 0 ? stats.averageRating : 0;
+  const hasRatings = !!stats && stats.count > 0;
 
   return (
     <section className="relative py-24 sm:py-32 bg-navy-dark overflow-hidden">
@@ -32,25 +30,42 @@ export default function TestimonialsSection() {
         >
           Trusted by Growing Businesses
         </motion.h2>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex items-center justify-center gap-3 flex-wrap"
-        >
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4].map((i) => (
-              <StarIcon key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-            ))}
-            <StarIcon className="w-4 h-4 text-amber-400/50" />
-          </div>
-          <span className="text-white/80 font-medium text-sm">
-            {displayAvg > 0 ? `${displayAvg.toFixed(1)} out of 5` : "4.5 out of 5"}
-          </span>
-          <span className="text-muted-foreground/60 text-sm">·</span>
-          <span className="text-muted-foreground text-sm">{displayCount}+ ratings</span>
-        </motion.div>
-        {stats && stats.count > 0 && <TestimonialRatingChart stats={stats} />}
+
+        {hasRatings && stats ? (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex items-center justify-center gap-3 flex-wrap"
+            >
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4].map((i) => (
+                  <StarIcon key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                ))}
+                <StarIcon className="w-4 h-4 text-amber-400/50" />
+              </div>
+              <span className="text-white/80 font-medium text-sm">
+                {stats.averageRating.toFixed(1)} out of 5
+              </span>
+              <span className="text-muted-foreground/60 text-sm">·</span>
+              <span className="text-muted-foreground text-sm">{stats.count}+ ratings</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mx-auto max-w-md"
+            >
+              <TestimonialRatingChart stats={stats} />
+            </motion.div>
+          </>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            Verified client ratings load live from our review system.
+          </p>
+        )}
       </div>
     </section>
   );

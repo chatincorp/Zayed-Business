@@ -10,6 +10,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { GATED_ROUTES, SECTION_FLAG_LABELS } from "@/lib/siteContent";
+import { useTestimonialStats } from "@/lib/useTestimonials";
+import { TestimonialRatingChart } from "@/components/admin/ui/testimonial-rating-chart";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, FileText, Navigation as NavIcon,
   Layers, HelpCircle, MessageSquare, Handshake, ToggleLeft,
@@ -573,7 +575,7 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
       id: editing?._id,
       quote: quote.trim(),
       clientName: clientName.trim(),
-      rating: editing?.rating ?? 5,
+      rating,
       position: position.trim() || undefined,
       status: editing?.status ?? "published",
       displayOrder: editing?.displayOrder ?? items.length + 1,
@@ -582,6 +584,7 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
   };
 
   const items = content?.testimonials ?? [];
+  const stats = useTestimonialStats();
   return (
     <Shell
       title="Testimonials"
@@ -592,6 +595,16 @@ type TestimonialRow = Doc<"testimonials">;export function TestimonialsPanel() {
         <button onClick={() => { void clearAll(); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/60 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" disabled={items.length === 0}><Trash2 className="w-3.5 h-3.5" /> Clear</button>
       </div>}
     >
+      {items.length > 0 && stats && stats.count > 0 && (
+        <div className="mb-6 rounded-xl border bg-card p-5 sm:max-w-md">
+          <p className="text-sm font-semibold text-foreground">Live rating distribution</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {stats.count} published · {stats.averageRating.toFixed(1)} average · updates instantly on the public site
+          </p>
+          <TestimonialRatingChart stats={stats} />
+        </div>
+      )}
+
       {open && (
         <div className="p-5 rounded-xl border bg-card mb-6 space-y-4">
           <Field label="Quote"><textarea rows={3} className={inputCls} value={quote} onChange={(e) => setQuote(e.target.value)} /></Field>

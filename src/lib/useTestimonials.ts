@@ -1,4 +1,5 @@
 import { useSiteTestimonials } from "./siteContent";
+import { isBackendConfigured } from "./backend";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 
@@ -40,7 +41,11 @@ export function useTestimonials(): TestimonialWithRating[] | undefined {
 }
 
 /** Live rating aggregates for published testimonials. Returns undefined until
- * the Convex client is mounted and the query resolves. */
+ * the Convex client is mounted and the query resolves, and also when the site
+ * is running as a static bundle with no backend attached (calling useQuery
+ * without a ConvexProvider would throw). */
 export function useTestimonialStats(): TestimonialStats | undefined {
+  if (!isBackendConfigured) return undefined;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   return useQuery(api.testimonials.testimonialStats) as TestimonialStats | undefined;
 }
