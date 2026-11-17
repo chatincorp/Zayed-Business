@@ -199,18 +199,33 @@ const POSITIONLESS_ROLES = [
   "team lead",
 ];
 
-function ratingFor() {
-  const r = Math.random();
-  if (r < 0.74) return 5;
-  if (r < 0.93) return 4;
-  if (r < 0.975) return 3;
-  if (r < 0.995) return 2;
-  return 1;
+const RATING_SCHEDULE: Array<{ rating: number; weight: number }> = [
+  { rating: 5, weight: 74 },
+  { rating: 4, weight: 19 },
+  { rating: 3, weight: 4 },
+  { rating: 2, weight: 2 },
+  { rating: 1, weight: 1 },
+];
+
+/**
+ * Deterministic weighted rating for the Nth seeded testimonial. Random sampling
+ * left the 1-star bucket empty at this size (and reshuffled the whole spread on
+ * every seed), which made the published distribution chart look wrong.
+ */
+function ratingFor(index: number): number {
+  const total = RATING_SCHEDULE.reduce((sum, r) => sum + r.weight, 0);
+  const slot = (index * 7 + 3) % total;
+  let acc = 0;
+  for (const { rating, weight } of RATING_SCHEDULE) {
+    acc += weight;
+    if (slot < acc) return rating;
+  }
+  return 5;
 }
 
-function makeQuote(service: string, seed: number, _rating: number): string {
-  void _rating;
-  const hooks: Array<(service: string) => string> = [
+type Hook = (service: string) => string;
+
+const FIVE_STAR_HOOKS: Hook[] = [
     // 5-star voices — specific, human, rarely fully glowing
     (s) =>
       `Working with the team on ${s.toLowerCase()} gave us a clearer process than we had before. The follow-through was the part that surprised me most.`,
@@ -252,6 +267,9 @@ function makeQuote(service: string, seed: number, _rating: number): string {
       `The turnaround on ${s.toLowerCase()} was quick without feeling sloppy. That combination is harder to find than it should be.`,
     (s) =>
       `We now have a cleaner way to handle ${s.toLowerCase()} and less back-and-forth than before. That alone made the engagement worthwhile.`,
+];
+
+const FOUR_STAR_HOOKS: Hook[] = [
     // 4-star honest voices — good, but with a real friction point
     (s) =>
       `${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()} is better now, though there were a few points in the middle where we had to push for clarity. Worth it overall.`,
@@ -267,6 +285,9 @@ function makeQuote(service: string, seed: number, _rating: number): string {
       `The ${s.toLowerCase()} engagement worked, but I would have liked a clearer sense of what we were getting up front. The final result justified it, if only barely.`,
     (s) =>
       `They knew their side of ${s.toLowerCase()} well. The only thing that nagged me was the back-and-forth before we settled on the scope.`,
+];
+
+const THREE_STAR_HOOKS: Hook[] = [
     // 3-star mixed voices — usable outcome, real reservations
     (s) =>
       `${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()} improved things, but the setup took longer than expected and we had to do some rework on our side. Mixed result.`,
@@ -278,6 +299,9 @@ function makeQuote(service: string, seed: number, _rating: number): string {
       `I cannot say the ${s.toLowerCase()} work was smooth, but it did get done and it did what we needed it to. Not my favorite engagement.`,
     (s) =>
       `The ${s.toLowerCase()} piece helped, but I would have described the process as more tedious than impressive. Result was acceptable.`,
+];
+
+const TWO_STAR_HOOKS: Hook[] = [
     // 2-star voices — disappointed, occasional pricing tension, but some actionable
     // advice kept them still in business
     (s) =>
@@ -290,6 +314,9 @@ function makeQuote(service: string, seed: number, _rating: number): string {
       `Hard to rate something this mixed. The ${s.toLowerCase()} recommendations were better than anything we had tried, but the pricing felt like it was aimed at a bigger company than ours. We took the advice anyway and it helped.`,
     (s) =>
       `They gave us some real direction on ${s.toLowerCase()} that I still use. I just wish the rest of the engagement had not come with the kind of price tag that makes you pause before signing.`,
+];
+
+const ONE_STAR_HOOKS: Hook[] = [
     // 1-star voices — disappointed and still working with the same frustration,
     // but one specific piece of advice genuinely helped keep them in business
     (s) =>
@@ -306,10 +333,16 @@ function makeQuote(service: string, seed: number, _rating: number): string {
       `I am not trying to be unfair, but ${s.toLowerCase()} felt expensive for what we are. That said, the one thing they pointed out that we were getting wrong is still the thing that has kept us going. I would rather be honest about both parts than pretend it was easy.`,
     (s) =>
       `If someone asks me whether to repeat this, I tell them it depends on whether they can afford the price without resentment. For us it was tight. The ${s.toLowerCase()} advice that landed is still the reason we are not out of business, but a low rating still feels honest.`,
-  ];
+];
 
-
-
+/** Pick the voice that matches the rating so the quote never contradicts the score. */
+function makeQuote(service: string, seed: number, rating: number): string {
+  const hooks =
+    rating >= 5 ? FIVE_STAR_HOOKS
+      : rating === 4 ? FOUR_STAR_HOOKS
+        : rating === 3 ? THREE_STAR_HOOKS
+          : rating === 2 ? TWO_STAR_HOOKS
+            : ONE_STAR_HOOKS;
   const hook = hooks[seed % hooks.length];
   return hook(service);
 }
@@ -393,7 +426,7 @@ export const bulkSeedTestimonials = mutation({
             ? randomRoles[Math.floor(Math.random() * randomRoles.length)]
             : undefined;
 
-      const rating = ratingFor();
+      const rating = ratingFor(i);
       const published = statuses[i] === "published";
 
       items.push({
