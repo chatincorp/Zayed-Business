@@ -103,6 +103,9 @@ export default function Contact() {
   const [selectedCountry, setSelectedCountry] = useState("KE");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  // Set when the request was handed off to the visitor's email client because
+  // this build has no backend attached.
+  const [fallbackMailto, setFallbackMailto] = useState<string | null>(null);
   const submitContact = useContactSubmitter();
   const office = getOfficeForCountry(selectedCountry);
 
@@ -110,22 +113,51 @@ export default function Contact() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const get = (key: string) => String(data.get(key) ?? "").trim();
+    const subject =
+      get("subject") || tabs.find((t) => t.id === activeTab)?.label || "Website inquiry";
+    const phone = get("phone") ? `${selectedCountry} ${get("phone")}` : undefined;
 
     setSending(true);
     setSendError(null);
+    setFallbackMailto(null);
     try {
       const stored = await submitContact({
         name: get("fullName") || "Website visitor",
         email: get("email"),
-        subject: get("subject") || tabs.find((t) => t.id === activeTab)?.label || "Website inquiry",
+        subject,
         message: get("message"),
-        phone: get("phone") ? `${selectedCountry} ${get("phone")}` : undefined,
+        phone,
         company: get("company") || undefined,
         inquiryType: activeTab,
         department: office.name,
       });
-      if (!stored) throw new Error("offline");
+
+      if (stored) {
+        setSubmitted(true);
+        return;
+      }
+
+      // No backend attached (static build): hand the request to the visitor's
+      // email client, pre-filled and addressed to the routed office, so it still
+      // reaches the team instead of silently failing.
+      const lines = [
+        `Name: ${get("fullName") || "Website visitor"}`,
+        `Email: ${get("email")}`,
+        phone ? `Phone: ${phone}` : null,
+        get("company") ? `Company: ${get("company")}` : null,
+        get("position") ? `Position: ${get("position")}` : null,
+        `Request type: ${tabs.find((t) => t.id === activeTab)?.label ?? activeTab}`,
+        `Office: ${office.name}`,
+        "",
+        get("message") || "(no additional information provided)",
+      ].filter((line): line is string => line !== null);
+      const mailto = `mailto:${office.email}?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(lines.join("\n"))}`;
+
+      setFallbackMailto(mailto);
       setSubmitted(true);
+      window.location.href = mailto;
     } catch {
       setSendError(
         `We couldn't send your request just now. Please email us directly at ${office.email} and we'll pick it up from there.`
@@ -202,6 +234,7 @@ export default function Contact() {
                 onClick={() => {
                   setActiveTab(tab.id);
                   setSubmitted(false);
+                  setFallbackMailto(null);
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex-1 justify-center ${
                   activeTab === tab.id
@@ -229,11 +262,22 @@ export default function Contact() {
                   <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                 </div>
                 <h3 className="font-display text-2xl font-bold text-foreground mb-3">
-                  Request Received
+                  {fallbackMailto ? "Request Ready to Send" : "Request Received"}
                 </h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Thank you for contacting Yasir Zayed. Our team will review your request and respond shortly.
+                  {fallbackMailto
+                    ? `Your email app has been opened with this request addressed to ${office.email}. If nothing opened, send it with the link below.`
+                    : "Thank you for contacting Yasir Zayed. Our team will review your request and respond shortly."}
                 </p>
+                {fallbackMailto && (
+                  <a
+                    href={fallbackMailto}
+                    className="mt-6 inline-flex items-center gap-2 rounded-lg bg-electric px-5 py-2.5 text-sm font-semibold text-white hover:bg-electric-dark transition-colors"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Open the email again
+                  </a>
+                )}
               </motion.div>
             ) : (
               <motion.div

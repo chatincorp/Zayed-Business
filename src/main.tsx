@@ -13,32 +13,93 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 
+// Route chunk loaders, declared once so the same imports can be warmed in the
+// background (see RoutePrefetcher) as well as split by React.lazy.
+const routeLoaders = {
+  Landing: () => import("./pages/Landing.tsx"),
+  AuthPage: () => import("./pages/Auth.tsx"),
+  Dashboard: () => import("./pages/Dashboard.tsx"),
+  NotFound: () => import("./pages/NotFound.tsx"),
+  Contact: () => import("./pages/Contact.tsx"),
+  Admin: () => import("./pages/Admin.tsx"),
+  Catalog: () => import("./pages/Catalog.tsx"),
+  ServiceDetail: () => import("./pages/ServiceDetail.tsx"),
+  Pricing: () => import("./pages/Pricing.tsx"),
+  Checkout: () => import("./pages/Checkout.tsx"),
+  About: () => import("./pages/About.tsx"),
+  Fmcg: () => import("./pages/Fmcg.tsx"),
+  FmcgAccountFlow: () => import("./pages/FmcgAccountFlow.tsx"),
+  Wholesale: () => import("./pages/Wholesale.tsx"),
+  SupplierRegister: () => import("./pages/SupplierRegister.tsx"),
+  SupplierDashboard: () => import("./pages/SupplierDashboard.tsx"),
+  Legal: () => import("./pages/Legal.tsx"),
+  DemoCorporate: () => import("./pages/demos/DemoCorporate.tsx"),
+  DemoWebapp: () => import("./pages/demos/DemoWebapp.tsx"),
+  DemoEcommerce: () => import("./pages/demos/DemoEcommerce.tsx"),
+  TabloidIndex: () => import("./pages/tabloid/TabloidIndex.tsx"),
+  TabloidArticlePage: () => import("./pages/tabloid/TabloidArticlePage.tsx"),
+  FinancialMarkets: () => import("./pages/tabloid/FinancialMarkets.tsx"),
+  LiveForex: () => import("./pages/tabloid/LiveForex.tsx"),
+  EditorialDashboard: () => import("./pages/tabloid/EditorialDashboard.tsx"),
+};
+
 // Lazy load route components for better code splitting
-const Landing = lazy(() => import("./pages/Landing.tsx"));
-const AuthPage = lazy(() => import("./pages/Auth.tsx"));
-const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
-const Contact = lazy(() => import("./pages/Contact.tsx"));
-const Admin = lazy(() => import("./pages/Admin.tsx"));
-const Catalog = lazy(() => import("./pages/Catalog.tsx"));
-const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
-const Pricing = lazy(() => import("./pages/Pricing.tsx"));
-const Checkout = lazy(() => import("./pages/Checkout.tsx"));
-const About = lazy(() => import("./pages/About.tsx"));
-const Fmcg = lazy(() => import("./pages/Fmcg.tsx"));
-const FmcgAccountFlow = lazy(() => import("./pages/FmcgAccountFlow.tsx"));
-const Wholesale = lazy(() => import("./pages/Wholesale.tsx"));
-const SupplierRegister = lazy(() => import("./pages/SupplierRegister.tsx"));
-const SupplierDashboard = lazy(() => import("./pages/SupplierDashboard.tsx"));
-const Legal = lazy(() => import("./pages/Legal.tsx"));
-const DemoCorporate = lazy(() => import("./pages/demos/DemoCorporate.tsx"));
-const DemoWebapp = lazy(() => import("./pages/demos/DemoWebapp.tsx"));
-const DemoEcommerce = lazy(() => import("./pages/demos/DemoEcommerce.tsx"));
-const TabloidIndex = lazy(() => import("./pages/tabloid/TabloidIndex.tsx"));
-const TabloidArticlePage = lazy(() => import("./pages/tabloid/TabloidArticlePage.tsx"));
-const FinancialMarkets = lazy(() => import("./pages/tabloid/FinancialMarkets.tsx"));
-const LiveForex = lazy(() => import("./pages/tabloid/LiveForex.tsx"));
-const EditorialDashboard = lazy(() => import("./pages/tabloid/EditorialDashboard.tsx"));
+const Landing = lazy(routeLoaders.Landing);
+const AuthPage = lazy(routeLoaders.AuthPage);
+const Dashboard = lazy(routeLoaders.Dashboard);
+const NotFound = lazy(routeLoaders.NotFound);
+const Contact = lazy(routeLoaders.Contact);
+const Admin = lazy(routeLoaders.Admin);
+const Catalog = lazy(routeLoaders.Catalog);
+const ServiceDetail = lazy(routeLoaders.ServiceDetail);
+const Pricing = lazy(routeLoaders.Pricing);
+const Checkout = lazy(routeLoaders.Checkout);
+const About = lazy(routeLoaders.About);
+const Fmcg = lazy(routeLoaders.Fmcg);
+const FmcgAccountFlow = lazy(routeLoaders.FmcgAccountFlow);
+const Wholesale = lazy(routeLoaders.Wholesale);
+const SupplierRegister = lazy(routeLoaders.SupplierRegister);
+const SupplierDashboard = lazy(routeLoaders.SupplierDashboard);
+const Legal = lazy(routeLoaders.Legal);
+const DemoCorporate = lazy(routeLoaders.DemoCorporate);
+const DemoWebapp = lazy(routeLoaders.DemoWebapp);
+const DemoEcommerce = lazy(routeLoaders.DemoEcommerce);
+const TabloidIndex = lazy(routeLoaders.TabloidIndex);
+const TabloidArticlePage = lazy(routeLoaders.TabloidArticlePage);
+const FinancialMarkets = lazy(routeLoaders.FinancialMarkets);
+const LiveForex = lazy(routeLoaders.LiveForex);
+const EditorialDashboard = lazy(routeLoaders.EditorialDashboard);
+
+/**
+ * Warms the lazily-loaded route chunks once the first screen is idle, so
+ * opening /tabloid, /pricing, /contact … does not sit on the "Loading…"
+ * fallback while Vite transforms (dev) or downloads (prod) the chunk.
+ */
+function RoutePrefetcher() {
+  useEffect(() => {
+    const queue = Object.values(routeLoaders);
+    let cancelled = false;
+    let timer = 0;
+
+    const run = () => {
+      if (cancelled) return;
+      const load = queue.shift();
+      if (!load) return;
+      load().catch(() => {
+        /* a failed prefetch must never break navigation */
+      });
+      timer = window.setTimeout(run, 350);
+    };
+
+    timer = window.setTimeout(run, 1500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  return null;
+}
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -185,6 +246,7 @@ function RouteSyncer() {
 const routes = (
   <BrowserRouter>
     <RouteSyncer />
+    <RoutePrefetcher />
     <HashScroller />
     <Suspense fallback={<RouteLoading />}>
       <Routes>

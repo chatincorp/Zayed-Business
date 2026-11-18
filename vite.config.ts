@@ -2,11 +2,29 @@ import { vlyPlugin } from "@vly-ai/integrations";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+
+/**
+ * Dev/preview only: drop the web-app manifest link.
+ *
+ * Preview tunnels authenticate every browser request; the manifest request the
+ * browser issues itself carries no credentials, so it is rejected with a 403
+ * and shows up as a console error. Production builds keep the link, where
+ * /manifest.webmanifest is served normally.
+ */
+function dropManifestInDev(): Plugin {
+  return {
+    name: "drop-manifest-in-dev",
+    apply: "serve",
+    transformIndexHtml(html) {
+      return html.replace(/[ \t]*<link[^>]+rel="manifest"[^>]*>\s*/i, "");
+    },
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), vlyPlugin(), tailwindcss()],
+  plugins: [react(), vlyPlugin(), tailwindcss(), dropManifestInDev()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
