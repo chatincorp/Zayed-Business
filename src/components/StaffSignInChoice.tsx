@@ -196,8 +196,16 @@ function StaffSignInChoice({
   const [agreedToConsultancy, setAgreedToConsultancy] = useState(false);
   const [staffSignInChoice, setStaffSignInChoice] = useState<"staff" | "visitor" | null>(null);
 
+  // The staff/visitor choice is only rendered in "staff-only" mode, so it can
+  // only be required in that mode. Requiring it otherwise left "Accept All &
+  // Continue" permanently disabled and blocked sign-in entirely.
+  const offersStaffChoice = staffSignInMode === "staff-only";
+
   const allAgreed =
-    agreedToTerms && agreedToPrivacy && agreedToConsultancy && staffSignInChoice !== null;
+    agreedToTerms &&
+    agreedToPrivacy &&
+    agreedToConsultancy &&
+    (!offersStaffChoice || staffSignInChoice !== null);
 
   function handleScroll(
     policyId: string,
@@ -304,7 +312,7 @@ function StaffSignInChoice({
         </div>
 
         {/* Policy content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={policies[activePolicy].id}
@@ -314,7 +322,7 @@ function StaffSignInChoice({
               className="h-full"
             >
               <div
-                className="h-[300px] overflow-y-auto p-6 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono text-[11px]"
+                className="h-full max-h-[300px] overflow-y-auto p-6 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono text-[11px]"
                 onScroll={(e) =>
                   handleScroll(policies[activePolicy].id, e)
                 }
