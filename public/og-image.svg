@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1628"/>
+      <stop offset="1" stop-color="#060a14"/>
+    </linearGradient>
+    <linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="200" y1="8" x2="200" y2="448">
+      <stop offset="0" stop-color="#F8E7A0"/>
+      <stop offset="0.28" stop-color="#EFC75E"/>
+      <stop offset="0.55" stop-color="#D9A62E"/>
+      <stop offset="0.8" stop-color="#B67B14"/>
+      <stop offset="1" stop-color="#8A5510"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="#E8C56A" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#E8C56A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Emblem: emblem viewBox is 400x460, scaled 0.72 and centered -->
+  <g transform="translate(478,54) scale(0.72)" fill="url(#gold)">
+    <path d="M200 8 C203.5 24 212 32.5 228 36 C212 39.5 203.5 48 200 64 C196.5 48 188 39.5 172 36 C188 32.5 196.5 24 200 8 Z"/>
+    <path d="M200 92 L191 220 L189 280 L192 352 L200 448 L197 352 L197 130 Z"/>
+    <path d="M170 150 L177 172 L177 396 L170 414 L163 396 L163 172 Z"/>
+    <path d="M138 225 L144 245 L144 390 L138 406 L132 390 L132 245 Z"/>
+    <path d="M148 258 C112 298 80 360 52 432 C96 418 132 396 154 368 C162 330 157 292 148 258 Z"/>
+    <path d="M162 330 C142 362 122 398 110 436 C134 426 154 410 168 390 C172 368 169 348 162 330 Z"/>
+    <path d="M186 378 L177 410 L170 440 L184 428 L193 402 Z"/>
+    <g transform="translate(400,0) scale(-1,1)">
+      <path d="M200 92 L191 220 L189 280 L192 352 L200 448 L197 352 L197 130 Z"/>
+      <path d="M170 150 L177 172 L177 396 L170 414 L163 396 L163 172 Z"/>
+      <path d="M138 225 L144 245 L144 390 L138 406 L132 390 L132 245 Z"/>
+      <path d="M148 258 C112 298 80 360 52 432 C96 418 132 396 154 368 C162 330 157 292 148 258 Z"/>
+      <path d="M162 330 C142 362 122 398 110 436 C134 426 154 410 168 390 C172 368 169 348 162 330 Z"/>
+      <path d="M186 378 L177 410 L170 440 L184 428 L193 402 Z"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="600" y="576" text-anchor="middle" fill="#F3E3B2"
+        font-family="Georgia, 'Times New Roman', serif" font-size="44" letter-spacing="14">YASIR ZAYED</text>
+  <!-- Divider -->
+  <line x1="330" y1="596" x2="560" y2="596" stroke="#8A6A2F" stroke-width="1.5"/>
+  <line x1="640" y1="596" x2="870" y2="596" stroke="#8A6A2F" stroke-width="1.5"/>
+</svg>

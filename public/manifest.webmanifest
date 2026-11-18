@@ -1,0 +1,17 @@
+{
+  "name": "Yasir Zayed",
+  "short_name": "Yasir Zayed",
+  "description": "Business, FMCG, Security & Technology Solutions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
