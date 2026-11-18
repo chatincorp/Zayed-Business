@@ -196,8 +196,13 @@ function StaffSignInChoice({
   const [agreedToConsultancy, setAgreedToConsultancy] = useState(false);
   const [staffSignInChoice, setStaffSignInChoice] = useState<"staff" | "visitor" | null>(null);
 
+  // The Staff/Visitor choice only exists in "staff-only" mode; requiring it in
+  // other modes would permanently disable the accept button.
   const allAgreed =
-    agreedToTerms && agreedToPrivacy && agreedToConsultancy && staffSignInChoice !== null;
+    agreedToTerms &&
+    agreedToPrivacy &&
+    agreedToConsultancy &&
+    (staffSignInMode !== "staff-only" || staffSignInChoice !== null);
 
   function handleScroll(
     policyId: string,

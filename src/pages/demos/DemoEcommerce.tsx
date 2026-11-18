@@ -62,7 +62,7 @@ const products = [
     prime: true,
     delivery: "Tomorrow",
     badge: "#1 Best Seller",
-    img: "https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=400&q=80",
+    img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=400&q=80",
     category: "Electronics",
   },
   {

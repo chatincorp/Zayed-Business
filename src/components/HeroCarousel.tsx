@@ -50,7 +50,7 @@ const slides = [
     secondary: "Talk to a Strategist",
     secondaryLink: "/contact",
     image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1920&q=85&auto=format",
+      "https://images.unsplash.com/photo-1522542550221-31fd19575a2d?w=1920&q=85&auto=format",
     imageAlt: "Creative branding workspace",
     overlayColor: "from-[#0a1028]/95 via-[#0a1628]/78 to-[#0a1628]/50",
     accentColor: "#a78bfa",
@@ -115,7 +115,7 @@ const slides = [
     secondary: "See AI in Action",
     secondaryLink: "/services",
     image:
-      "https://images.unsplash.com/photo-1531746790095-e5995f604a3b?w=1920&q=85&auto=format",
+      "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1920&q=85&auto=format",
     imageAlt: "AI assistant interface",
     overlayColor: "from-[#0a1628]/95 via-[#0a1628]/80 to-[#0a1628]/50",
     accentColor: "#10b981",
