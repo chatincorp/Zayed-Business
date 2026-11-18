@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useMutation } from "convex/react";
+import { useAction, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { PRIVILEGES } from "@/convex/privileges";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
   Plus, Search, Users, Building2, MessageSquare,
@@ -63,7 +64,7 @@ export default function RBACPanel() {
   // Convex mutations
   const createDepartmentMut = useMutation(api.adminRbac.createDepartment);
   const deleteDepartmentMut = useMutation(api.adminRbac.deleteDepartment);
-  const createStaffMut = useMutation(api.adminRbac.createStaff);
+  const createStaffAccount = useAction(api.adminAccounts.createStaffAccount);
   const updateStaffStatusMut = useMutation(api.adminRbac.updateStaffStatus);
   const deleteStaffMut = useMutation(api.adminRbac.deleteStaff);
   const updateSubmissionStatusMut = useMutation(api.adminRbac.updateSubmissionStatus);
@@ -95,7 +96,11 @@ export default function RBACPanel() {
   // New staff form
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState<"admin" | "manager" | "staff">("staff");
+  const [newRole, setNewRole] = useState<"admin" | "staff">("staff");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPrivileges, setNewPrivileges] = useState<string[]>([]);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const roleOptions = useMemo(
     () =>
       [
@@ -113,24 +118,6 @@ export default function RBACPanel() {
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptDesc, setNewDeptDesc] = useState("");
-  const [staffSignInEnabled] = useState(false);
-  void staffSignInEnabled;
-
-  // Wire the staff sign-in toggle into the public auth page so a staff
-  // account can actually reach the admin panel once enabled here.
-  const storeStaffSignInFlag = useCallback(() => {
-    try {
-      if (staffSignInEnabled) {
-        localStorage.setItem("yz-staff-sign-in-enabled", "true");
-      } else {
-        localStorage.removeItem("yz-staff-sign-in-enabled");
-      }
-    } catch {
-      // Storage unavailable for this session — continue without it.
-    }
-  }, [staffSignInEnabled]);
-  storeStaffSignInFlag();
-
   const handleSendChatMessage = async () => {
     if (!expandedChat || !chatInput.trim()) return;
     await addChatMessageMut({ chatId: expandedChat, from: "Admin", text: chatInput });
@@ -152,16 +139,38 @@ export default function RBACPanel() {
   };
 
   const handleCreateStaff = async () => {
-    if (!newName || !newEmail) return;
-    await createStaffMut({
-      name: newName,
-      email: newEmail,
-      role: newRole,
-      department: newDept,
-      responsibilities: newResponsibilities.split(",").map((r) => r.trim()).filter(Boolean),
-      joinedAt: new Date().toISOString().split("T")[0],
-    });
-    setNewName(""); setNewEmail(""); setNewResponsibilities(""); setShowCreateStaff(false);
+    setCreateError(null);
+    if (!newName.trim() || !newEmail.trim()) {
+      setCreateError("Name and email are required.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setCreateError("Set a password of at least 8 characters for this account.");
+      return;
+    }
+    try {
+      setCreating(true);
+      await createStaffAccount({
+        name: newName.trim(),
+        email: newEmail.trim(),
+        password: newPassword,
+        role: newRole,
+        privileges: newPrivileges,
+        department: newDept,
+      });
+      setNewName("");
+      setNewEmail("");
+      setNewPassword("");
+      setNewPrivileges([]);
+      setNewResponsibilities("");
+      setShowCreateStaff(false);
+    } catch (error) {
+      setCreateError(
+        error instanceof Error ? error.message : "Could not create that account.",
+      );
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleCreateDept = async () => {
@@ -235,7 +244,6 @@ export default function RBACPanel() {
                     <input placeholder="Email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className={inputClass} />
                     <select value={newRole} onChange={(e) => setNewRole(e.target.value as typeof newRole)} className={inputClass}>
                       <option value="admin">Admin</option>
-                      <option value="manager">Manager</option>
                       <option value="staff">Staff</option>
                     </select>
                     <select value={newDept} onChange={(e) => setNewDept(e.target.value)} className={inputClass}>
@@ -243,9 +251,33 @@ export default function RBACPanel() {
                       {departments.length === 0 && <option value="Operations">Operations</option>}
                     </select>
                   </div>
-                  <input placeholder="Responsibilities (comma separated)" value={newResponsibilities} onChange={(e) => setNewResponsibilities(e.target.value)} className={inputClass} />
+                  <input placeholder="Login password (min 8 characters)" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-2">Admin panel privileges</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
+                      {PRIVILEGES.map((p) => (
+                        <label key={p.key} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={newPrivileges.includes(p.key)}
+                            onChange={(e) =>
+                              setNewPrivileges((prev) =>
+                                e.target.checked
+                                  ? [...prev, p.key]
+                                  : prev.filter((k) => k !== p.key),
+                              )
+                            }
+                            className="w-3.5 h-3.5 rounded border-border"
+                          />
+                          {p.label}
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2">Admins always receive every privilege.</p>
+                  </div>
+                  {createError && <p className="text-xs text-rose-500">{createError}</p>}
                   <div className="flex gap-2">
-                    <button onClick={handleCreateStaff} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Create</button>
+                    <button onClick={handleCreateStaff} disabled={creating} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark disabled:opacity-60">{creating ? "Creating…" : "Create account"}</button>
                     <button onClick={() => setShowCreateStaff(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
                   </div>
                 </div>

@@ -1,13 +1,13 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
-import { RequireAuth } from "@/components/RequireAuth";
+import { RequireAuth, RequireStaff } from "@/components/RequireAuth";
 import { SectionGate } from "@/components/SectionGate";
 import { BackendOnly } from "@/components/BackendOnly";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { AuthProvider } from "@/lib/auth";
 import { CONVEX_URL, isBackendConfigured } from "@/lib/backend";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
-import { ConvexAuthProvider, useAuthActions } from "@convex-dev/auth/react";
-import { ConvexReactClient, useConvexAuth } from "convex/react";
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { ConvexReactClient } from "convex/react";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
@@ -108,25 +108,6 @@ class RootErrorBoundary extends React.Component<
 /** Created only when VITE_CONVEX_URL is set, so the static bundle can boot
  *  with no backend attached. */
 const convex = isBackendConfigured ? new ConvexReactClient(CONVEX_URL) : null;
-
-/**
- * Mirror the local sign-in with a Convex anonymous session when a backend is
- * configured. Purely additive: the static site works with or without it.
- */
-function BackendSessionBridge() {
-  const { isAuthenticated: hasLocalSession } = useAuth();
-  const { isAuthenticated: hasBackendSession } = useConvexAuth();
-  const { signIn: convexSignIn } = useAuthActions();
-
-  useEffect(() => {
-    if (!hasLocalSession || hasBackendSession) return;
-    void convexSignIn("anonymous").catch((error: unknown) => {
-      console.warn("Convex anonymous session unavailable:", error);
-    });
-  }, [hasLocalSession, hasBackendSession, convexSignIn]);
-
-  return null;
-}
 
 /** Scroll to in-page anchors (e.g. /#fmcg) on navigation and hash changes. */
 function HashScroller() {
@@ -234,7 +215,9 @@ const routes = (
           element={
             <RequireAuth>
               <BackendOnly>
-                <Admin />
+                <RequireStaff>
+                  <Admin />
+                </RequireStaff>
               </BackendOnly>
             </RequireAuth>
           }
@@ -273,7 +256,6 @@ const app = (
     <AuthProvider>
       {routes}
       <Toaster />
-      {convex ? <BackendSessionBridge /> : null}
     </AuthProvider>
   </RootErrorBoundary>
 );

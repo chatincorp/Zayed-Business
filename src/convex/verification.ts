@@ -15,7 +15,8 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 import { sendEmail, buildVerificationEmailHtml, buildVerificationEmailText } from "./emailHook";
 
 // ─── Constants ─────────────────────────────────────────────────────
@@ -110,7 +111,7 @@ export const checkRateLimit = query({
 /**
  * Get verification stats for an email (admin use)
  */
-export const getStats = query({
+export const getStats = panelQuery({
   args: {
     email: v.string(),
   },
@@ -330,7 +331,7 @@ export const verifyCode = mutation({
 /**
  * Revoke a verification code
  */
-export const revokeCode = mutation({
+export const revokeCode = panelMutation({
   args: {
     codeId: v.id("verificationCodes"),
   },
@@ -348,7 +349,7 @@ export const revokeCode = mutation({
 /**
  * Cleanup expired codes (run periodically)
  */
-export const cleanupExpired = mutation({
+export const cleanupExpired = panelMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

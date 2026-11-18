@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 import { v } from "convex/values";
 
 /**
@@ -358,7 +358,7 @@ function makeQuote(service: string, seed: number, rating: number): string {
  * - quoted with distinct wording even for the same service,
  * - ordered so a few strong quotes appear early.
  */
-export const bulkSeedTestimonials = mutation({
+export const bulkSeedTestimonials = panelMutation({
   args: { count: v.number() },
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("testimonials").collect();
@@ -478,7 +478,7 @@ export const bulkSeedTestimonials = mutation({
  * Delete every testimonial row. One-shot admin cleanup so the bulk seed can
  * run on a fresh table.
  */
-export const clearTestimonials = mutation({
+export const clearTestimonials = panelMutation({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("testimonials").collect();
@@ -504,7 +504,7 @@ interface TestimonialRow {
   displayOrder: number;
 }
 
-export const testimonialStats = query({
+export const testimonialStats = panelQuery({
   args: {},
   handler: async (ctx) => {
     const rows = (await ctx.db.query("testimonials").collect()) as TestimonialRow[];

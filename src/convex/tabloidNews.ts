@@ -5,6 +5,7 @@ import {
   mutation,
   query,
 } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 
 /* ══════════════════════════════════════════════════════════════
  *  PUBLIC QUERIES
@@ -40,7 +41,7 @@ export const getNewsItem = query({
 });
 
 /** Feed-level stats for the live status bar. */
-export const getNewsStats = query({
+export const getNewsStats = panelQuery({
   handler: async (ctx) => {
     const docs = await ctx.db.query("tabloidNews").collect();
     const now = Date.now();
@@ -61,14 +62,14 @@ export const getNewsStats = query({
 });
 
 /** All feeds (admin / status bar). */
-export const listFeeds = query({
+export const listFeeds = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("newsFeeds").collect();
   },
 });
 
 /** All items regardless of status (editorial dashboard). */
-export const listAllNews = query({
+export const listAllNews = panelQuery({
   args: { status: v.optional(v.string()), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 100, 300);
@@ -89,7 +90,7 @@ export const listAllNews = query({
  * ══════════════════════════════════════════════════════════════ */
 
 /** Seed the 13 configured news sources. Idempotent — safe to call often. */
-export const seedFeeds = mutation({
+export const seedFeeds = panelMutation({
   args: {
     feeds: v.array(
       v.object({
@@ -121,7 +122,7 @@ export const seedFeeds = mutation({
 });
 
 /** Toggle a feed active/inactive (admin). */
-export const setFeedActive = mutation({
+export const setFeedActive = panelMutation({
   args: { id: v.id("newsFeeds"), active: v.boolean() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { active: args.active });
@@ -133,7 +134,7 @@ export const setFeedActive = mutation({
  * ══════════════════════════════════════════════════════════════ */
 
 /** Move an item through: ingested → rewritten → pending_review → approved → published / rejected. */
-export const setNewsStatus = mutation({
+export const setNewsStatus = panelMutation({
   args: {
     id: v.id("tabloidNews"),
     status: v.union(
@@ -157,7 +158,7 @@ export const setNewsStatus = mutation({
   },
 });
 
-export const deleteNewsItem = mutation({
+export const deleteNewsItem = panelMutation({
   args: { id: v.id("tabloidNews") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);

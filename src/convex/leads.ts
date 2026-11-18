@@ -1,8 +1,9 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 
 // Get all leads with optional filtering
-export const list = query({
+export const list = panelQuery({
   args: {
     status: v.optional(v.string()),
     leadType: v.optional(v.string()),
@@ -27,7 +28,7 @@ export const list = query({
 });
 
 // Get a single lead by ID
-export const get = query({
+export const get = panelQuery({
   args: { id: v.id("leads") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
@@ -77,7 +78,7 @@ export const create = mutation({
 });
 
 // Update lead status
-export const updateStatus = mutation({
+export const updateStatus = panelMutation({
   args: {
     id: v.id("leads"),
     status: v.string(),
@@ -94,7 +95,7 @@ export const updateStatus = mutation({
 });
 
 // Assign lead to user
-export const assign = mutation({
+export const assign = panelMutation({
   args: {
     id: v.id("leads"),
     userId: v.id("users"),
@@ -108,7 +109,7 @@ export const assign = mutation({
 });
 
 // Add note to lead
-export const addNote = mutation({
+export const addNote = panelMutation({
   args: {
     id: v.id("leads"),
     text: v.string(),
@@ -134,7 +135,7 @@ export const addNote = mutation({
 });
 
 // Get lead counts by status
-export const counts = query({
+export const counts = panelQuery({
   handler: async (ctx) => {
     const all = await ctx.db.query("leads").collect();
     const byStatus: Record<string, number> = {};

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 
 export const FMCG_CATEGORIES = [
   "Food & Groceries",
@@ -338,7 +339,7 @@ export const createEnquiry = mutation({
 
 // --- Admin / order desk ---
 
-export const adminListSuppliers = query({
+export const adminListSuppliers = panelQuery({
   args: {},
   handler: async (ctx) => {
     const suppliers = await ctx.db.query("suppliers").order("desc").collect();
@@ -362,7 +363,7 @@ export const adminListSuppliers = query({
   },
 });
 
-export const adminListProducts = query({
+export const adminListProducts = panelQuery({
   args: {},
   handler: async (ctx) => {
     const products = await ctx.db.query("fmcgProducts").order("desc").collect();
@@ -377,21 +378,21 @@ export const adminListProducts = query({
   },
 });
 
-export const adminListOrders = query({
+export const adminListOrders = panelQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("wholesaleOrders").order("desc").collect();
   },
 });
 
-export const adminListEnquiries = query({
+export const adminListEnquiries = panelQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("fmcgEnquiries").order("desc").collect();
   },
 });
 
-export const setSupplierStatus = mutation({
+export const setSupplierStatus = panelMutation({
   args: {
     id: v.id("suppliers"),
     status: v.union(
@@ -411,7 +412,7 @@ export const setSupplierStatus = mutation({
   },
 });
 
-export const setProductStatus = mutation({
+export const setProductStatus = panelMutation({
   args: {
     id: v.id("fmcgProducts"),
     status: v.union(
@@ -426,7 +427,7 @@ export const setProductStatus = mutation({
   },
 });
 
-export const setOrderStatus = mutation({
+export const setOrderStatus = panelMutation({
   args: {
     id: v.id("wholesaleOrders"),
     status: v.union(
@@ -442,7 +443,7 @@ export const setOrderStatus = mutation({
   },
 });
 
-export const setEnquiryStatus = mutation({
+export const setEnquiryStatus = panelMutation({
   args: {
     id: v.id("fmcgEnquiries"),
     status: v.union(

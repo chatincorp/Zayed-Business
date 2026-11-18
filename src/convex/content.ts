@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-import type { QueryCtx } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 
 /* ══════════════════════════════════════════════════════════════
  *  SITE CONTENT STORE
@@ -69,7 +70,7 @@ export const siteContent = query({
 });
 
 /** Full content bundle for the admin panel (includes drafts/inactive rows). */
-export const adminContent = query({
+export const adminContent = panelQuery({
   handler: async (ctx) => {
     const [nav, plans, services, faqs, testimonials, partners, pages, landingPages, flags] =
       await Promise.all([
@@ -102,7 +103,7 @@ export const adminContent = query({
  *  SERVICES
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertService = mutation({
+export const upsertService = panelMutation({
   args: {
     id: v.optional(v.id("services")),
     title: v.string(),
@@ -142,14 +143,14 @@ export const upsertService = mutation({
   },
 });
 
-export const setServiceStatus = mutation({
+export const setServiceStatus = panelMutation({
   args: { id: v.id("services"), status: serviceStatus },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
   },
 });
 
-export const deleteService = mutation({
+export const deleteService = panelMutation({
   args: { id: v.id("services") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -160,7 +161,7 @@ export const deleteService = mutation({
  *  PAGES
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertPage = mutation({
+export const upsertPage = panelMutation({
   args: {
     id: v.optional(v.id("pages")),
     title: v.string(),
@@ -199,7 +200,7 @@ export const upsertPage = mutation({
   },
 });
 
-export const deletePage = mutation({
+export const deletePage = panelMutation({
   args: { id: v.id("pages") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -210,7 +211,7 @@ export const deletePage = mutation({
  *  NAVIGATION
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertNavItem = mutation({
+export const upsertNavItem = panelMutation({
   args: {
     id: v.optional(v.id("navigation")),
     label: v.string(),
@@ -240,7 +241,7 @@ export const upsertNavItem = mutation({
   },
 });
 
-export const deleteNavItem = mutation({
+export const deleteNavItem = panelMutation({
   args: { id: v.id("navigation") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -251,7 +252,7 @@ export const deleteNavItem = mutation({
  *  PLANS
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertPlan = mutation({
+export const upsertPlan = panelMutation({
   args: {
     id: v.optional(v.id("plans")),
     name: v.string(),
@@ -288,14 +289,14 @@ export const upsertPlan = mutation({
   },
 });
 
-export const setPlanActive = mutation({
+export const setPlanActive = panelMutation({
   args: { id: v.id("plans"), active: v.boolean() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { active: args.active, updatedAt: Date.now() });
   },
 });
 
-export const deletePlan = mutation({
+export const deletePlan = panelMutation({
   args: { id: v.id("plans") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -306,7 +307,7 @@ export const deletePlan = mutation({
  *  FAQS
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertFaq = mutation({
+export const upsertFaq = panelMutation({
   args: {
     id: v.optional(v.id("faqs")),
     question: v.string(),
@@ -340,14 +341,14 @@ export const upsertFaq = mutation({
   },
 });
 
-export const toggleFaq = mutation({
+export const toggleFaq = panelMutation({
   args: { id: v.id("faqs"), visible: v.boolean() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { visible: args.visible, updatedAt: Date.now() });
   },
 });
 
-export const deleteFaq = mutation({
+export const deleteFaq = panelMutation({
   args: { id: v.id("faqs") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -358,7 +359,7 @@ export const deleteFaq = mutation({
  *  TESTIMONIALS
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertTestimonial = mutation({
+export const upsertTestimonial = panelMutation({
   args: {
     id: v.optional(v.id("testimonials")),
     quote: v.string(),
@@ -395,14 +396,14 @@ export const upsertTestimonial = mutation({
   },
 });
 
-export const setTestimonialStatus = mutation({
+export const setTestimonialStatus = panelMutation({
   args: { id: v.id("testimonials"), status: testimonialStatus },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { status: args.status });
   },
 });
 
-export const deleteTestimonial = mutation({
+export const deleteTestimonial = panelMutation({
   args: { id: v.id("testimonials") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -413,7 +414,7 @@ export const deleteTestimonial = mutation({
  *  PARTNERS
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertPartner = mutation({
+export const upsertPartner = panelMutation({
   args: {
     id: v.optional(v.id("partners")),
     name: v.string(),
@@ -454,14 +455,14 @@ export const upsertPartner = mutation({
   },
 });
 
-export const setPartnerStatus = mutation({
+export const setPartnerStatus = panelMutation({
   args: { id: v.id("partners"), status: v.union(v.literal("active"), v.literal("archived")) },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
   },
 });
 
-export const deletePartner = mutation({
+export const deletePartner = panelMutation({
   args: { id: v.id("partners") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -472,7 +473,7 @@ export const deletePartner = mutation({
  *  LANDING PAGES
  * ══════════════════════════════════════════════════════════════ */
 
-export const upsertLandingPage = mutation({
+export const upsertLandingPage = panelMutation({
   args: {
     id: v.optional(v.id("landingPages")),
     title: v.string(),
@@ -509,7 +510,7 @@ export const upsertLandingPage = mutation({
   },
 });
 
-export const deleteLandingPage = mutation({
+export const deleteLandingPage = panelMutation({
   args: { id: v.id("landingPages") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -524,7 +525,7 @@ export const sectionFlags = query({
   handler: async (ctx) => await readFlags(ctx),
 });
 
-export const setSectionFlag = mutation({
+export const setSectionFlag = panelMutation({
   args: { key: v.string(), enabled: v.boolean() },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -572,7 +573,7 @@ export const homepageSettings = query({
   },
 });
 
-export const setHomepageSettings = mutation({
+export const setHomepageSettings = panelMutation({
   args: {
     sections: v.array(sectionValidator),
     notification: notificationValidator,
@@ -710,7 +711,54 @@ function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-export const seedDefaults = mutation({
+/**
+ * Insert any bundled service that is missing from the database.
+ *
+ * The homepage renders whatever is in the `services` table, so a service
+ * added to the bundled list after the table was populated would never appear.
+ * Idempotent: matches on slug and only inserts what is absent.
+ */
+async function insertMissingServices(ctx: MutationCtx) {
+  const existing = await ctx.db.query("services").collect();
+  const have = new Set(existing.map((s) => s.slug));
+  let order = existing.reduce((max, s) => Math.max(max, s.displayOrder ?? 0), 0);
+  const now = Date.now();
+  const inserted: string[] = [];
+
+  for (const service of DEFAULT_SERVICES) {
+    const slug = slugify(service.title);
+    if (have.has(slug)) continue;
+    order += 1;
+    await ctx.db.insert("services", {
+      title: service.title,
+      slug,
+      category: service.category,
+      shortDescription: service.shortDescription,
+      ctaUrl: service.ctaUrl,
+      status: "published",
+      displayOrder: order,
+      featured: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    inserted.push(service.title);
+  }
+
+  return { inserted, total: have.size + inserted.length };
+}
+
+export const backfillMissingServices = panelMutation({
+  args: {},
+  handler: async (ctx) => insertMissingServices(ctx),
+});
+
+/** CLI/bootstrap entry point for the same backfill. */
+export const backfillMissingServicesInternal = internalMutation({
+  args: {},
+  handler: async (ctx) => insertMissingServices(ctx),
+});
+
+export const seedDefaults = panelMutation({
   handler: async (ctx) => {
     const now = Date.now();
     const created: Record<string, number> = {};

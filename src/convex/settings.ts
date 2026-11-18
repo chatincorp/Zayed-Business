@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { panelMutation, panelQuery } from "./authz";
 
 // Get a setting by key
 export const get = query({
@@ -14,14 +15,14 @@ export const get = query({
 });
 
 // Get all settings
-export const list = query({
+export const list = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("settings").collect();
   },
 });
 
 // Set a setting
-export const set = mutation({
+export const set = panelMutation({
   args: {
     key: v.string(),
     value: v.any(),
@@ -48,7 +49,7 @@ export const set = mutation({
 });
 
 // Get default settings for site configuration
-export const siteConfig = query({
+export const siteConfig = panelQuery({
   handler: async (ctx) => {
     const keys = [
       "site_name",

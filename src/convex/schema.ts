@@ -5,6 +5,8 @@ import { Infer, v } from "convex/values";
 // default user roles
 export const ROLES = {
   ADMIN: "admin",
+  STAFF: "staff",
+  CLIENT: "client",
   USER: "user",
   MEMBER: "member",
   SUPER_ADMIN: "super_admin",
@@ -17,6 +19,8 @@ export const ROLES = {
 
 export const roleValidator = v.union(
   v.literal(ROLES.ADMIN),
+  v.literal(ROLES.STAFF),
+  v.literal(ROLES.CLIENT),
   v.literal(ROLES.USER),
   v.literal(ROLES.MEMBER),
   v.literal(ROLES.SUPER_ADMIN),
@@ -41,6 +45,17 @@ const schema = defineSchema(
       emailVerificationTime: v.optional(v.number()),
       isAnonymous: v.optional(v.boolean()),
       role: v.optional(roleValidator),
+      // Admin panel section ids an individual staff account may open. Admins
+      // and super admins always have every section.
+      privileges: v.optional(v.array(v.string())),
+      // Accepting the Terms / Privacy / Consultancy policies is recorded here
+      // (not in browser storage) so it travels with the account.
+      policyAcceptedAt: v.optional(v.number()),
+      status: v.optional(
+        v.union(v.literal("active"), v.literal("suspended")),
+      ),
+      department: v.optional(v.string()),
+      createdAt: v.optional(v.number()),
     }).index("email", ["email"]),
 
     // --- CMS: Services ---

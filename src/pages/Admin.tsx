@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Admin panel uses intentional type-unsafe casts for demo select values */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/hooks/use-auth";
 import ServicesManager from "@/components/admin/ServicesManager";
 import LeadsTable from "@/components/admin/LeadsTable";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
@@ -172,10 +173,32 @@ const quickActions = [
 ];
 
 export default function Admin() {
-  const [activeSection, setActiveSection] = useState("staff");
+  const { canOpen } = useAuth();
+
+  // Only the sections this account may open. Admins see everything.
+  const sections = useMemo(
+    () =>
+      sidebarSections
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => canOpen(item.id)),
+        }))
+        .filter((section) => section.items.length > 0),
+    [canOpen],
+  );
+  const firstSection = sections[0]?.items[0]?.id ?? "";
+
+  const [activeSection, setActiveSection] = useState(firstSection);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const content = useQuery(api.content.adminContent);
   const seedContent = useMutation(api.content.seedDefaults);
+
+  useEffect(() => {
+    const allowed = sections.some((section) =>
+      section.items.some((item) => item.id === activeSection),
+    );
+    if (!allowed && firstSection) setActiveSection(firstSection);
+  }, [sections, activeSection, firstSection]);
 
   // First run: mirror the bundled website content into Convex so every panel
   // (and the public site) starts populated and editable.
@@ -210,7 +233,7 @@ export default function Admin() {
 
         {/* Nav items */}
         <nav className="h-[calc(100vh-64px)] overflow-y-auto py-4 px-2 scrollbar-thin">
-          {sidebarSections.map((section) => (
+          {sections.map((section) => (
             <div key={section.label} className="mb-4">
               {sidebarOpen && (
                 <p className="px-3 mb-1.5 text-[10px] font-semibold text-white/30 uppercase tracking-widest">

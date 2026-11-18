@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -58,7 +58,8 @@ export default function FmcgAccountFlow() {
   });
 
   const [activeTab, setActiveTab] = useState<"login" | "onboarding-leader" | "onboarding-wholesaler">("login");
-  const { isAuthenticated, user, signIn } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [puzzle, setPuzzle] = useState({ a: 12, b: 4, c: 2, op: "+" });
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +89,13 @@ export default function FmcgAccountFlow() {
 
     setIsSolving(true);
     try {
-      await signIn({ email: user?.email ?? "" });
+      // Sign-in is handled by the shared Convex Auth page; this form only acts
+      // as a bot gate before sending the visitor there.
+      if (isAuthenticated) {
+        navigate("/dashboard");
+      } else {
+        navigate("/auth?returnTo=/fmcg/account");
+      }
     } finally {
       setIsSolving(false);
     }

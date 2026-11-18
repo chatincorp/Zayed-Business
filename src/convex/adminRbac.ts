@@ -1,17 +1,17 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { panelMutation, panelQuery, rootMutation } from "./authz";
 
 /* ══════════════════════════════════════════════════════════════
  *  DEPARTMENTS
  * ══════════════════════════════════════════════════════════════ */
 
-export const listDepartments = query({
+export const listDepartments = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("departments").collect();
   },
 });
 
-export const createDepartment = mutation({
+export const createDepartment = panelMutation({
   args: {
     name: v.string(),
     head: v.optional(v.string()),
@@ -30,7 +30,7 @@ export const createDepartment = mutation({
   },
 });
 
-export const deleteDepartment = mutation({
+export const deleteDepartment = panelMutation({
   args: { id: v.id("departments") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -41,13 +41,13 @@ export const deleteDepartment = mutation({
  *  STAFF
  * ══════════════════════════════════════════════════════════════ */
 
-export const listStaff = query({
+export const listStaff = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("staff").collect();
   },
 });
 
-export const createStaff = mutation({
+export const createStaff = rootMutation({
   args: {
     name: v.string(),
     email: v.string(),
@@ -67,7 +67,7 @@ export const createStaff = mutation({
   },
 });
 
-export const updateStaffStatus = mutation({
+export const updateStaffStatus = rootMutation({
   args: {
     id: v.id("staff"),
     status: v.union(v.literal("active"), v.literal("pending"), v.literal("suspended")),
@@ -77,7 +77,7 @@ export const updateStaffStatus = mutation({
   },
 });
 
-export const deleteStaff = mutation({
+export const deleteStaff = rootMutation({
   args: { id: v.id("staff") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -88,13 +88,13 @@ export const deleteStaff = mutation({
  *  CAMPAIGNS
  * ══════════════════════════════════════════════════════════════ */
 
-export const listCampaigns = query({
+export const listCampaigns = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("campaigns").collect();
   },
 });
 
-export const createCampaign = mutation({
+export const createCampaign = panelMutation({
   args: {
     name: v.string(),
     type: v.union(v.literal("email"), v.literal("social"), v.literal("ads"), v.literal("sms")),
@@ -113,7 +113,7 @@ export const createCampaign = mutation({
   },
 });
 
-export const updateCampaignStatus = mutation({
+export const updateCampaignStatus = panelMutation({
   args: {
     id: v.id("campaigns"),
     status: v.union(v.literal("draft"), v.literal("active"), v.literal("paused"), v.literal("completed")),
@@ -123,7 +123,7 @@ export const updateCampaignStatus = mutation({
   },
 });
 
-export const deleteCampaign = mutation({
+export const deleteCampaign = panelMutation({
   args: { id: v.id("campaigns") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -134,13 +134,13 @@ export const deleteCampaign = mutation({
  *  EMAIL TEMPLATES
  * ══════════════════════════════════════════════════════════════ */
 
-export const listEmailTemplates = query({
+export const listEmailTemplates = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("emailTemplates").collect();
   },
 });
 
-export const createEmailTemplate = mutation({
+export const createEmailTemplate = panelMutation({
   args: {
     name: v.string(),
     subject: v.string(),
@@ -157,7 +157,7 @@ export const createEmailTemplate = mutation({
   },
 });
 
-export const deleteEmailTemplate = mutation({
+export const deleteEmailTemplate = panelMutation({
   args: { id: v.id("emailTemplates") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -168,13 +168,13 @@ export const deleteEmailTemplate = mutation({
  *  CTAs
  * ══════════════════════════════════════════════════════════════ */
 
-export const listCTAs = query({
+export const listCTAs = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("ctas").collect();
   },
 });
 
-export const createCTA = mutation({
+export const createCTA = panelMutation({
   args: {
     label: v.string(),
     url: v.string(),
@@ -192,14 +192,14 @@ export const createCTA = mutation({
   },
 });
 
-export const toggleCTAVisibility = mutation({
+export const toggleCTAVisibility = panelMutation({
   args: { id: v.id("ctas"), visible: v.boolean() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { visible: args.visible, updatedAt: Date.now() });
   },
 });
 
-export const deleteCTA = mutation({
+export const deleteCTA = panelMutation({
   args: { id: v.id("ctas") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -210,13 +210,13 @@ export const deleteCTA = mutation({
  *  FORM SUBMISSIONS
  * ══════════════════════════════════════════════════════════════ */
 
-export const listFormSubmissions = query({
+export const listFormSubmissions = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("formSubmissions").collect();
   },
 });
 
-export const updateSubmissionStatus = mutation({
+export const updateSubmissionStatus = panelMutation({
   args: {
     id: v.id("formSubmissions"),
     status: v.union(v.literal("unread"), v.literal("replied"), v.literal("escalated")),
@@ -233,20 +233,20 @@ export const updateSubmissionStatus = mutation({
  *  LIVE CHATS
  * ══════════════════════════════════════════════════════════════ */
 
-export const deleteSubmission = mutation({
+export const deleteSubmission = panelMutation({
   args: { id: v.id("formSubmissions") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
   },
 });
 
-export const listChats = query({
+export const listChats = panelQuery({
   handler: async (ctx) => {
     return await ctx.db.query("chats").collect();
   },
 });
 
-export const addChatMessage = mutation({
+export const addChatMessage = panelMutation({
   args: {
     chatId: v.id("chats"),
     from: v.string(),
@@ -264,7 +264,7 @@ export const addChatMessage = mutation({
   },
 });
 
-export const escalateChat = mutation({
+export const escalateChat = panelMutation({
   args: {
     chatId: v.id("chats"),
     assignTo: v.string(),
@@ -278,7 +278,7 @@ export const escalateChat = mutation({
   },
 });
 
-export const updateChatStatus = mutation({
+export const updateChatStatus = panelMutation({
   args: {
     chatId: v.id("chats"),
     status: v.union(v.literal("active"), v.literal("waiting"), v.literal("resolved"), v.literal("escalated")),
