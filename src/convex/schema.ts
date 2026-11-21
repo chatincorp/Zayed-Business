@@ -408,6 +408,10 @@ const schema = defineSchema(
       ),
       estimatedTotal: v.number(),
       currency: v.string(),
+      // True once the order's quantities have been taken out of stock, so a
+      // cancellation restores exactly what was committed and a confirmed order
+      // is never decremented twice.
+      stockCommitted: v.optional(v.boolean()),
       status: v.union(
         v.literal("pending_review"),
         v.literal("confirmed"),

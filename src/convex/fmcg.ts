@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { requireStaff as requirePanelStaff } from "./authz";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 
 /**
@@ -27,6 +27,68 @@ async function requireOrderDesk(
     );
   }
   return user;
+}
+
+/** Order statuses that hold stock. Every other status releases it. */
+const STOCK_HOLDING_STATUSES = ["confirmed", "processing", "fulfilled"] as const;
+
+function holdsStock(status: string): boolean {
+  return (STOCK_HOLDING_STATUSES as readonly string[]).includes(status);
+}
+
+/**
+ * Quantities per listing, summed before they are checked: the same product can
+ * appear on two lines, and it is the total that has to be in stock.
+ */
+function quantityByProduct(order: Doc<"wholesaleOrders">) {
+  const totals = new Map<Id<"fmcgProducts">, number>();
+  for (const item of order.items) {
+    if (!item.productId) continue;
+    totals.set(item.productId, (totals.get(item.productId) ?? 0) + item.quantity);
+  }
+  return totals;
+}
+
+/**
+ * Take this order's quantities out of stock, or refuse the confirmation.
+ *
+ * Runs inside the calling mutation, so Convex's serializable transaction makes
+ * the stock read and the decrement a single step: two orders racing for the
+ * last case cannot both be confirmed. Listings without a tracked
+ * `stockQuantity` are left alone.
+ */
+async function commitStock(ctx: MutationCtx, order: Doc<"wholesaleOrders">) {
+  for (const [productId, quantity] of quantityByProduct(order)) {
+    const product = await ctx.db.get(productId);
+    if (!product) {
+      throw new ConvexError(
+        `A product on order ${order.reference} no longer exists, so the order cannot be confirmed.`,
+      );
+    }
+    if (product.stockQuantity === undefined) continue;
+    if (product.stockQuantity < quantity) {
+      throw new ConvexError(
+        `Only ${product.stockQuantity} ${product.unit}s of ${product.name} are left in stock, so ${order.reference} cannot be confirmed.`,
+      );
+    }
+    await ctx.db.patch(product._id, {
+      stockQuantity: product.stockQuantity - quantity,
+      updatedAt: Date.now(),
+    });
+  }
+}
+
+/** Put back exactly what `commitStock` took for this order. */
+async function releaseStock(ctx: MutationCtx, order: Doc<"wholesaleOrders">) {
+  for (const [productId, quantity] of quantityByProduct(order)) {
+    const product = await ctx.db.get(productId);
+    // A listing deleted since the order was confirmed has no stock to restore.
+    if (!product || product.stockQuantity === undefined) continue;
+    await ctx.db.patch(product._id, {
+      stockQuantity: product.stockQuantity + quantity,
+      updatedAt: Date.now(),
+    });
+  }
 }
 
 export const FMCG_CATEGORIES = [
@@ -1263,7 +1325,20 @@ export const setOrderStatus = mutation({
     if (!order) throw new Error("That order no longer exists.");
     const now = Date.now();
     const timeline = order.timeline ?? [];
+
+    // Stock moves with the order: it is taken when the order reaches confirmed
+    // (or later), and put back if the order is cancelled or reopened. Throws
+    // before anything is written when the stock is no longer there.
+    const nextHoldsStock = holdsStock(status);
+    const heldNow = order.stockCommitted === true;
+    if (nextHoldsStock && !heldNow) {
+      await commitStock(ctx, order);
+    } else if (!nextHoldsStock && heldNow) {
+      await releaseStock(ctx, order);
+    }
+
     await ctx.db.patch(id, {
+      stockCommitted: nextHoldsStock,
       status,
       timeline:
         order.status === status
