@@ -19,6 +19,7 @@ Complete instructions for installing, building, and running the Yasir Zayed webs
 7. [Cloud Platform Deployment](#cloud-platform-deployment)
    - [Vercel](#vercel)
    - [Netlify](#netlify)
+   - [Convex Backend Deployments (preview vs production)](#convex-backend-deployments-preview-vs-production)
    - [Cloudflare Workers](#cloudflare-workers)
 8. [Freebuff Platform](#freebuff-platform)
 9. [Troubleshooting](#troubleshooting)
@@ -569,6 +570,45 @@ docker-compose up -d
 /*    /index.html   200
 ```
 6. Deploy
+
+### Convex Backend Deployments (preview vs production)
+
+There are two Convex deployments and they must never share a key:
+
+| Target | Deploy key variable | Deployment |
+| --- | --- | --- |
+| `preview` | `CONVEX_DEPLOY_KEY_PREVIEW` | one per Git branch, created on demand |
+| `production` | `CONVEX_DEPLOY_KEY_PRODUCTION` | the deployment staff use |
+
+A preview deploy key makes `npx convex deploy` target a per-branch deployment
+(`--preview-name <branch>`), including its own schema and data. A `prod:` key
+targets the staff deployment. The scripts below pick the key from the target and
+refuse to run when the two disagree — a branch holding the production key stops
+instead of reshaping the live schema.
+
+1. Create the deployments and keys in the Convex dashboard (**Settings → Deploy
+   Keys**): one **production** key for the staff deployment, one **preview** key
+   for branch deployments. Creating a deployment needs a dashboard login;
+   `npx convex deployment create --type preview` refuses a deploy key.
+2. Put both in the environment (never commit them):
+   ```bash
+   # .env.local or your CI secret store
+   CONVEX_DEPLOY_KEY_PRODUCTION=prod:<deployment>|<secret>
+   CONVEX_DEPLOY_KEY_PREVIEW=preview:<deployment>|<secret>
+   ```
+3. Deploy:
+   ```bash
+   npm run convex:deploy:preview       # branch deployment, schema included
+   npm run convex:deploy:production    # the staff deployment
+   ```
+   Add `-- --build` to build the frontend against the deployment that was just
+   pushed (`VITE_CONVEX_URL` is injected by Convex), for example
+   `npm run convex:deploy:preview -- --build`.
+
+Preview deploys reuse the deployment for their branch name, so repeated pushes
+update it rather than creating new ones. `CONVEX_DEPLOYMENT` from a local
+`.env.local` is removed from the deploy process, so it cannot redirect a deploy
+to another deployment.
 
 ### Cloudflare Workers
 

@@ -13,7 +13,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "convex:deploy:preview": "node scripts/convex-deploy.mjs preview",
+    "convex:deploy:production": "node scripts/convex-deploy.mjs production"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",
