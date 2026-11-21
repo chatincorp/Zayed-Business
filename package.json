@@ -8,7 +8,7 @@
     "build": "tsc -b && node scripts/generate-sitemap.mjs && vite build && node scripts/prerender.mjs",
     "build:cloudflare": "npm run build && rm -f dist/_redirects dist/.htaccess",
     "cloudflare:dev": "npx --yes wrangler@4 dev",
-    "cloudflare:deploy": "npm run build:cloudflare && npx --yes wrangler@4 deploy",
+    "cloudflare:deploy": "node -e \"if(!process.env.VITE_CONVEX_URL){console.error('cloudflare:deploy needs VITE_CONVEX_URL in the environment; without it the build ships with no backend.');process.exit(1)}\" && npm run build:cloudflare && npx --yes wrangler@4 deploy",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",

@@ -114,6 +114,15 @@ ${body}
 </urlset>
 `;
 
+// Keep robots.txt advertising the same origin as the sitemap it points at.
+const robotsPath = resolve(root, "public/robots.txt");
+writeFileSync(
+  robotsPath,
+  readFileSync(robotsPath, "utf8")
+    .replace(/^# Canonical host:.*$/m, `# Canonical host: ${ORIGIN} (no www)`)
+    .replace(/^Sitemap:.*$/m, `Sitemap: ${ORIGIN}/sitemap.xml`),
+);
+
 writeFileSync(resolve(root, "public/sitemap.xml"), xml);
 const total = STATIC_ROUTES.length + SERVICE_ROUTES.length + pairs.length;
 console.log(

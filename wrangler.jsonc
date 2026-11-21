@@ -9,7 +9,7 @@
  *   npm run cloudflare:deploy
  */
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "https://workers.cloudflare.com/schema",
   "name": "yasir-zayed",
   "main": "worker.js",
   "compatibility_date": "2026-11-01",

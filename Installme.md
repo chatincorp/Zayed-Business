@@ -581,16 +581,21 @@ client-side routes.
    npx --yes wrangler@4 login
    ```
 2. Build with the production backend URL and **the origin the site will be
-   served from**. Both are baked in at build time — a missing `VITE_CONVEX_URL`
-   produces a site that loads reference market data and cannot reach the order
-   desk.
+   served from**. Both are baked in at build time. `VITE_CONVEX_URL` is not read
+   from `.env.development.local` — Vite only loads that file in dev mode — so a
+   bare `npm run build:cloudflare` ships a site with no backend, where every
+   panel falls back to reference data. Export it or pass it inline:
    ```bash
    VITE_CONVEX_URL=https://your-project.convex.cloud \
    SITE_ORIGIN=https://yasirzayed.com \
    npm run cloudflare:deploy
    ```
-   `SITE_ORIGIN` sets every URL in `sitemap.xml`; it defaults to
-   `https://yasirzayed.com`. Use the workers.dev hostname until DNS is attached.
+   `cloudflare:deploy` refuses to start when `VITE_CONVEX_URL` is unset.
+   `SITE_ORIGIN` sets the URLs in `sitemap.xml` and the `Sitemap:` line in
+   `robots.txt`; it defaults to `https://yasirzayed.com`. Always use the
+   production origin, not the workers.dev hostname: the canonical and `og:url`
+   tags in `index.html` name the production domain regardless, so staging URLs
+   must not reach the sitemap.
 3. First deploy prints the worker URL (`https://yasir-zayed.<subdomain>.workers.dev`).
 
 #### Attach the custom domain
@@ -601,9 +606,8 @@ client-side routes.
    Add → Custom domain**, enter `yasirzayed.com` and repeat for `www`.
 3. Cloudflare creates the proxied DNS record automatically. Keep the record
    proxied (orange cloud); do not add a separate A record.
-4. Rebuild with `SITE_ORIGIN=https://yasirzayed.com` if you first deployed to the
-   workers.dev hostname, so `sitemap.xml` and `robots.txt` point at the live
-   origin.
+4. No rebuild is needed if you already deployed with the production origin —
+   `sitemap.xml`, `robots.txt` and the canonical tags all name it.
 
 #### Verify after deploying
 
@@ -613,7 +617,9 @@ client-side routes.
 - The market bar shows live quotes and `/portal` lists orders — both prove the
   build reached the Convex deployment.
 - Local parity check without publishing: `npm run build:cloudflare && npx --yes
-  wrangler@4 dev` (serves on `http://localhost:8787`).
+  wrangler@4 dev` (serves on `http://localhost:8787`). `dist/` is gitignored, so
+  the build step is required — `cloudflare:dev` on its own has no assets to
+  serve.
 
 ---
 
