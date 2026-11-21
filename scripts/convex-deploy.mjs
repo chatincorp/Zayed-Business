@@ -9,9 +9,6 @@
  * preview uses CONVEX_DEPLOY_KEY_PREVIEW. A preview run refuses to start if the
  * key it was given belongs to the production deployment, so a branch can never
  * reshape the schema the staff use.
- *
- * Flags: --build  also build the frontend against the deployment it just
- *                 deployed (VITE_CONVEX_URL is injected by Convex).
  */
 import { spawnSync } from "node:child_process";
 import {
@@ -28,8 +25,7 @@ function gitBranch() {
   return result.status === 0 ? result.stdout.trim() : "";
 }
 
-const [environment, ...flags] = process.argv.slice(2);
-const build = flags.includes("--build");
+const environment = process.argv[2];
 
 try {
   const target = resolveDeployTarget({
@@ -43,12 +39,12 @@ try {
   });
 
   console.log(
-    `convex: deploying ${target.environment} → ${target.deployment}` +
+    `convex: deploying ${environment} → ${target.deployment}` +
       (target.previewName ? ` (preview "${target.previewName}")` : "") +
       ` using ${target.keyVariable}`,
   );
 
-  const result = spawnSync("npx", deployArgs(target, { build }), {
+  const result = spawnSync("npx", deployArgs(target), {
     stdio: "inherit",
     env: deployEnv(target),
   });

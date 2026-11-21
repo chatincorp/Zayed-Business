@@ -10,13 +10,10 @@
  * without a Convex account.
  */
 
-export const KEY_ENV_VARS = {
+const KEY_ENV_VARS = {
   preview: "CONVEX_DEPLOY_KEY_PREVIEW",
   production: "CONVEX_DEPLOY_KEY_PRODUCTION",
 };
-
-/** The `type` a key must carry to be allowed to touch the staff deployment. */
-const PRODUCTION_KEY_TYPE = "prod";
 
 export class DeployConfigError extends Error {}
 
@@ -25,14 +22,8 @@ export class DeployConfigError extends Error {}
  * `prod:industrious-goldfinch-255|<secret>`. Only the public half is read.
  */
 export function parseDeployKey(key) {
-  const [reference, secret] = String(key ?? "").split("|");
-  if (!reference || !secret) return null;
-  const separator = reference.indexOf(":");
-  if (separator < 1) return null;
-  const type = reference.slice(0, separator);
-  const deployment = reference.slice(separator + 1);
-  if (!deployment) return null;
-  return { type, deployment };
+  const match = /^([^:|]+):([^|]+)\|/.exec(String(key ?? ""));
+  return match ? { type: match[1], deployment: match[2] } : null;
 }
 
 /** Branch name → Convex preview deployment name. */
@@ -51,13 +42,13 @@ export function previewNameFrom(branch) {
  * asks for "preview" while holding the production key must stop, not deploy.
  */
 export function resolveDeployTarget({ environment, keys = {}, branch }) {
-  if (!Object.prototype.hasOwnProperty.call(KEY_ENV_VARS, String(environment))) {
+  const keyVar = KEY_ENV_VARS[environment];
+  if (!keyVar) {
     throw new DeployConfigError(
       `Unknown target "${environment}". Use "preview" or "production".`,
     );
   }
 
-  const keyVar = KEY_ENV_VARS[environment];
   const key = keys[keyVar];
   if (!key) {
     throw new DeployConfigError(
@@ -72,7 +63,7 @@ export function resolveDeployTarget({ environment, keys = {}, branch }) {
     );
   }
 
-  const isProductionKey = parsed.type === PRODUCTION_KEY_TYPE;
+  const isProductionKey = parsed.type === "prod";
 
   if (environment === "production" && !isProductionKey) {
     throw new DeployConfigError(
@@ -97,27 +88,17 @@ export function resolveDeployTarget({ environment, keys = {}, branch }) {
   }
 
   return {
-    environment,
     key,
     keyVariable: keyVar,
-    type: parsed.type,
     deployment: parsed.deployment,
     previewName,
   };
 }
 
 /** Arguments for `npx convex deploy` for a resolved target. */
-export function deployArgs(target, { build = false } = {}) {
+export function deployArgs(target) {
   const args = ["convex", "deploy"];
   if (target.previewName) args.push("--preview-name", target.previewName);
-  if (build) {
-    args.push(
-      "--cmd",
-      "npm run build:cloudflare",
-      "--cmd-url-env-var-name",
-      "VITE_CONVEX_URL",
-    );
-  }
   return args;
 }
 
@@ -127,8 +108,9 @@ export function deployArgs(target, { build = false } = {}) {
  * local `.env.local` selection cannot redirect the deploy to another
  * deployment.
  */
-export function deployEnv(target, baseEnv = {}) {
-  const env = { ...baseEnv, CONVEX_DEPLOY_KEY: target.key };
+export function deployEnv(target, baseEnv = process.env) {
+  const env = { ...baseEnv };
   delete env.CONVEX_DEPLOYMENT;
+  env.CONVEX_DEPLOY_KEY = target.key;
   return env;
 }

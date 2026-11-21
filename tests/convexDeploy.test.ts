@@ -61,7 +61,6 @@ describe("picking a deployment", () => {
       keys: { CONVEX_DEPLOY_KEY_PRODUCTION: PROD_KEY },
     });
     expect(target.deployment).toBe("industrious-goldfinch-255");
-    expect(target.type).toBe("prod");
     expect(target.previewName).toBeNull();
   });
 
@@ -176,19 +175,6 @@ describe("deploy process wiring", () => {
       keys: { CONVEX_DEPLOY_KEY_PRODUCTION: PROD_KEY },
     });
     expect(deployArgs(prod)).toEqual(["convex", "deploy"]);
-  });
-
-  it("builds against the deployment it just pushed when asked", () => {
-    expect(deployArgs(target, { build: true })).toEqual([
-      "convex",
-      "deploy",
-      "--preview-name",
-      "feature-login",
-      "--cmd",
-      "npm run build:cloudflare",
-      "--cmd-url-env-var-name",
-      "VITE_CONVEX_URL",
-    ]);
   });
 
   it("runs with the chosen key and no ambient deployment selector", () => {

@@ -601,9 +601,6 @@ instead of reshaping the live schema.
    npm run convex:deploy:preview       # branch deployment, schema included
    npm run convex:deploy:production    # the staff deployment
    ```
-   Add `-- --build` to build the frontend against the deployment that was just
-   pushed (`VITE_CONVEX_URL` is injected by Convex), for example
-   `npm run convex:deploy:preview -- --build`.
 
 Preview deploys reuse the deployment for their branch name, so repeated pushes
 update it rather than creating new ones. `CONVEX_DEPLOYMENT` from a local
