@@ -1,8 +1,33 @@
-import { v } from "convex/values";
-import { requireStaff } from "./adminGuard";
-import type { QueryCtx } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { requireStaff as requirePanelStaff } from "./authz";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+
+/**
+ * Order-desk writes.
+ *
+ * The caller must be signed in, and the role that decides access is read from
+ * the session account on the server — never from the request payload, so a
+ * browser cannot claim a role it does not hold.
+ */
+async function requireOrderDesk(
+  ctx: MutationCtx,
+  allowed: Array<"admin" | "super_admin" | "sales"> = [
+    "admin",
+    "super_admin",
+    "sales",
+  ],
+) {
+  const user = await requirePanelStaff(ctx);
+  const role = user.role ?? "";
+  if (!(allowed as string[]).includes(role)) {
+    throw new ConvexError(
+      "This account does not have order-desk access. Ask an admin to grant the sales or admin role under Users.",
+    );
+  }
+  return user;
+}
 
 export const FMCG_CATEGORIES = [
   "Food & Groceries",
@@ -607,7 +632,7 @@ export const assignSalesRep = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireStaff(ctx, args.actorEmail, ["admin", "super_admin", "sales"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin", "sales"]);
     const order = await ctx.db.get(args.orderId);
     if (!order) throw new Error("That order no longer exists.");
     const email = args.repEmail?.trim().toLowerCase() || undefined;
@@ -668,7 +693,7 @@ export const addOrderNote = mutation({
     const timeline = order.timeline ?? [];
 
     if (args.internal) {
-      await requireStaff(ctx, args.actorEmail, ["admin", "super_admin", "sales"]);
+      await requireOrderDesk(ctx, ["admin", "super_admin", "sales"]);
       await ctx.db.patch(order._id, {
         internalNotes: [order.internalNotes, note].filter(Boolean).join("\n"),
         timeline: [
@@ -716,7 +741,7 @@ export const setCollectionDetails = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireStaff(ctx, args.actorEmail, ["admin", "super_admin", "sales"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin", "sales"]);
     const order = await ctx.db.get(args.orderId);
     if (!order) throw new Error("That order no longer exists.");
     const now = Date.now();
@@ -918,7 +943,7 @@ export const generateCommissionSlipForOrder = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireStaff(ctx, args.actorEmail, ["admin", "super_admin", "sales"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin", "sales"]);
     const order = await ctx.db.get(args.orderId);
     if (!order) throw new Error("That order no longer exists.");
     if (!order.salesRepEmail) {
@@ -1023,7 +1048,7 @@ export const recordCommissionPaid = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireStaff(ctx, args.actorEmail, ["admin", "super_admin"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin"]);
     const slip = await ctx.db.get(args.slipId);
     if (!slip) throw new Error("That commission slip does not exist.");
     if (slip.status === "paid") throw new Error("This commission slip is already marked paid.");
@@ -1175,7 +1200,7 @@ export const setSupplierStatus = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, { id, status, reviewNotes, actorEmail }) => {
-    await requireStaff(ctx, actorEmail, ["admin", "super_admin"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin"]);
     const supplier = await ctx.db.get(id);
     await ctx.db.patch(id, {
       status,
@@ -1213,7 +1238,7 @@ export const setProductStatus = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, { id, status, actorEmail }) => {
-    await requireStaff(ctx, actorEmail, ["admin", "super_admin"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin"]);
     await ctx.db.patch(id, { status, updatedAt: Date.now() });
   },
 });
@@ -1233,7 +1258,7 @@ export const setOrderStatus = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, { id, status, note, author, actorEmail }) => {
-    await requireStaff(ctx, actorEmail, ["admin", "super_admin", "sales"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin", "sales"]);
     const order = await ctx.db.get(id);
     if (!order) throw new Error("That order no longer exists.");
     const now = Date.now();
@@ -1269,7 +1294,7 @@ export const setEnquiryStatus = mutation({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, { id, status, actorEmail }) => {
-    await requireStaff(ctx, actorEmail, ["admin", "super_admin"]);
+    await requireOrderDesk(ctx, ["admin", "super_admin"]);
     await ctx.db.patch(id as Parameters<typeof ctx.db.patch>[0], { status });
   },
 });

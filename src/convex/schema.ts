@@ -5,28 +5,33 @@ import { Infer, v } from "convex/values";
 // default user roles
 export const ROLES = {
   ADMIN: "admin",
+  STAFF: "staff",
+  CLIENT: "client",
   USER: "user",
   MEMBER: "member",
   SUPER_ADMIN: "super_admin",
   EDITOR: "editor",
   MARKETING: "marketing",
   SALES: "sales",
-  SUPPLIER: "supplier",
   SECURITY_MANAGER: "security_manager",
   TABLOID_EDITOR: "tabloid_editor",
+  // FMCG supplier accounts created by the order desk.
+  SUPPLIER: "supplier",
 } as const;
 
 export const roleValidator = v.union(
   v.literal(ROLES.ADMIN),
+  v.literal(ROLES.STAFF),
+  v.literal(ROLES.CLIENT),
   v.literal(ROLES.USER),
   v.literal(ROLES.MEMBER),
   v.literal(ROLES.SUPER_ADMIN),
   v.literal(ROLES.EDITOR),
   v.literal(ROLES.MARKETING),
   v.literal(ROLES.SALES),
-  v.literal(ROLES.SUPPLIER),
   v.literal(ROLES.SECURITY_MANAGER),
   v.literal(ROLES.TABLOID_EDITOR),
+  v.literal(ROLES.SUPPLIER),
 );
 export type Role = Infer<typeof roleValidator>;
 
@@ -43,6 +48,17 @@ const schema = defineSchema(
       emailVerificationTime: v.optional(v.number()),
       isAnonymous: v.optional(v.boolean()),
       role: v.optional(roleValidator),
+      // Admin panel section ids an individual staff account may open. Admins
+      // and super admins always have every section.
+      privileges: v.optional(v.array(v.string())),
+      // Accepting the Terms / Privacy / Consultancy policies is recorded here
+      // (not in browser storage) so it travels with the account.
+      policyAcceptedAt: v.optional(v.number()),
+      status: v.optional(
+        v.union(v.literal("active"), v.literal("suspended")),
+      ),
+      department: v.optional(v.string()),
+      createdAt: v.optional(v.number()),
     }).index("email", ["email"]),
 
     // --- CMS: Services ---
@@ -483,7 +499,7 @@ const schema = defineSchema(
         v.literal("closed"),
       ),
       createdAt: v.number(),
-    }).index("by_status", ["status"]),
+    }).index("by_created", ["createdAt"]),
 
     // --- FAQs (site-facing) ---
     faqs: defineTable({
@@ -771,9 +787,7 @@ const schema = defineSchema(
       .index("by_status", ["status"])
       .index("by_department", ["department"]),
 
-    // --- Market Data Cache ---
-    // Cached quotes for the tabloid market bar and the markets explorer. Rows
-    // are written by the `markets.quotes` action and expire after a few minutes.
+    // --- Project Download Tracking ---
     marketQuotes: defineTable({
       symbol: v.string(),
       price: v.number(),

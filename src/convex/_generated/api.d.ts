@@ -8,10 +8,11 @@
  * @module
  */
 
-import type * as adminGuard from "../adminGuard.js";
+import type * as adminAccounts from "../adminAccounts.js";
 import type * as adminRbac from "../adminRbac.js";
 import type * as auth from "../auth.js";
 import type * as auth_emailOtp from "../auth/emailOtp.js";
+import type * as authz from "../authz.js";
 import type * as contact from "../contact.js";
 import type * as content from "../content.js";
 import type * as emailHook from "../emailHook.js";
@@ -19,6 +20,7 @@ import type * as fmcg from "../fmcg.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
 import type * as markets from "../markets.js";
+import type * as privileges from "../privileges.js";
 import type * as projects from "../projects.js";
 import type * as settings from "../settings.js";
 import type * as tabloidIngest from "../tabloidIngest.js";
@@ -34,10 +36,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  adminGuard: typeof adminGuard;
+  adminAccounts: typeof adminAccounts;
   adminRbac: typeof adminRbac;
   auth: typeof auth;
   "auth/emailOtp": typeof auth_emailOtp;
+  authz: typeof authz;
   contact: typeof contact;
   content: typeof content;
   emailHook: typeof emailHook;
@@ -45,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leads: typeof leads;
   markets: typeof markets;
+  privileges: typeof privileges;
   projects: typeof projects;
   settings: typeof settings;
   tabloidIngest: typeof tabloidIngest;

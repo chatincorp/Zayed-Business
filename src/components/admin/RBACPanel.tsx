@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useMutation } from "convex/react";
+import { useAction, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { PRIVILEGES } from "@/convex/privileges";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
   Plus, Search, Users, Building2, MessageSquare,
@@ -63,11 +64,10 @@ export default function RBACPanel() {
   // Convex mutations
   const createDepartmentMut = useMutation(api.adminRbac.createDepartment);
   const deleteDepartmentMut = useMutation(api.adminRbac.deleteDepartment);
-  const createStaffMut = useMutation(api.adminRbac.createStaff);
+  const createStaffAccount = useAction(api.adminAccounts.createStaffAccount);
   const updateStaffStatusMut = useMutation(api.adminRbac.updateStaffStatus);
   const deleteStaffMut = useMutation(api.adminRbac.deleteStaff);
   const updateSubmissionStatusMut = useMutation(api.adminRbac.updateSubmissionStatus);
-  const deleteSubmissionMut = useMutation(api.adminRbac.deleteSubmission);
   const escalateChatMut = useMutation(api.adminRbac.escalateChat);
   const addChatMessageMut = useMutation(api.adminRbac.addChatMessage);
 
@@ -96,7 +96,11 @@ export default function RBACPanel() {
   // New staff form
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState<"admin" | "manager" | "staff">("staff");
+  const [newRole, setNewRole] = useState<"admin" | "staff">("staff");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPrivileges, setNewPrivileges] = useState<string[]>([]);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const roleOptions = useMemo(
     () =>
       [
@@ -114,7 +118,6 @@ export default function RBACPanel() {
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptDesc, setNewDeptDesc] = useState("");
-
   const handleSendChatMessage = async () => {
     if (!expandedChat || !chatInput.trim()) return;
     await addChatMessageMut({ chatId: expandedChat, from: "Admin", text: chatInput });
@@ -136,16 +139,38 @@ export default function RBACPanel() {
   };
 
   const handleCreateStaff = async () => {
-    if (!newName || !newEmail) return;
-    await createStaffMut({
-      name: newName,
-      email: newEmail,
-      role: newRole,
-      department: newDept,
-      responsibilities: newResponsibilities.split(",").map((r) => r.trim()).filter(Boolean),
-      joinedAt: new Date().toISOString().split("T")[0],
-    });
-    setNewName(""); setNewEmail(""); setNewResponsibilities(""); setShowCreateStaff(false);
+    setCreateError(null);
+    if (!newName.trim() || !newEmail.trim()) {
+      setCreateError("Name and email are required.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setCreateError("Set a password of at least 8 characters for this account.");
+      return;
+    }
+    try {
+      setCreating(true);
+      await createStaffAccount({
+        name: newName.trim(),
+        email: newEmail.trim(),
+        password: newPassword,
+        role: newRole,
+        privileges: newPrivileges,
+        department: newDept,
+      });
+      setNewName("");
+      setNewEmail("");
+      setNewPassword("");
+      setNewPrivileges([]);
+      setNewResponsibilities("");
+      setShowCreateStaff(false);
+    } catch (error) {
+      setCreateError(
+        error instanceof Error ? error.message : "Could not create that account.",
+      );
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleCreateDept = async () => {
@@ -219,7 +244,6 @@ export default function RBACPanel() {
                     <input placeholder="Email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className={inputClass} />
                     <select value={newRole} onChange={(e) => setNewRole(e.target.value as typeof newRole)} className={inputClass}>
                       <option value="admin">Admin</option>
-                      <option value="manager">Manager</option>
                       <option value="staff">Staff</option>
                     </select>
                     <select value={newDept} onChange={(e) => setNewDept(e.target.value)} className={inputClass}>
@@ -227,9 +251,33 @@ export default function RBACPanel() {
                       {departments.length === 0 && <option value="Operations">Operations</option>}
                     </select>
                   </div>
-                  <input placeholder="Responsibilities (comma separated)" value={newResponsibilities} onChange={(e) => setNewResponsibilities(e.target.value)} className={inputClass} />
+                  <input placeholder="Login password (min 8 characters)" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-2">Admin panel privileges</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
+                      {PRIVILEGES.map((p) => (
+                        <label key={p.key} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={newPrivileges.includes(p.key)}
+                            onChange={(e) =>
+                              setNewPrivileges((prev) =>
+                                e.target.checked
+                                  ? [...prev, p.key]
+                                  : prev.filter((k) => k !== p.key),
+                              )
+                            }
+                            className="w-3.5 h-3.5 rounded border-border"
+                          />
+                          {p.label}
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2">Admins always receive every privilege.</p>
+                  </div>
+                  {createError && <p className="text-xs text-rose-500">{createError}</p>}
                   <div className="flex gap-2">
-                    <button onClick={handleCreateStaff} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Create</button>
+                    <button onClick={handleCreateStaff} disabled={creating} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark disabled:opacity-60">{creating ? "Creating…" : "Create account"}</button>
                     <button onClick={() => setShowCreateStaff(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
                   </div>
                 </div>
@@ -258,6 +306,11 @@ export default function RBACPanel() {
                     </div>
                   </div>
                   <div className="col-span-2 text-xs text-muted-foreground truncate">{s.department}</div>
+                  {tab === "staff" && (
+                    <div className="col-span-1 text-[10px] text-muted-foreground text-right">
+                      {departmentStaffCount[s.department] ?? 0}
+                    </div>
+                  )}
                   <div className="col-span-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${roleColors[s.role]}`}>{s.role.replace("_", " ")}</span></div>
                   <div className="col-span-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusColors[s.status]}`}>{s.status}</span></div>
                   <div className="col-span-3 flex items-center justify-end gap-1.5">
@@ -349,25 +402,13 @@ export default function RBACPanel() {
                 {expandedSubmission === sub._id && (
                   <div className="px-5 pb-5 border-t border-border/50">
                     <p className="text-sm text-foreground mt-3 mb-4">{sub.message}</p>
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                    <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <textarea placeholder="Draft your reply (it opens in your email app)" value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none" />
+                        <textarea placeholder="Type your reply..." value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none" />
                       </div>
-                      <div className="flex flex-row sm:flex-col gap-2">
-                        <a
-                          href={`mailto:${sub.email}?subject=${encodeURIComponent(`Re: ${sub.subject}`)}${replyText.trim() ? `&body=${encodeURIComponent(replyText)}` : ""}`}
-                          onClick={() => handleReplySubmission(sub._id)}
-                          className="flex items-center gap-1.5 px-4 py-2 bg-electric text-white rounded-lg text-xs font-medium hover:bg-electric-dark"
-                        >
-                          <Send className="w-3 h-3" /> Reply
-                        </a>
+                      <div className="flex flex-col gap-2">
+                        <button onClick={() => handleReplySubmission(sub._id)} className="flex items-center gap-1.5 px-4 py-2 bg-electric text-white rounded-lg text-xs font-medium hover:bg-electric-dark"><Send className="w-3 h-3" /> Reply</button>
                         <button onClick={() => handleEscalateSubmission(sub._id)} className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium hover:bg-amber-500/20"><ArrowUpRight className="w-3 h-3" /> Escalate</button>
-                        <button
-                          onClick={() => { if (window.confirm("Delete this submission?")) void deleteSubmissionMut({ id: sub._id }); }}
-                          className="flex items-center gap-1.5 px-4 py-2 bg-destructive/10 text-destructive rounded-lg text-xs font-medium hover:bg-destructive/20"
-                        >
-                          <Trash2 className="w-3 h-3" /> Delete
-                        </button>
                       </div>
                     </div>
                   </div>

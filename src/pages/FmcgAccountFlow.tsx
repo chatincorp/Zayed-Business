@@ -59,36 +59,25 @@ export default function FmcgAccountFlow() {
 
   const [activeTab, setActiveTab] = useState<"login" | "onboarding-leader" | "onboarding-wholesaler">("login");
   const { isAuthenticated, user, signIn } = useAuth();
-  const [puzzle, setPuzzle] = useState({ a: 12, b: 4, c: 2, op: "+" });
-  const [answer, setAnswer] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSolving, setIsSolving] = useState(false);
-
-  const nextPuzzle = () => {
-    const a = 12 + Math.floor(Math.random() * 36);
-    const b = 3 + Math.floor(Math.random() * 12);
-    const c = 1 + Math.floor(Math.random() * 8);
-    const op = Math.random() < 0.5 ? "+" : "−";
-    setPuzzle({ a, b, c, op });
-    setAnswer("");
-    setError(null);
-  };
-
-  const expected = puzzle.op === "+" ? puzzle.a + puzzle.b - puzzle.c : puzzle.a - puzzle.b + puzzle.c;
 
   const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    const parsed = Number(answer.trim());
-    if (!Number.isFinite(parsed) || parsed !== expected) {
-      setError("That answer is not right. Try the new puzzle.");
-      nextPuzzle();
+    if (!email.trim() || !password) {
+      setError("Enter the email and password for your FMCG account.");
       return;
     }
 
     setIsSolving(true);
     try {
-      await signIn({ email: user?.email ?? "" });
+      await signIn({ email: email.trim().toLowerCase(), password });
+    } catch {
+      setError("That email and password do not match an FMCG account.");
+      return;
     } finally {
       setIsSolving(false);
     }
@@ -277,11 +266,11 @@ export default function FmcgAccountFlow() {
                 <FmcgLoginForm
                   user={user}
                   isSolving={isSolving}
-                  puzzle={puzzle}
-                  answer={answer}
+                  email={email}
+                  password={password}
                   error={error}
-                  onAnswerChange={setAnswer}
-                  onNextPuzzle={nextPuzzle}
+                  onEmailChange={setEmail}
+                  onPasswordChange={setPassword}
                   onSubmit={handleLoginSubmit}
                   onCancel={() => {}}
                 />
@@ -425,70 +414,71 @@ export default function FmcgAccountFlow() {
 function FmcgLoginForm({
   user,
   isSolving,
-  puzzle,
-  answer,
+  email,
+  password,
   error,
-  onAnswerChange,
-  onNextPuzzle,
+  onEmailChange,
+  onPasswordChange,
   onSubmit,
   onCancel,
 }: {
   user: { email?: string } | null;
   isSolving: boolean;
-  puzzle: { a: number; b: number; c: number; op: string };
-  answer: string;
+  email: string;
+  password: string;
   error: string | null;
-  onAnswerChange: (value: string) => void;
-  onNextPuzzle: () => void;
+  onEmailChange: (value: string) => void;
+  onPasswordChange: (value: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
 }) {
-  const puzzlePrompt = `${puzzle.a} ${puzzle.op} ${puzzle.b} ${puzzle.op === "+" ? "−" : "+"} ${puzzle.c}`;
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-6 text-center sm:text-left">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35 mb-3">
-          Math challenge
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-          <span className="font-display text-3xl font-bold tracking-tight text-white tabular-nums">
-            {puzzlePrompt}
+      <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-6">
+        <label className="block">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35">
+            Email
           </span>
-          <span className="font-display text-3xl font-bold text-electric">=</span>
           <input
-            name="puzzleAnswer"
-            inputMode="numeric"
-            pattern="-?[0-9]*"
+            name="email"
+            type="email"
+            autoComplete="email"
             autoFocus
-            autoComplete="off"
-            aria-label="Answer to the math challenge"
-            value={answer}
-            onChange={(event) => onAnswerChange(event.target.value)}
+            required
+            value={email}
+            onChange={(event) => onEmailChange(event.target.value)}
             disabled={isSolving}
-            className="w-24 text-center text-xl font-bold tabular-nums bg-white/10 border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-300/40 disabled:cursor-not-allowed"
-            placeholder="?"
+            placeholder="you@company.com"
+            className="mt-2 w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-300/40 disabled:cursor-not-allowed"
           />
-        </div>
-        <div className="mt-4 flex items-center justify-center sm:justify-start gap-3">
-          <button
-            type="button"
-            onClick={onNextPuzzle}
+        </label>
+        <label className="mt-4 block">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35">
+            Password
+          </span>
+          <input
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => onPasswordChange(event.target.value)}
             disabled={isSolving}
-            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/40 hover:text-white/70 transition-colors disabled:cursor-not-allowed"
-          >
-            <Loader2 className="h-3 w-3" />
-            New puzzle
-          </button>
-          {error && (
-            <p className="text-xs text-red-400">{error}</p>
-          )}
-        </div>
+            placeholder="Your account password"
+            className="mt-2 w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-300/40 disabled:cursor-not-allowed"
+          />
+        </label>
+        {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
+        <p className="mt-3 text-[11px] leading-relaxed text-white/35">
+          Accounts are held in the Zayed workspace, so the same email and password work
+          on every device.
+        </p>
       </div>
 
       <div className="flex flex-col gap-3">
         <button
           type="submit"
-          disabled={isSolving || !answer.trim()}
+          disabled={isSolving || !email.trim() || !password}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-300 to-[#E8C56A] px-6 py-3 text-sm font-semibold text-[#1a1305] transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSolving ? (

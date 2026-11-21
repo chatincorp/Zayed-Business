@@ -218,7 +218,7 @@ const documents: Record<string, LegalDoc> = {
       {
         heading: "2. What we use",
         body: [
-          "Essential storage: we use local storage entries such as yz-auth-session (to keep you signed in to the website workspace) and yz-policy-accepted (to remember that you accepted our policy notice). These are needed for the features to work.",
+          "Essential storage: signing in to the website workspace is handled by our backend, which keeps your session and your acceptance of the policy notice on your account rather than in this browser. We only use local storage for preferences such as cookie consent.",
           "Preference storage: we may remember choices such as cookie consent so that we do not ask you again on every visit.",
           "Analytics: if analytics is enabled, we use aggregated usage information to understand which pages are visited and how the site performs. We do not use it to identify you personally.",
           "Third-party content: pages may load fonts, images or embedded content from third parties (for example Google Fonts and news image sources). Those providers may set their own cookies or receive technical information such as your IP address under their own policies.",

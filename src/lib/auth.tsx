@@ -1,133 +1,173 @@
 /**
- * Client-side authentication.
+ * Client authentication.
  *
- * The site ships as a static bundle, so sign-in must not depend on an email
- * provider or a server round-trip. A user verifies with a math challenge on
- * the Auth page and we keep the resulting session in localStorage.
+ * Sessions, roles, privileges and policy acceptance all live in Convex Auth /
+ * the `users` table. Nothing about the signed-in user is stored in the browser,
+ * so signing in on a new device, revoking access from the admin panel and
+ * role changes all take effect immediately.
  *
- * This is an access gate for the demo workspace — not a security boundary.
+ * The public marketing site still boots without a backend; in that case there
+ * is simply no signed-in user.
  */
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useCallback, useMemo } from "react";
+import { api } from "@/convex/_generated/api";
+import { roleCanUsePanel, roleIsRoot } from "@/convex/privileges";
+import { isBackendConfigured } from "./backend";
 
 export interface AuthUser {
   name?: string;
   email?: string;
-}
-
-interface AuthSession extends AuthUser {
-  createdAt: number;
+  role?: string;
+  privileges?: string[];
 }
 
 export interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   user: AuthUser | null;
-  signIn: (details: { email: string; name?: string }) => Promise<void>;
+  role: string | null;
+  /** May open the admin panel at all. */
+  isStaff: boolean;
+  /** Full administrator (every panel section). */
+  isAdmin: boolean;
+  privileges: string[];
+  /** May open one specific panel section. */
+  canOpen: (section: string) => boolean;
+  policyAccepted: boolean;
+  signIn: (details: { email: string; password: string }) => Promise<void>;
+  signUp: (details: {
+    email: string;
+    password: string;
+    name?: string;
+  }) => Promise<void>;
   signOut: () => Promise<void>;
+  acceptPolicy: () => Promise<void>;
 }
 
-const STORAGE_KEY = "yz-auth-session";
+const OFFLINE_AUTH: AuthContextValue = {
+  isLoading: false,
+  isAuthenticated: false,
+  user: null,
+  role: null,
+  isStaff: false,
+  isAdmin: false,
+  privileges: [],
+  canOpen: () => false,
+  policyAccepted: false,
+  signIn: async () => {
+    throw new Error("Sign-in requires the live backend.");
+  },
+  signUp: async () => {
+    throw new Error("Sign-up requires the live backend.");
+  },
+  signOut: async () => {},
+  acceptPolicy: async () => {},
+};
 
-function readSession(): AuthSession | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<AuthSession>;
-    if (typeof parsed?.email !== "string" || !parsed.email) return null;
-    return {
-      email: parsed.email,
-      name: typeof parsed.name === "string" ? parsed.name : undefined,
-      createdAt:
-        typeof parsed.createdAt === "number" ? parsed.createdAt : Date.now(),
-    };
-  } catch {
-    return null;
-  }
-}
+function useBackendAuth(): AuthContextValue {
+  const { isLoading: authLoading, isAuthenticated } = useConvexAuth();
+  const session = useQuery(
+    api.authz.session,
+    isAuthenticated ? {} : "skip",
+  );
+  const acceptPolicyMut = useMutation(api.authz.acceptPolicy);
+  const { signIn: authSignIn, signOut: authSignOut } = useAuthActions();
 
-/** "jane.doe@example.com" → "Jane Doe" */
-function nameFromEmail(email: string): string | undefined {
-  const local = email.split("@")[0]?.trim();
-  if (!local) return undefined;
-  const words = local
-    .split(/[._\-+]+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
-  return words.length > 0 ? words.join(" ") : undefined;
-}
+  const role = (session?.role as string | undefined) ?? null;
+  const privileges = useMemo(
+    () => (session?.privileges as string[] | undefined) ?? [],
+    [session?.privileges],
+  );
+  const isAdmin = roleIsRoot(role);
+  const isStaff = roleCanUsePanel(role);
 
-const AuthContext = createContext<AuthContextValue | null>(null);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(readSession);
-
-  // Keep tabs in sync when the user signs in or out in another window.
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) return;
-      setSession(readSession());
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  const canOpen = useCallback(
+    (section: string) => {
+      if (!isStaff) return false;
+      if (isAdmin) return true;
+      return privileges.includes(section);
+    },
+    [isAdmin, isStaff, privileges],
+  );
 
   const signIn = useCallback(
-    async ({ email, name }: { email: string; name?: string }) => {
-      const normalized = email.trim().toLowerCase();
-      if (!normalized) throw new Error("Please enter your email address.");
-
-      const next: AuthSession = {
-        email: normalized,
-        name: name?.trim() || nameFromEmail(normalized),
-        createdAt: Date.now(),
-      };
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Private browsing/quota — the session still works for this tab.
-      }
-      setSession(next);
+    async ({ email, password }: { email: string; password: string }) => {
+      await authSignIn("password", {
+        email: email.trim().toLowerCase(),
+        password,
+        flow: "signIn",
+      });
     },
-    [],
+    [authSignIn],
+  );
+
+  const signUp = useCallback(
+    async ({
+      email,
+      password,
+      name,
+    }: {
+      email: string;
+      password: string;
+      name?: string;
+    }) => {
+      await authSignIn("password", {
+        email: email.trim().toLowerCase(),
+        password,
+        flow: "signUp",
+        ...(name?.trim() ? { name: name.trim() } : {}),
+      });
+    },
+    [authSignIn],
   );
 
   const signOut = useCallback(async () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // Storage unavailable — clearing state is enough.
-    }
-    setSession(null);
-  }, []);
+    await authSignOut();
+  }, [authSignOut]);
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
-      isLoading: false,
-      isAuthenticated: session !== null,
-      user: session ? { name: session.name, email: session.email } : null,
-      signIn,
-      signOut,
-    }),
-    [session, signIn, signOut],
-  );
+  const acceptPolicy = useCallback(async () => {
+    await acceptPolicyMut({});
+  }, [acceptPolicyMut]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const user: AuthUser | null = session
+    ? {
+        name: session.name ?? undefined,
+        email: session.email ?? undefined,
+        role: session.role,
+        privileges,
+      }
+    : null;
+
+  return {
+    isLoading: authLoading || (isAuthenticated && session === undefined),
+    isAuthenticated: !!session,
+    user,
+    role,
+    isStaff,
+    isAdmin,
+    privileges,
+    canOpen,
+    policyAccepted: !!session?.policyAcceptedAt,
+    signIn,
+    signUp,
+    signOut,
+    acceptPolicy,
+  };
 }
 
+/**
+ * `isBackendConfigured` is a build-time constant, so this branch never changes
+ * between renders and hook order stays stable.
+ */
 export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used inside <AuthProvider>");
-  }
-  return context;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  return isBackendConfigured ? useBackendAuth() : OFFLINE_AUTH;
+}
+
+/** Kept for compatibility: auth state comes from Convex, not a local provider. */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
