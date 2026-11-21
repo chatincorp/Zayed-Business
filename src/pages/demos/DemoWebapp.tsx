@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useSEO } from "@/lib/seo";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -1053,6 +1054,13 @@ function BookingModal({
 }
 
 export default function DemoWebapp() {
+  useSEO({
+    title: "Booking Platform Demo — Interactive Prototype",
+    description:
+      "An interactive preview of a booking and dashboard platform built by Yasir Zayed: search, availability, checkout and operations dashboards.",
+    path: "/demo/webapp",
+    noindex: true,
+  });
   const [view, setView] = useState<"portal" | "app">("portal");
   const [search, setSearch] = useState("");
   const [guests, setGuests] = useState(2);

@@ -1,5 +1,56 @@
 import { v } from "convex/values";
+import { requireAdmin, requireStaff } from "./adminGuard";
 import { query, mutation } from "./_generated/server";
+import { roleValidator } from "./schema";
+
+/* ══════════════════════════════════════════════════════════════
+ *  APP USERS (signed-up accounts, used by the Users & Projects panels)
+ * ══════════════════════════════════════════════════════════════ */
+
+export const listAppUsers = query({
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    return users
+      // Guest sessions are created automatically by the auth provider for every
+      // visitor. They are not accounts, so they never reach the admin panels or
+      // the project client picker.
+      .filter((user) => !user.isAnonymous && Boolean(user.email))
+      .map((user) => ({
+        _id: user._id,
+        name: user.name ?? null,
+        email: user.email ?? null,
+        role: user.role ?? null,
+        isAnonymous: false,
+      }))
+      .sort((a, b) => (a.name ?? a.email ?? "").localeCompare(b.name ?? b.email ?? ""));
+  },
+});
+
+export const updateUserRole = mutation({
+  args: {
+    id: v.id("users"),
+    role: roleValidator,
+    actorEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireStaff(ctx, args.actorEmail, ["admin", "super_admin"]);
+    await ctx.db.patch(args.id, { role: args.role });
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════
+ *  SECURITY LOGS
+ * ══════════════════════════════════════════════════════════════ */
+
+export const listSecurityLogs = query({
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("securityLogs")
+      .withIndex("by_timestamp")
+      .order("desc")
+      .take(50);
+  },
+});
 
 /* ══════════════════════════════════════════════════════════════
  *  DEPARTMENTS
@@ -18,6 +69,7 @@ export const createDepartment = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     return await ctx.db.insert("departments", {
       name: args.name,
@@ -33,6 +85,7 @@ export const createDepartment = mutation({
 export const deleteDepartment = mutation({
   args: { id: v.id("departments") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -57,6 +110,7 @@ export const createStaff = mutation({
     joinedAt: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     return await ctx.db.insert("staff", {
       ...args,
@@ -73,6 +127,7 @@ export const updateStaffStatus = mutation({
     status: v.union(v.literal("active"), v.literal("pending"), v.literal("suspended")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
   },
 });
@@ -80,6 +135,7 @@ export const updateStaffStatus = mutation({
 export const deleteStaff = mutation({
   args: { id: v.id("staff") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -100,6 +156,7 @@ export const createCampaign = mutation({
     type: v.union(v.literal("email"), v.literal("social"), v.literal("ads"), v.literal("sms")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     return await ctx.db.insert("campaigns", {
       ...args,
@@ -119,6 +176,7 @@ export const updateCampaignStatus = mutation({
     status: v.union(v.literal("draft"), v.literal("active"), v.literal("paused"), v.literal("completed")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
   },
 });
@@ -126,6 +184,7 @@ export const updateCampaignStatus = mutation({
 export const deleteCampaign = mutation({
   args: { id: v.id("campaigns") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -148,6 +207,7 @@ export const createEmailTemplate = mutation({
     category: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     return await ctx.db.insert("emailTemplates", {
       ...args,
@@ -160,6 +220,7 @@ export const createEmailTemplate = mutation({
 export const deleteEmailTemplate = mutation({
   args: { id: v.id("emailTemplates") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -181,6 +242,7 @@ export const createCTA = mutation({
     style: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     return await ctx.db.insert("ctas", {
       ...args,
@@ -195,6 +257,7 @@ export const createCTA = mutation({
 export const toggleCTAVisibility = mutation({
   args: { id: v.id("ctas"), visible: v.boolean() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { visible: args.visible, updatedAt: Date.now() });
   },
 });
@@ -202,6 +265,7 @@ export const toggleCTAVisibility = mutation({
 export const deleteCTA = mutation({
   args: { id: v.id("ctas") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -222,6 +286,7 @@ export const updateSubmissionStatus = mutation({
     status: v.union(v.literal("unread"), v.literal("replied"), v.literal("escalated")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, {
       status: args.status,
       repliedAt: args.status === "replied" ? Date.now() : undefined,
@@ -236,6 +301,7 @@ export const updateSubmissionStatus = mutation({
 export const deleteSubmission = mutation({
   args: { id: v.id("formSubmissions") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -253,6 +319,7 @@ export const addChatMessage = mutation({
     text: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const chat = await ctx.db.get(args.chatId);
     if (!chat) return;
     const now = new Date();
@@ -270,6 +337,7 @@ export const escalateChat = mutation({
     assignTo: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.chatId, {
       assignedTo: args.assignTo,
       status: "escalated",
@@ -284,6 +352,7 @@ export const updateChatStatus = mutation({
     status: v.union(v.literal("active"), v.literal("waiting"), v.literal("resolved"), v.literal("escalated")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.chatId, { status: args.status, updatedAt: Date.now() });
   },
 });

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { LucideIcon } from "lucide-react";
@@ -16,14 +16,21 @@ import {
   Lock,
   Mail,
   MapPin,
+  Loader2,
   MessageSquare,
   Package,
   Phone,
+  Plus,
   Search,
   Store,
+  Truck,
+  Upload,
+  UserRound,
+  Users,
   XCircle,
 } from "lucide-react";
 import { formatKes } from "@/data/fmcg";
+import { useAuth } from "@/lib/auth";
 
 type TabId = "suppliers" | "products" | "orders" | "enquiries";
 
@@ -83,6 +90,8 @@ function StatusPill({ status, styles }: { status: string; styles: Record<string,
 }
 
 export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: TabId }) {
+  const { user } = useAuth();
+  const actorEmail = user?.email ?? "";
   const [tab, setTab] = useState<TabId>(initialTab);
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -91,11 +100,34 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
   const products = useQuery(api.fmcg.adminListProducts);
   const orders = useQuery(api.fmcg.adminListOrders);
   const enquiries = useQuery(api.fmcg.adminListEnquiries);
+  const appUsers = useQuery(api.adminRbac.listAppUsers);
 
   const setSupplierStatus = useMutation(api.fmcg.setSupplierStatus);
   const setProductStatus = useMutation(api.fmcg.setProductStatus);
   const setOrderStatus = useMutation(api.fmcg.setOrderStatus);
+  const setCommissionRule = useMutation(api.fmcg.setCommissionRule);
+  const commissionRules = useQuery(api.fmcg.listCommissionRules, {});
   const setEnquiryStatus = useMutation(api.fmcg.setEnquiryStatus);
+  const assignSalesRep = useMutation(api.fmcg.assignSalesRep);
+  const setCollectionDetails = useMutation(api.fmcg.setCollectionDetails);
+  const generateUploadUrl = useMutation(api.fmcg.generateUploadUrl);
+  const createProduct = useMutation(api.fmcg.createProduct);
+
+  const composerRef = useRef<HTMLFormElement>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [composerBusy, setComposerBusy] = useState(false);
+  const [composerError, setComposerError] = useState<string | null>(null);
+  const [tiers, setTiers] = useState<Array<{ thresholdQuantity: number; ratePercent: number }>>([
+    { thresholdQuantity: 10, ratePercent: 4 },
+  ]);
+  const [addTierThreshold, setAddTierThreshold] = useState("");
+  const [addTierRate, setAddTierRate] = useState("");
+
+  const salesTeam = (appUsers ?? []).filter(
+    (member) =>
+      member.role === "sales" || member.role === "admin" || member.role === "super_admin",
+  );
 
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -165,7 +197,7 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
 
   async function updateSupplier(id: Id<"suppliers">, status: SupplierStatus) {
     try {
-      await setSupplierStatus({ id, status });
+      await setSupplierStatus({ id, status, actorEmail });
       toast.success(`Supplier ${status}.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update supplier.");
@@ -174,7 +206,7 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
 
   async function updateProduct(id: Id<"fmcgProducts">, status: ProductStatus) {
     try {
-      await setProductStatus({ id, status });
+      await setProductStatus({ id, status, actorEmail });
       toast.success(`Product ${prettyStatus(status).toLowerCase()}.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update product.");
@@ -183,16 +215,108 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
 
   async function updateOrder(id: Id<"wholesaleOrders">, status: OrderStatus) {
     try {
-      await setOrderStatus({ id, status });
+      await setOrderStatus({ id, status, actorEmail, author: user?.name ?? actorEmail });
       toast.success(`Order marked ${prettyStatus(status).toLowerCase()}.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update order.");
     }
   }
 
+  async function assignRep(orderId: Id<"wholesaleOrders">, repEmail: string) {
+    const member = salesTeam.find((item) => item.email === repEmail);
+    try {
+      await assignSalesRep({
+        orderId,
+        repEmail: member?.email ?? undefined,
+        repName: member?.name ?? undefined,
+        actorEmail,
+      });
+      toast.success(member?.email ? `Assigned to ${member.name ?? member.email}.` : "Sales rep removed.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not assign the order.");
+    }
+  }
+
+  async function handleCreateProduct(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const supplierEmail = String(form.get("supplierEmail") ?? "").trim();
+    if (!supplierEmail) {
+      setComposerError("Choose the approved supplier this product belongs to.");
+      return;
+    }
+    if (!imageFile) {
+      setComposerError("Upload a product image before posting the listing.");
+      return;
+    }
+    setComposerError(null);
+    setComposerBusy(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": imageFile.type || "application/octet-stream" },
+        body: imageFile,
+      });
+      if (!response.ok) throw new Error("Product image upload failed. Try again.");
+      const payload = (await response.json()) as { storageId?: string };
+      if (!payload.storageId) throw new Error("The upload did not return a storage id.");
+
+      const posted = await createProduct({
+        supplierEmail,
+        actorEmail,
+        name: String(form.get("name") ?? ""),
+        description: String(form.get("description") ?? "") || undefined,
+        unit: String(form.get("unit") ?? ""),
+        caseSize: Number(form.get("caseSize") ?? 1),
+        moq: Number(form.get("moq") ?? 1),
+        pricePerUnit: Number(form.get("pricePerUnit") ?? 0),
+        stockQuantity:
+          String(form.get("stockQuantity") ?? "").trim() === ""
+            ? undefined
+            : Number(form.get("stockQuantity")),
+        leadTime: String(form.get("leadTime") ?? "") || undefined,
+        paymentTerms: String(form.get("paymentTerms") ?? "100% on delivery"),
+        imageStorageId: payload.storageId as Id<"_storage">,
+      });
+
+      if (tiers.length > 0) {
+        try {
+          await setCommissionRule({
+            productId: posted.id,
+            supplierEmail,
+            currency: "KES",
+            tiers,
+            actorEmail,
+          });
+        } catch (commissionError) {
+          toast.warning(
+            commissionError instanceof Error
+              ? commissionError.message
+              : "Could not save the commission rule. Set it from the product row later.",
+          );
+        }
+      }
+
+      toast.success("Product posted and queued for review.");
+      composerRef.current?.reset();
+      setImageFile(null);
+      setTiers([{ thresholdQuantity: 10, ratePercent: 4 }]);
+      setAddTierThreshold("");
+      setAddTierRate("");
+      setComposerOpen(false);
+    } catch (error) {
+      setComposerError(
+        error instanceof Error ? error.message : "Could not post the product.",
+      );
+    } finally {
+      setComposerBusy(false);
+    }
+  }
+
   async function updateEnquiry(id: Id<"fmcgEnquiries">, status: EnquiryStatus) {
     try {
-      await setEnquiryStatus({ id, status });
+      await setEnquiryStatus({ id, status, actorEmail });
       toast.success(`Enquiry marked ${prettyStatus(status).toLowerCase()}.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update enquiry.");
@@ -416,7 +540,193 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
 
       {/* Products */}
       {tab === "products" && (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="space-y-3">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Post a product for a supplier</h2>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Admin accounts can list products on behalf of any approved supplier.
+                  Pricing, quantity and the per-product MOQ are set here.
+                </p>
+              </div>
+              <button
+                onClick={() => setComposerOpen((open) => !open)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-navy px-3 py-2 text-[11px] font-semibold text-white hover:bg-navy-light"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {composerOpen ? "Close" : "Add product"}
+              </button>
+            </div>
+
+            {composerOpen && (
+              <form ref={composerRef} onSubmit={handleCreateProduct} className="mt-4 space-y-3 border-t border-border pt-4">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:col-span-2">
+                    Supplier *
+                    <select name="supplierEmail" required className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground">
+                      <option value="">Choose an approved supplier</option>
+                      {suppliers === undefined ? null : (suppliers ?? []).filter((supplier) => supplier.status === "approved").map((supplier) => (
+                        <option key={supplier._id} value={supplier.officialEmail}>{supplier.businessName} — {supplier.category}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:col-span-2">
+                    Product name *
+                    <input name="name" required placeholder="e.g. Long Grain Rice 25kg" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:col-span-2 lg:col-span-4">
+                    Short description
+                    <input name="description" placeholder="Packaging, grade, shelf life" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Selling unit *
+                    <input name="unit" required placeholder="case, bag" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Units per case *
+                    <input name="caseSize" type="number" min={1} defaultValue={1} required className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    MOQ (units) *
+                    <input name="moq" type="number" min={1} defaultValue={10} required className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Price per unit (KES) *
+                    <input name="pricePerUnit" type="number" min={1} step="0.01" required className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Quantity available
+                    <input name="stockQuantity" type="number" min={0} placeholder="e.g. 480" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Lead time
+                    <input name="leadTime" placeholder="e.g. 2–3 days" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground" />
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Payment terms *
+                    <select name="paymentTerms" required defaultValue="100% on delivery" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground">
+                      {["100% on delivery", "30% deposit, 70% on delivery", "50% deposit, 50% on delivery", "Net 14 days", "Net 30 days"].map((term) => (
+                        <option key={term} value={term}>{term}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:col-span-2">
+                    Product image *
+                    <span className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-border bg-background px-2.5 py-2 text-xs text-muted-foreground">
+                      <Upload className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{imageFile ? imageFile.name : "Choose a JPG or PNG"}</span>
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        required
+                        onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
+                        className="sr-only"
+                      />
+                    </span>
+                  </label>
+                </div>
+
+                {composerError && (
+                  <p className="rounded-lg bg-destructive/10 px-3 py-2 text-[11px] text-destructive">{composerError}</p>
+                )}
+
+                <fieldset className="rounded-lg border border-border bg-card p-3">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Sales-rep commission *
+                  </p>
+                  <p className="mb-2 text-[11px] text-muted-foreground">
+                    A rep earns this rate on a line only when the booked quantity meets the
+                    MOQ threshold shown. Add the threshold that activates the higher rate.
+                  </p>
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {tiers.map((tier, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-[11px] text-foreground"
+                      >
+                        {tier.ratePercent}% at {tier.thresholdQuantity}+
+                        <button
+                          type="button"
+                          onClick={() => setTiers(tiers.filter((_, i) => i !== index))}
+                          className="rounded-full bg-muted px-1 text-[10px] font-medium text-muted-foreground hover:text-foreground"
+                          aria-label={`Remove tier ${index + 1}`}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      Threshold (units)
+                      <input
+                        type="number"
+                        min={1}
+                        value={addTierThreshold}
+                        onChange={(event) => setAddTierThreshold(event.target.value)}
+                        placeholder="10"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground w-20"
+                      />
+                    </label>
+                    <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      Rate (%)
+                      <input
+                        type="number"
+                        min={0}
+                        step={0.5}
+                        value={addTierRate}
+                        onChange={(event) => setAddTierRate(event.target.value)}
+                        placeholder="4"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground w-16"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const threshold = Number(addTierThreshold);
+                        const rate = Number(addTierRate);
+                        if (!Number.isFinite(threshold) || threshold < 1) {
+                          toast.error("Enter a whole-number threshold of at least 1.");
+                          return;
+                        }
+                        if (!Number.isFinite(rate) || rate < 0) {
+                          toast.error("Enter a commission rate of at least 0%.");
+                          return;
+                        }
+                        if (tiers.some((tier) => tier.thresholdQuantity === threshold)) {
+                          toast.error("A tier with that threshold already exists.");
+                          return;
+                        }
+                        setTiers([...tiers, { thresholdQuantity: threshold, ratePercent: rate }]);
+                        setAddTierThreshold("");
+                        setAddTierRate("");
+                      }}
+                      className="rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+                    >
+                      Add tier
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[10px] text-muted-foreground">
+                    The commission applies to the sales rep on the order, not the supplier.
+                    The order desk generates the slip when the order reaches confirmed or
+                    processing, and marks it paid when the order is fulfilled and paid.
+                  </p>
+                </fieldset>
+
+                <button
+                  type="submit"
+                  disabled={composerBusy}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-[#E8C56A] px-4 py-2 text-[11px] font-semibold text-[#1a1305] disabled:opacity-60"
+                >
+                  {composerBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                  {composerBusy ? "Posting…" : "Post product"}
+                </button>
+              </form>
+            )}
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
           {products === undefined ? (
             <LoadingRows />
           ) : filteredProducts.length === 0 ? (
@@ -429,6 +739,7 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
                     <th className="px-4 py-2.5 font-semibold">Product</th>
                     <th className="px-4 py-2.5 font-semibold">Category</th>
                     <th className="px-4 py-2.5 font-semibold">Pricing</th>
+                    <th className="px-4 py-2.5 font-semibold">Commission</th>
                     <th className="px-4 py-2.5 font-semibold">Payment terms</th>
                     <th className="px-4 py-2.5 font-semibold">Status</th>
                     <th className="px-4 py-2.5 text-right font-semibold">Actions</th>
@@ -460,6 +771,20 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
                       <td className="px-4 py-3">
                         <p className="text-xs font-semibold text-foreground">{formatKes(product.pricePerUnit)} / {product.unit}</p>
                         <p className="text-[10px] text-muted-foreground">MOQ {product.moq} · {product.caseSize} per {product.unit}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {product.stockQuantity === undefined
+                            ? "Stock on request"
+                            : `${product.stockQuantity} in stock`}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <CommissionCell
+                          productId={product._id}
+                          rules={(commissionRules ?? []).filter(
+                            (rule) =>
+                              rule.productId?.toString() === product._id.toString(),
+                          )}
+                        />
                       </td>
                       <td className="px-4 py-3 text-[11px] text-muted-foreground">{product.paymentTerms}</td>
                       <td className="px-4 py-3"><StatusPill status={product.status} styles={productStatusStyles} /></td>
@@ -498,6 +823,7 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
             </div>
           )}
         </div>
+        </div>
       )}
 
       {/* Orders */}
@@ -523,7 +849,9 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
                           <StatusPill status={order.status} styles={orderStatusStyles} />
                         </span>
                         <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                          {order.businessName} · {order.clientName} · {order.county}
+                          {order.businessName} · {order.clientName} · {order.county} ·{" "}
+                          {order.collectionMethod === "pickup" ? "collection" : "delivery"}
+                          {order.salesRepName ? ` · rep ${order.salesRepName}` : ""}
                         </span>
                         <span className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
                           <span>{order.items.length} line{order.items.length === 1 ? "" : "s"}</span>
@@ -566,13 +894,54 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
                           <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><Phone className="h-2.5 w-2.5" /> {order.phone}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Delivery</p>
+                          <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            {order.collectionMethod === "pickup" ? <Store className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
+                            {order.collectionMethod === "pickup" ? "Collection" : "Delivery"}
+                          </p>
                           <p className="mt-0.5 flex items-start gap-1 text-xs text-foreground"><MapPin className="mt-0.5 h-3 w-3 shrink-0" /> {order.deliveryAddress}</p>
                           <p className="text-[11px] text-muted-foreground">{order.county}{order.preferredDate ? ` · preferred ${order.preferredDate}` : ""}</p>
                         </div>
                         <div>
+                          <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <UserRound className="h-3 w-3" /> Collector
+                          </p>
+                          <p className="mt-0.5 text-xs text-foreground">
+                            {order.collectionContactName || "—"}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {order.collectionContactPhone || "No collector phone"}
+                            {order.collectionIdNumber ? ` · ID ${order.collectionIdNumber}` : ""}
+                          </p>
+                          {order.collectionNotes && (
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">{order.collectionNotes}</p>
+                          )}
+                        </div>
+                        <div>
                           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Notes</p>
                           <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{order.notes || "No notes provided."}</p>
+                        </div>
+                        <div>
+                          <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <Users className="h-3 w-3" /> Sales rep
+                          </p>
+                          <select
+                            value={order.salesRepEmail ?? ""}
+                            onChange={(event) => assignRep(order._id, event.target.value)}
+                            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-foreground focus:outline-none"
+                            aria-label={`Sales rep for ${order.reference}`}
+                          >
+                            <option value="">Unassigned</option>
+                            {salesTeam.map((member) => (
+                              <option key={member.email} value={member.email ?? ""}>
+                                {member.name ?? member.email}
+                              </option>
+                            ))}
+                          </select>
+                          {order.internalNotes && (
+                            <p className="mt-2 whitespace-pre-line rounded-md bg-muted px-2 py-1.5 text-[10px] text-muted-foreground">
+                              {order.internalNotes}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -600,6 +969,24 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
                           </tbody>
                         </table>
                       </div>
+
+                      <CollectionEditor
+                        order={order}
+                        onSave={async (values) => {
+                          try {
+                            await setCollectionDetails({
+                              orderId: order._id,
+                              ...values,
+                              actorEmail,
+                            });
+                            toast.success("Collection details saved.");
+                          } catch (error) {
+                            toast.error(
+                              error instanceof Error ? error.message : "Could not save collection details.",
+                            );
+                          }
+                        }}
+                      />
 
                       <p className="mt-3 text-[10px] text-muted-foreground">
                         Booking only — no payment was processed online. Confirm payment
@@ -669,6 +1056,150 @@ export default function FmcgAdmin({ initialTab = "suppliers" }: { initialTab?: T
             ))
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+function CollectionEditor({
+  order,
+  onSave,
+}: {
+  order: {
+    collectionMethod?: "delivery" | "pickup";
+    collectionPoint?: string;
+    collectionContactName?: string;
+    collectionContactPhone?: string;
+    collectionIdNumber?: string;
+    collectionNotes?: string;
+    deliveryAddress: string;
+  };
+  onSave: (values: {
+    collectionMethod: "delivery" | "pickup";
+    collectionPoint: string;
+    collectionContactName?: string;
+    collectionContactPhone?: string;
+    collectionIdNumber?: string;
+    collectionNotes?: string;
+  }) => Promise<void>;
+}) {
+  const [method, setMethod] = useState<"delivery" | "pickup">(order.collectionMethod ?? "delivery");
+  const [point, setPoint] = useState(order.collectionPoint ?? order.deliveryAddress);
+  const [contactName, setContactName] = useState(order.collectionContactName ?? "");
+  const [contactPhone, setContactPhone] = useState(order.collectionContactPhone ?? "");
+  const [idNumber, setIdNumber] = useState(order.collectionIdNumber ?? "");
+  const [notes, setNotes] = useState(order.collectionNotes ?? "");
+  const [saving, setSaving] = useState(false);
+
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-card p-3">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Confirm handover
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <select
+          value={method}
+          onChange={(event) => setMethod(event.target.value as "delivery" | "pickup")}
+          className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] text-foreground focus:outline-none"
+          aria-label="Collection method"
+        >
+          <option value="delivery">Delivery</option>
+          <option value="pickup">Collection</option>
+        </select>
+        <input
+          value={point}
+          onChange={(event) => setPoint(event.target.value)}
+          placeholder="Collection point / delivery address"
+          className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+        />
+        <input
+          value={contactName}
+          onChange={(event) => setContactName(event.target.value)}
+          placeholder="Collector name"
+          className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+        />
+        <input
+          value={contactPhone}
+          onChange={(event) => setContactPhone(event.target.value)}
+          placeholder="Collector phone"
+          className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+        />
+        <input
+          value={idNumber}
+          onChange={(event) => setIdNumber(event.target.value)}
+          placeholder="ID / passport number"
+          className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+        />
+        <input
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="Vehicle / gate access / timing"
+          className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+        />
+      </div>
+      <button
+        onClick={async () => {
+          if (!point.trim()) {
+            toast.error("Enter the collection point or delivery address.");
+            return;
+          }
+          setSaving(true);
+          await onSave({
+            collectionMethod: method,
+            collectionPoint: point,
+            collectionContactName: contactName || undefined,
+            collectionContactPhone: contactPhone || undefined,
+            collectionIdNumber: idNumber || undefined,
+            collectionNotes: notes || undefined,
+          });
+          setSaving(false);
+        }}
+        disabled={saving}
+        className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-navy px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-navy-light disabled:opacity-60"
+      >
+        {saving ? <Clock className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+        Save handover details
+      </button>
+    </div>
+  );
+}
+
+function CommissionCell({
+  productId,
+  rules,
+}: {
+  productId: string;
+  rules: Array<{
+    productId: { toString: () => string };
+    tiers: Array<{ thresholdQuantity: number; ratePercent: number }>;
+  }>;
+}) {
+  const productRules = rules.filter(
+    (rule) => rule.productId.toString() === productId,
+  );
+  const topRule = productRules[productRules.length - 1];
+  const bestRule = productRules
+    .filter((rule) => rule.tiers.length > 0)
+    .sort((a, b) => {
+      const aThreshold = a.tiers[a.tiers.length - 1]?.thresholdQuantity ?? 0;
+      const bThreshold = b.tiers[b.tiers.length - 1]?.thresholdQuantity ?? 0;
+      return bThreshold - aThreshold;
+    })[0];
+  const displayRule = bestRule ?? topRule;
+  const tier = displayRule?.tiers[displayRule.tiers.length - 1];
+
+  return (
+    <div className="flex flex-col gap-1">
+      {!tier ? (
+        <span className="rounded-full border border-dashed border-muted-foreground/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+          No rule set
+        </span>
+      ) : (
+        <>
+          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+            {tier.ratePercent}% at MOQ {tier.thresholdQuantity}+
+          </span>
+        </>
       )}
     </div>
   );

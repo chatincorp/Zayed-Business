@@ -21,8 +21,8 @@ import {
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { mockArticles, type TabloidArticle } from "@/data/tabloidData";
-import StockTicker from "@/components/tabloid/StockTicker";
-import ForexTicker from "@/components/tabloid/ForexTicker";
+import MarketBar from "@/components/tabloid/MarketBar";
+import StoryImage from "@/components/tabloid/StoryImage";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import NewsEngineBoot from "@/components/tabloid/NewsEngineBoot";
 import Navigation from "@/components/Navigation";
@@ -121,18 +121,6 @@ function AgoChip({ ts }: { ts: number }) {
   return <span className="whitespace-nowrap">{timeAgo(ts)}</span>;
 }
 
-const categoryImages: Record<string, string> = {
-  Africa: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800&h=450&fit=crop",
-  "Global Finance": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=450&fit=crop",
-  Technology: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=450&fit=crop",
-  Business: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=450&fit=crop",
-  Security: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=450&fit=crop",
-};
-
-function imgFor(item: FeedItem): string {
-  return item.image || categoryImages[item.category] || categoryImages.Technology;
-}
-
 export default function TabloidIndex() {
   if (!isBackendConfigured) {
     return <TabloidIndexView liveNews={undefined} stats={undefined} />;
@@ -177,10 +165,14 @@ function TabloidIndexView({
       ? items
       : items.filter((i) => i.category === activeCategory);
 
-  const lead = filtered[0];
-  const secondary = filtered.slice(1, 3);
-  const rail = filtered.slice(3, 11);
-  const ticker = filtered.slice(11, 19);
+  // Lead with a story that has a picture when one is available: the top of the
+  // page should look like a front page, not a placeholder.
+  const leadIndex = Math.max(0, filtered.findIndex((item) => Boolean(item.image)));
+  const lead = filtered[leadIndex];
+  const rest = filtered.filter((_, index) => index !== leadIndex);
+  const secondary = rest.slice(0, 2);
+  const rail = rest.slice(2, 10);
+  const ticker = rest.slice(10, 18);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setRefreshedAt(Date.now()));
@@ -192,8 +184,11 @@ function TabloidIndexView({
   return (
     <div className="min-h-screen bg-[#060a14]">
       <Navigation />
-      <StockTicker />
-      <ForexTicker />
+
+      {/* Market bar sits below the fixed menu, one labelled lane per market. */}
+      <div className="pt-[72px]">
+        <MarketBar />
+      </div>
 
       {/* ── Masthead ── */}
       <header className="relative border-b border-white/10 bg-[#060a14]">
@@ -278,7 +273,7 @@ function TabloidIndexView({
       </header>
 
       {/* ── Category filter bar ── */}
-      <nav className="sticky top-0 z-30 bg-[#060a14]/95 backdrop-blur border-b border-white/10">
+      <nav className="sticky top-[72px] z-30 bg-[#060a14]/95 backdrop-blur border-b border-white/10">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto py-2.5">
             {CATEGORIES.map((cat) => (
@@ -370,12 +365,10 @@ function TabloidIndexView({
                         to={`/tabloid/${item.id}`}
                         className="group flex gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors"
                       >
-                        <img
-                          src={imgFor(item)}
-                          alt=""
-                          className="w-16 h-16 rounded-lg object-cover shrink-0"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
+                        <StoryImage
+                          item={item}
+                          variant="thumb"
+                          className="w-16 h-16 rounded-lg shrink-0"
                         />
                         <div className="min-w-0">
                           <p className="text-[10px] font-bold text-electric/80 uppercase tracking-wider mb-0.5">
@@ -443,13 +436,7 @@ function LeadStory({ item }: { item: FeedItem }) {
     >
       <Link to={`/tabloid/${item.id}`} className="group block relative rounded-2xl overflow-hidden">
         <div className="relative h-[380px] sm:h-[460px]">
-          <img
-            src={imgFor(item)}
-            alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#060a14] via-[#060a14]/55 to-transparent" />
+          <StoryImage item={item} variant="lead" className="h-full w-full" label="Top story" />
 
           <div className="absolute top-4 left-4 flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-md bg-electric text-white text-[10px] font-bold uppercase tracking-wider">
@@ -505,14 +492,7 @@ function StandardCard({ item, index }: { item: FeedItem; index: number }) {
       className="group rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden hover:border-white/15 hover:bg-white/[0.04] transition-all"
     >
       <Link to={`/tabloid/${item.id}`} className="block relative h-44 overflow-hidden">
-        <img
-          src={imgFor(item)}
-          alt={item.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+        <StoryImage item={item} variant="card" className="h-full w-full" />
         <span className="absolute top-3 left-3 px-2 py-0.5 rounded bg-electric/85 text-white text-[10px] font-bold uppercase tracking-wider">
           {item.category}
         </span>

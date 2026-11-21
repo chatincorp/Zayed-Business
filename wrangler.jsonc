@@ -1,0 +1,24 @@
+/**
+ * Cloudflare Workers deployment for the Yasir Zayed site.
+ *
+ * This is the same artefact the Freebuff Sites deploy uses: `worker.js` hands
+ * every request to the static-asset binding, and `dist/` is the Vite build.
+ * Unknown paths fall back to index.html so client-side routes survive a reload.
+ *
+ * Build first (VITE_CONVEX_URL is baked in at build time), then deploy:
+ *   npm run cloudflare:deploy
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "yasir-zayed",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

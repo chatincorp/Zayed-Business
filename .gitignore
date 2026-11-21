@@ -1,3 +1,14 @@
-.env.local
+.env*.local
 node_modules
 dist
+
+# Local verification output (slips, screenshots)
+artifacts/
+
+# Cloudflare Workers
+.wrangler
+.dev.vars
+
+.devserver.log
+.devserver.pid
+.audit/

@@ -4,16 +4,19 @@ import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import ServicesManager from "@/components/admin/ServicesManager";
 import LeadsTable from "@/components/admin/LeadsTable";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import FmcgAdmin from "@/components/admin/FmcgAdmin";
+import YasirZayedLogo from "@/components/YasirZayedLogo";
 import UsersManager from "@/components/admin/UsersManager";
 import RBACPanel from "@/components/admin/RBACPanel";
 import { SystemHealthPanel, SecurityLogsPanel, IntegrationsPanel, SEOToolkitPanel, MediaLibraryPanel } from "@/components/admin/SystemPanels";
 import { HomepageManagerPanel, AIAssistantPanel, YasirVerifyPanel, CampaignsPanel, EmailTemplatesPanel, CTAsPanel, RateLimitingPanel, BlockedActivityPanel, AuditLogsPanel, AISettingsPanel, GenericAdminPanel } from "@/components/admin/RemainingPanels";
 import { PagesPanel, NavigationPanel, LandingPagesPanel, PlansPanel, FaqsPanel, TestimonialsPanel, PartnersPanel, SiteSectionsPanel, CategoryServicesPanel, FormsPanel } from "@/components/admin/ContentPanels";
 import InternationalSourcingPanel from "@/pages/InternationalSourcingPanel";
+import { HOME_SECTIONS } from "@/lib/siteContent";
 import { INTERNATIONAL_SOURCING_SECTORS, INTERNATIONAL_SOURCING_COUNTRIES } from "@/data/internationalSourcing";
 import {
   LayoutDashboard,
@@ -28,8 +31,6 @@ import {
   MessageSquare,
   Image,
   Search,
-  Bell,
-  ChevronDown,
   ChevronRight,
   Home,
   Navigation,
@@ -172,7 +173,7 @@ const quickActions = [
 ];
 
 export default function Admin() {
-  const [activeSection, setActiveSection] = useState("staff");
+  const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const content = useQuery(api.content.adminContent);
   const seedContent = useMutation(api.content.seedDefaults);
@@ -194,9 +195,7 @@ export default function Admin() {
         {/* Logo — links to homepage */}
         <Link to="/" className="h-16 flex items-center px-4 border-b border-white/5 hover:bg-white/5 transition-colors">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-electric to-electric-dark flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-xs">YZ</span>
-            </div>
+            <YasirZayedLogo height={30} className="shrink-0" />
             {sidebarOpen && (
               <div>
                 <span className="text-white font-bold text-xs tracking-tight block leading-none">
@@ -263,21 +262,21 @@ export default function Admin() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-electric rounded-full" />
-            </button>
-
-            <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <Link
+              to="/"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View site
+            </Link>
+            <div className="flex items-center gap-2 p-1.5">
               <div className="w-8 h-8 rounded-full bg-electric/20 flex items-center justify-center">
                 <span className="text-electric text-xs font-bold">A</span>
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-foreground text-xs font-medium">Admin</p>
-                <p className="text-muted-foreground text-[10px]">Super Admin</p>
+                <p className="text-muted-foreground text-[10px]">Signed in</p>
               </div>
-              <ChevronDown className="w-3 h-3 text-muted-foreground hidden sm:block" />
-            </button>
+            </div>
           </div>
         </header>
 
@@ -621,20 +620,34 @@ function DashboardContent({ onNavigate }: { onNavigate: (section: string) => voi
 
 
 function GlobalSettingsContent() {
-  const [brandName, setBrandName] = useState("YASIR ZAYED");
-  const [nameStyle, setNameStyle] = useState("uppercase");
-  const [tagline, setTagline] = useState("Business Development • Consultancy • Security • Technology");
-  const [notificationEnabled, setNotificationEnabled] = useState(false);
-  const [notificationMessage, setNotificationMessage] = useState("");
-  const [notificationBg, setNotificationBg] = useState("electric");
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const saved = useQuery(api.content.homepageSettings);
+  const save = useMutation(api.content.setHomepageSettings);
+  const [enabledDraft, setEnabledDraft] = useState<boolean | null>(null);
+  const [messageDraft, setMessageDraft] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+  const sections = HOME_SECTIONS.map((base) => {
+    const row = saved?.sections?.find((s) => s.id === base.id);
+    return { id: base.id, visible: row?.visible ?? base.visible, order: row?.order ?? base.order };
+  });
+
+  const notificationEnabled = enabledDraft ?? saved?.notification?.enabled ?? false;
+  const notificationMessage = messageDraft ?? saved?.notification?.message ?? "";
+  const dirty = enabledDraft !== null || messageDraft !== null;
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await save({
+        sections: sections.map((s, i) => ({ id: s.id, visible: s.visible, order: i + 1 })),
+        notification: { enabled: notificationEnabled, message: notificationMessage },
+      });
+      setEnabledDraft(null);
+      setMessageDraft(null);
+      setSavedAt(new Date().toLocaleTimeString());
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -646,70 +659,22 @@ function GlobalSettingsContent() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
     >
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Global Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">Brand, logo, name style, notification bar, and site-wide configuration.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Global Settings</h1>
+          <p className="text-muted-foreground text-sm mt-1">Site-wide announcement bar. Changes go live immediately after saving.</p>
+          {savedAt && <p className="text-xs text-emerald-500 mt-1">Saved at {savedAt}</p>}
+        </div>
+        <button
+          onClick={() => void handleSave()}
+          disabled={!dirty || saving}
+          className="flex items-center gap-2 px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving ? "Saving…" : "Save changes"}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Logo & Brand */}
-        <div className="rounded-xl bg-card border border-border p-6">
-          <h3 className="font-semibold text-foreground text-sm mb-4">Logo & Brand Identity</h3>
-          <div className="flex items-start gap-6">
-            <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border overflow-hidden shrink-0">
-              {logoPreview ? (
-                <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
-              ) : (
-                <Image className="w-7 h-7 text-muted-foreground/30" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-muted-foreground text-xs mb-2">Upload your company logo (PNG, SVG, or JPG)</p>
-              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-medium cursor-pointer hover:bg-muted/80 transition-colors">
-                <Plus className="w-3.5 h-3.5" />
-                Choose File
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Brand Name</label>
-              <input type="text" value={brandName} onChange={(e) => setBrandName(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Tagline</label>
-              <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Name Display Style</label>
-              <select value={nameStyle} onChange={(e) => setNameStyle(e.target.value)} className={inputClass}>
-                <option value="uppercase">UPPERCASE — YASIR ZAYED</option>
-                <option value="titlecase">Title Case — Yasir Zayed</option>
-                <option value="lowercase">lowercase — yasir zayed</option>
-                <option value="bold">Bold Caps — <strong>YASIR ZAYED</strong></option>
-                <option value="light">Light Weight — <em>Yasir Zayed</em></option>
-              </select>
-            </div>
-          </div>
-
-          {/* Preview */}
-          <div className="mt-6 p-4 rounded-xl bg-navy-dark flex items-center gap-3">
-            {logoPreview && <img src={logoPreview} alt="Logo" className="w-8 h-8 rounded object-contain" />}
-            <div>
-              <span className="text-white font-bold text-sm" style={{
-                textTransform: nameStyle === "uppercase" ? "uppercase" : nameStyle === "lowercase" ? "lowercase" : "none",
-                fontWeight: nameStyle === "bold" ? 900 : nameStyle === "light" ? 300 : 700,
-                letterSpacing: nameStyle === "bold" ? "0.1em" : "normal",
-              }}>
-                {brandName}
-              </span>
-              <p className="text-white/40 text-[10px]">{tagline}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Notification Bar */}
         <div className="rounded-xl bg-card border border-border p-6">
           <h3 className="font-semibold text-foreground text-sm mb-4">Promotional Notification Bar</h3>
@@ -719,7 +684,7 @@ function GlobalSettingsContent() {
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">Enable Notification Bar</label>
               <div
-                onClick={() => setNotificationEnabled(!notificationEnabled)}
+                onClick={() => setEnabledDraft(!notificationEnabled)}
                 className={`w-11 h-6 rounded-full transition-all cursor-pointer relative ${
                   notificationEnabled ? "bg-electric" : "bg-muted border border-border"
                 }`}
@@ -731,71 +696,59 @@ function GlobalSettingsContent() {
             </div>
 
             {notificationEnabled && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Promotional Message</label>
-                  <textarea
-                    rows={3}
-                    value={notificationMessage}
-                    onChange={(e) => setNotificationMessage(e.target.value)}
-                    className={`${inputClass} resize-none`}
-                    placeholder="e.g., 🎉 New: AI-Powered Business Intelligence — 20% off for early adopters"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Banner Color</label>
-                  <select value={notificationBg} onChange={(e) => setNotificationBg(e.target.value)} className={inputClass}>
-                    <option value="electric">Electric Blue</option>
-                    <option value="emerald">Emerald Green</option>
-                    <option value="violet">Violet</option>
-                    <option value="amber">Amber/Gold</option>
-                    <option value="rose">Rose</option>
-                    <option value="navy">Navy (Default)</option>
-                  </select>
-                </div>
-              </>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Promotional Message</label>
+                <textarea
+                  rows={3}
+                  value={notificationMessage}
+                  onChange={(e) => setMessageDraft(e.target.value)}
+                  className={`${inputClass} resize-none`}
+                  placeholder="e.g., New: AI-Powered Business Intelligence — 20% off for early adopters"
+                />
+              </div>
             )}
           </div>
 
           {/* Preview */}
           <div className="mt-6 rounded-xl overflow-hidden border border-border">
             <div className={`px-4 py-2 text-center text-xs font-medium ${
-              !notificationEnabled ? "bg-muted text-muted-foreground" :
-              notificationBg === "electric" ? "bg-electric text-white" :
-              notificationBg === "emerald" ? "bg-emerald-500 text-white" :
-              notificationBg === "violet" ? "bg-violet-500 text-white" :
-              notificationBg === "amber" ? "bg-amber-500 text-white" :
-              notificationBg === "rose" ? "bg-rose-500 text-white" :
-              "bg-navy text-white"
+              notificationEnabled ? "bg-electric text-white" : "bg-muted text-muted-foreground"
             }`}>
-              {notificationEnabled && notificationMessage
-                ? (
-                  notificationMessage
-                )
-                : notificationEnabled
-                ? (
-                  "Your promotional message will appear here"
-                )
-                : (
-                  "Notification bar is disabled"
-                )
-              }
+              {notificationEnabled
+                ? notificationMessage || "Your promotional message will appear here"
+                : "Notification bar is disabled"}
             </div>
           </div>
+        </div>
 
-          <div className="mt-6 p-4 rounded-xl bg-muted/50">
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              The notification bar is displayed at the very top of the website. Use it for promotions, announcements, event reminders, seasonal offers or urgent notices.
-            </p>
+        {/* Brand identity */}
+        <div className="rounded-xl bg-card border border-border p-6">
+          <h3 className="font-semibold text-foreground text-sm mb-4">Brand Identity</h3>
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            The wordmark, logo and tagline are part of the site build (Navigation, Footer and the auth screens),
+            so they are versioned with the code instead of being editable here. Rename them in
+            <code className="mx-1 rounded bg-muted px-1.5 py-0.5 text-[11px]">src/components/Navigation.tsx</code>
+            and
+            <code className="mx-1 rounded bg-muted px-1.5 py-0.5 text-[11px]">src/components/Footer.tsx</code>
+            and commit the change.
+          </p>
+          <div className="mt-5 rounded-xl bg-navy-dark p-4">
+            <span className="text-white font-bold text-sm tracking-tight">YASIR ZAYED</span>
+            <p className="text-white/40 text-[10px]">Business Development • Consultancy • Security • Technology</p>
           </div>
+          <p className="mt-5 text-xs text-muted-foreground">
+            Section order, visibility and the announcement bar live in{" "}
+            <span className="font-medium text-foreground">Homepage</span>. Email routing, AI providers and
+            integrations are configured through project secrets, not from this screen.
+          </p>
         </div>
       </div>
     </motion.div>
   );
 }
-
 function AdminProjectsContent() {
   const projects = useQuery(api.projects.list);
+  const clients = useQuery(api.adminRbac.listAppUsers);
   const createProject = useMutation(api.projects.create);
   const updateProject = useMutation(api.projects.update);
   const deleteProject = useMutation(api.projects.remove);
@@ -803,7 +756,8 @@ function AdminProjectsContent() {
   const addDeliverable = useMutation(api.projects.addDeliverable);
 
   const [showCreate, setShowCreate] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<Id<"projects"> | null>(null);
+  const [newClientId, setNewClientId] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newType, setNewType] = useState<"completed" | "phased">("completed");
@@ -825,18 +779,21 @@ function AdminProjectsContent() {
 
   const selected = projects?.find((p) => p._id === selectedId);
 
-  const handleCreate = async () => {
-    if (!newTitle.trim()) return;
-    // For demo, use first user as client
+  // Guest sessions are created automatically by the auth provider; a project
+  // must belong to a real account, so only identified users can be selected.
+  const clientOptions = (clients ?? []).filter((client) => !client.isAnonymous);
 
+  const handleCreate = async () => {
+    if (!newTitle.trim() || !newClientId) return;
     await createProject({
-      clientId: "" as any, // demo placeholder
-      title: newTitle,
+      clientId: newClientId as Id<"users">,
+      title: newTitle.trim(),
       description: newDesc || undefined,
       status: newStatus,
       projectType: newType,
     });
     setShowCreate(false);
+    setNewClientId("");
     setNewTitle("");
     setNewDesc("");
   };
@@ -844,7 +801,7 @@ function AdminProjectsContent() {
   const handleAddTracking = async () => {
     if (!selectedId || !trackingTitle.trim()) return;
     await addTracking({
-      projectId: selectedId as any,
+      projectId: selectedId,
       title: trackingTitle,
       description: trackingDesc || undefined,
       status: trackingStatus,
@@ -857,7 +814,7 @@ function AdminProjectsContent() {
   const handleAddDeliverable = async () => {
     if (!selectedId || !deliverableName.trim()) return;
     await addDeliverable({
-      projectId: selectedId as any,
+      projectId: selectedId,
       name: deliverableName,
       fileUrl: deliverableUrl || undefined,
     });
@@ -884,6 +841,14 @@ function AdminProjectsContent() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-xl border bg-card space-y-4">
           <h3 className="font-semibold text-sm">Create New Project</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select value={newClientId} onChange={(e) => setNewClientId(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm">
+              <option value="">Select a client account…</option>
+              {clientOptions.map((client) => (
+                <option key={client._id} value={client._id}>
+                  {client.name ?? client.email ?? client._id}
+                </option>
+              ))}
+            </select>
             <input placeholder="Project title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
             <input placeholder="Description (optional)" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="px-3 py-2 rounded-lg border bg-background text-sm" />
             <select value={newType} onChange={(e) => setNewType(e.target.value as any)} className="px-3 py-2 rounded-lg border bg-background text-sm">
@@ -899,8 +864,13 @@ function AdminProjectsContent() {
               <option value="on_hold">On Hold</option>
             </select>
           </div>
+          {clientOptions.length === 0 && (
+            <p className="text-xs text-amber-600">
+              No client accounts exist yet. A client signs up on /auth first; the project is then attached to that account.
+            </p>
+          )}
           <div className="flex gap-2">
-            <button onClick={handleCreate} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark">Create</button>
+            <button onClick={handleCreate} disabled={!newClientId || !newTitle.trim()} className="px-4 py-2 bg-electric text-white rounded-lg text-sm font-medium hover:bg-electric-dark disabled:opacity-50 disabled:cursor-not-allowed">Create</button>
             <button onClick={() => setShowCreate(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
           </div>
         </motion.div>

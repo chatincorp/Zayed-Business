@@ -1,0 +1,621 @@
+{
+  "services": [
+    {
+      "slug": "fmcg-order-booking",
+      "name": "FMCG Order Booking",
+      "summary": "structured order capture, call cycles and dispatch confirmation for distributors and field sales teams",
+      "detail": "We design and run order-booking operations that give your field team one consistent call cycle, one order form and a reliable route from outlet to depot — from outlet master data and pricing rules to confirmation calls, credit checks and dispatch handoff.",
+      "outcomes": [
+        "Fewer order errors and delivery disputes",
+        "Predictable call cycles and outlet coverage",
+        "Faster order-to-dispatch turnaround",
+        "Daily order reporting and reconciliation"
+      ],
+      "pricing": "scoped per territory after a short discovery call",
+      "proofPoints": [
+        "Outlet master data and territory mapping built with your team",
+        "Order confirmation, credit checks and dispatch handoff in one flow",
+        "Daily order reporting your depot and finance teams can reconcile"
+      ],
+      "delivery": "on-site",
+      "places": [
+        "nairobi",
+        "mombasa",
+        "kisumu",
+        "nakuru",
+        "eldoret"
+      ]
+    },
+    {
+      "slug": "fmcg-sales",
+      "name": "FMCG Sales",
+      "summary": "route-to-market sales programmes, distributor coverage and outlet-level execution",
+      "detail": "FMCG sales are won in the details: the outlets covered, the pack sizes on shelf, the visit frequency and the incentives for distributors and reps. We connect your sales targets to real coverage, then support the team with territory plans, pricing architecture and performance routines.",
+      "outcomes": [
+        "Wider, smarter outlet coverage",
+        "Clear pricing and pack architecture",
+        "Measurable rep and distributor performance",
+        "A repeatable route-to-market playbook"
+      ],
+      "pricing": "from $2,000 depending on territory count",
+      "proofPoints": [
+        "Territory, target and coverage plans built from your own outlet data",
+        "Pricing and trade terms that protect margin",
+        "Monthly sell-in and sell-out performance reviews"
+      ],
+      "delivery": "on-site",
+      "places": [
+        "nairobi",
+        "mombasa",
+        "kisumu",
+        "nakuru",
+        "eldoret"
+      ]
+    },
+    {
+      "slug": "fmcg-supplier-sourcing",
+      "name": "FMCG Supplier Sourcing",
+      "summary": "identifying, vetting and onboarding FMCG suppliers with dependable quality, pricing and lead times",
+      "detail": "Margin and availability both start with the supplier. We shortlist and qualify suppliers that can actually deliver — consistent quality, transparent pricing, realistic lead times and capacity to scale — then handle samples, landed-cost comparison, terms negotiation and onboarding.",
+      "outcomes": [
+        "Access to vetted, capable suppliers",
+        "Better landed cost and payment terms",
+        "Reduced stock-outs and emergency buying",
+        "Backup-supplier and continuity planning"
+      ],
+      "pricing": "from $1,800 depending on category breadth",
+      "proofPoints": [
+        "Sample evaluation and quality checks before you commit",
+        "Landed-cost benchmarking against your current suppliers",
+        "Supplier scorecards and backup sourcing built into the plan"
+      ],
+      "delivery": "on-site",
+      "places": [
+        "nairobi",
+        "mombasa",
+        "kisumu",
+        "nakuru",
+        "eldoret"
+      ]
+    },
+    {
+      "slug": "fmcg-merchandizing",
+      "name": "FMCG Merchandizing",
+      "summary": "planograms, shelf placement and in-store display standards that lift visibility and sell-through",
+      "detail": "Shoppers decide in seconds, and most of that decision happens at the shelf. We design merchandizing standards that put products in the right place, at the right height, with the right signage and stock levels, then help your team execute them consistently across outlets.",
+      "outcomes": [
+        "Stronger visibility in key outlets",
+        "Higher sell-through per shelf facing",
+        "Consistent execution across the estate",
+        "Photo-verified compliance you can review"
+      ],
+      "pricing": "from $1,600 per execution wave",
+      "proofPoints": [
+        "Planograms designed for your categories and channels",
+        "Outlet audit checklists with photo evidence",
+        "Merchandiser training and coverage planning"
+      ],
+      "delivery": "on-site",
+      "places": []
+    },
+    {
+      "slug": "fmcg-product-promotion",
+      "name": "FMCG Product Promotion",
+      "summary": "consumer promotions, trade offers and activations that drive trial, repeat purchase and distributor pull",
+      "detail": "A good FMCG promotion moves stock now and builds a habit that lasts. We plan around a clear objective — trial, basket size, distributor loading or new-outlet penetration — then design the mechanic, trade terms, activation and measurement so you know what worked.",
+      "outcomes": [
+        "Faster stock movement and rotation",
+        "Higher trial and repeat purchase",
+        "Promotions that protect margin",
+        "Clear measurement of every campaign"
+      ],
+      "pricing": "from $2,200 per campaign wave",
+      "proofPoints": [
+        "Mechanic and trade terms designed around a margin floor",
+        "Regional pilots before national rollout",
+        "Redemption tracking and post-campaign review"
+      ],
+      "delivery": "on-site",
+      "places": []
+    },
+    {
+      "slug": "strategic-business-planning",
+      "name": "Strategic Business Planning",
+      "summary": "market research, growth strategy and execution roadmaps aligned to your commercial goals",
+      "detail": "We map where the business stands today, where the market is heading and how to position for sustainable growth — combining market research, competitive analysis and a practical execution roadmap your team can act on immediately.",
+      "outcomes": [
+        "Clear direction aligned with your business vision",
+        "Data-driven decisions backed by market research",
+        "A roadmap your whole team can follow",
+        "Measurable milestones and accountability"
+      ],
+      "pricing": "from $2,500 per engagement",
+      "proofPoints": [
+        "Market and competitive analysis specific to your category",
+        "Financial projections and scenario planning",
+        "Implementation roadmap with quarterly reviews"
+      ],
+      "delivery": "remote",
+      "places": []
+    },
+    {
+      "slug": "cctv-surveillance-systems",
+      "name": "CCTV & Surveillance Systems",
+      "summary": "professional CCTV, IP camera and monitoring systems designed, installed and maintained",
+      "detail": "We design, install and maintain surveillance systems tailored to the site: from a four-camera office setup to networked HD coverage across multiple facilities. Every installation includes site planning, professional mounting, network configuration, testing and handover training.",
+      "outcomes": [
+        "24/7 monitoring with clear image quality",
+        "Deterrence that reduces incidents",
+        "Remote access from phone or desktop",
+        "Scalable systems that grow with the site"
+      ],
+      "pricing": "quoted per site after a free security assessment",
+      "proofPoints": [
+        "On-site assessment before any equipment is specified",
+        "IP, HD and PTZ options with night-vision coverage",
+        "Remote monitoring, video analytics and maintenance packages"
+      ],
+      "delivery": "on-site",
+      "places": [
+        "nairobi",
+        "mombasa",
+        "kisumu",
+        "nakuru",
+        "eldoret"
+      ]
+    },
+    {
+      "slug": "ai-system-integration",
+      "name": "AI System Integration",
+      "summary": "AI woven into existing CRM, database and workflow systems to automate work and sharpen decisions",
+      "detail": "We connect intelligent automation to the systems you already run — CRM, databases, websites and internal workflows — so the team works faster, decisions use live data and customers get a better experience without ripping out what works.",
+      "outcomes": [
+        "Faster processes through intelligent automation",
+        "Better decisions powered by real-time data",
+        "Seamless integration with existing tools",
+        "Scalable AI that grows with the business"
+      ],
+      "pricing": "from $5,000 for an integration engagement",
+      "proofPoints": [
+        "Workflow automation and intelligent document processing",
+        "AI agents with setup, training and monthly management",
+        "Analytics and reporting wired into your existing systems"
+      ],
+      "delivery": "remote",
+      "places": []
+    },
+    {
+      "slug": "custom-corporate-websites",
+      "name": "Custom Corporate Websites",
+      "summary": "bespoke, fast, SEO-ready corporate websites engineered for conversion",
+      "detail": "Every project starts with your brand, audience and commercial goal. We design and build a custom site that reflects the business, loads fast on every device and guides visitors toward the actions that matter — enquiry, order or account sign-up.",
+      "outcomes": [
+        "A website that represents your brand properly",
+        "Fast load times and smooth performance",
+        "Mobile-first responsive design",
+        "SEO-optimised architecture and analytics"
+      ],
+      "pricing": "from $5,000 per site",
+      "proofPoints": [
+        "Custom UI/UX design with mobile-first development",
+        "Technical SEO, structured data and analytics setup",
+        "CMS integration so your team can publish without a developer"
+      ],
+      "delivery": "remote",
+      "places": []
+    },
+    {
+      "slug": "marketplace-listings",
+      "name": "Marketplace Product Listings",
+      "summary": "product listings and storefronts on Jumia, Jiji and Kilimall that put stock where buyers already search",
+      "detail": "We handle listing and visibility across Jumia, Jiji and Kilimall — correct titles, clear descriptions, strong photos, the right categories, platform-appropriate pricing and profiles that look credible — so products get found and enquiries turn into orders.",
+      "outcomes": [
+        "Products listed where buyers already search",
+        "Consistent, credible storefronts across platforms",
+        "Less time spent on marketplace uploads",
+        "One team handling multiple marketplaces"
+      ],
+      "pricing": "from $400 per platform",
+      "proofPoints": [
+        "Titles, descriptions and category optimisation per platform",
+        "Photo and listing-content guidance",
+        "Pricing, stock and refresh updates handled for you"
+      ],
+      "delivery": "remote",
+      "places": []
+    },
+    {
+      "slug": "account-social-media-management",
+      "name": "Account & Social Media Management",
+      "summary": "day-to-day management of your social accounts so the brand stays visible, consistent and responsive",
+      "detail": "We manage accounts end to end: content planning, posting, captions, community replies, monitoring and a calendar that keeps the voice steady across platforms — built around your brand reality rather than a generic content factory.",
+      "outcomes": [
+        "Accounts that stay active and on-brand",
+        "Consistent posting without the daily load",
+        "Faster responses to customers and enquiries",
+        "Clearer voice across every platform"
+      ],
+      "pricing": "from $800 per month",
+      "proofPoints": [
+        "Content calendar and content bank built with you",
+        "Post creation, scheduling and platform formatting",
+        "Monthly reporting and review against your goals"
+      ],
+      "delivery": "remote",
+      "places": []
+    },
+    {
+      "slug": "ad-generation",
+      "name": "Ad Generation",
+      "summary": "natural and AI-generated image, video and radio-style ads built for the placement they run in",
+      "detail": "We generate ads across the styles you need: natural ads that feel part of the feed, AI-generated ads when scale or variation helps, image, video or both, plus radio-style spots with natural or AI voice-overs.",
+      "outcomes": [
+        "Ads in the formats that actually get noticed",
+        "Creative that fits the channel and the goal",
+        "Variation so you can test what works",
+        "Radio-style spots with natural or AI voice-overs"
+      ],
+      "pricing": "from $600 per ad set",
+      "proofPoints": [
+        "Organic-style and AI-generated ad concepts side by side",
+        "Image, video and combined ad sets",
+        "Voice-over options for radio-style placements"
+      ],
+      "delivery": "remote",
+      "places": []
+    }
+  ],
+  "places": [
+    {
+      "slug": "nairobi",
+      "name": "Nairobi",
+      "kind": "city",
+      "phrase": "in Nairobi",
+      "context": "Nairobi is Kenya's commercial capital, where distributors, retailers and corporate buyers sit within a few kilometres of each other — and where suppliers are judged on response time and follow-through.",
+      "areas": [
+        "Westlands",
+        "Upper Hill",
+        "Industrial Area",
+        "Karen",
+        "Thika Road",
+        "Mombasa Road"
+      ]
+    },
+    {
+      "slug": "mombasa",
+      "name": "Mombasa",
+      "kind": "city",
+      "phrase": "in Mombasa",
+      "context": "Mombasa's port and tourism economy means supply chains and premises that cannot afford downtime, with buyers who work across the island, the mainland and the coastal strip.",
+      "areas": [
+        "Mombasa Island",
+        "Nyali",
+        "Changamwe",
+        "Likoni",
+        "Bamburi",
+        "Diani"
+      ]
+    },
+    {
+      "slug": "kisumu",
+      "name": "Kisumu",
+      "kind": "city",
+      "phrase": "in Kisumu",
+      "context": "Kisumu is the Lake Victoria trading hub for western Kenya, connecting county distributors, lake-side logistics and a fast-growing retail and services market.",
+      "areas": [
+        "Milimani",
+        "Kondele",
+        "Industrial Area",
+        "Ahero",
+        "Maseno",
+        "Kisian"
+      ]
+    },
+    {
+      "slug": "nakuru",
+      "name": "Nakuru",
+      "kind": "city",
+      "phrase": "in Nakuru",
+      "context": "Nakuru anchors the Rift Valley corridor between Nairobi and western Kenya, with a dense mix of agricultural processors, wholesalers and highway-facing retail.",
+      "areas": [
+        "Nakuru CBD",
+        "Milimani",
+        "Naivasha Road",
+        "Gilgil",
+        "Njoro",
+        "Salgaa"
+      ]
+    },
+    {
+      "slug": "eldoret",
+      "name": "Eldoret",
+      "kind": "town",
+      "phrase": "in Eldoret",
+      "context": "Eldoret is one of Kenya's fastest-growing towns, with a strong agri-processing base, a university economy and growing demand for professional services delivered locally rather than from Nairobi.",
+      "areas": [
+        "Eldoret CBD",
+        "Elgon View",
+        "Langas",
+        "Kapsabet Road",
+        "Kapsoya",
+        "Iten"
+      ]
+    }
+  ],
+  "localAngles": {
+    "cctv-surveillance-systems/nairobi": "Nairobi CCTV jobs are rarely about camera count: upstairs offices need cable routes that survive a landlord's renovation, and shops along Thika Road need footage that still identifies a face at night.",
+    "cctv-surveillance-systems/mombasa": "Mombasa installations have to survive salt air and monsoon power dips — marine-grade housings, surge protection and a recorder that restarts clean after an outage matter more than megapixels.",
+    "cctv-surveillance-systems/kisumu": "In Kisumu we usually start at the lake-facing yard and the loading gate: the two places where stock leaves quietly, and where one camera pointing the wrong way sinks the whole project.",
+    "cctv-surveillance-systems/nakuru": "Nakuru sites often stretch between the CBD and a highway yard, so we plan point-to-point wireless links instead of assuming one recorder can reach both.",
+    "cctv-surveillance-systems/eldoret": "Eldoret work is mostly agri-processors and campus-adjacent businesses, where dust, long cable runs and a maintenance visit that does not need a Nairobi flight set the design.",
+    "fmcg-order-booking/nairobi": "Nairobi order books are built around traffic: call cycles are grouped by corridor so a rep spends the day selling in Industrial Area rather than sitting on Mombasa Road.",
+    "fmcg-order-booking/mombasa": "On the coast the call cycle follows the stock, not the clock — island outlets in the morning, Nyali and Bamburi in the afternoon, with depot cut-offs that respect port clearance days.",
+    "fmcg-order-booking/kisumu": "Kisumu bookings usually span the lake ring and the county towns inland, so the order form has to handle routes that take a full day and depots that only load twice a week.",
+    "fmcg-order-booking/nakuru": "Nakuru is a highway market: bookings are planned around Naivasha and Gilgil runs, and confirmation calls happen before the trucks leave rather than after.",
+    "fmcg-order-booking/eldoret": "Eldoret order capture is seasonal — planting, harvest and school terms move volume fast — so call cycles and credit limits have to flex with the agricultural calendar.",
+    "fmcg-sales/nairobi": "Nairobi's fight is for shelf space in modern trade alongside the dukas that still move the volume; coverage and pack architecture have to be planned for both at once.",
+    "fmcg-sales/mombasa": "Mombasa distribution splits between the island, the mainland and the tourist strip, and trade terms have to reflect three very different logistics realities.",
+    "fmcg-sales/kisumu": "In Kisumu the distributor network reaches well beyond the city into Siaya, Vihiga and Homa Bay, so territory design has to account for routes that cross counties.",
+    "fmcg-sales/nakuru": "Nakuru rewards route discipline: the town is a staging point for Rift Valley trade, and reps who cover the highway towns consistently are the ones who win the volume.",
+    "fmcg-sales/eldoret": "Eldoret's market is agricultural and institutional — agri-inputs, processors and campuses — so the sales plan is built around buying seasons rather than monthly pushes.",
+    "fmcg-supplier-sourcing/nairobi": "Nairobi sourcing conversations end at landed cost: we benchmark against Industrial Area wholesalers and the import route through Mombasa before recommending anyone.",
+    "fmcg-supplier-sourcing/mombasa": "Mombasa is where the container actually lands, so supplier vetting includes clearing timelines, port charges and who carries demurrage when a shipment slips.",
+    "fmcg-supplier-sourcing/kisumu": "Kisumu sourcing leans on lake and cross-border supply, so we check quality consistency and restocking cadence rather than just the first quote.",
+    "fmcg-supplier-sourcing/nakuru": "Nakuru suppliers are often processors close to the farm — good prices, volatile capacity — and we qualify both before you commit volume.",
+    "fmcg-supplier-sourcing/eldoret": "Eldoret gives access to grain, dairy and agri-input suppliers; the work is proving capacity through a harvest cycle, not a single sample."
+  },
+  "kenyaNational": {
+    "fmcg-order-booking": {
+      "angle": "A national order book only works when the desk in Nairobi and the rep in Kisumu agree on the same price, the same MOQ and the same credit position. Kenyan FMCG orders usually flow through depots in Nairobi, Mombasa, Kisumu, Nakuru and Eldoret, with distributors covering the counties in between. We run one order form, one confirmation script and one daily reconciliation across all of them, so a booking taken on the coast is visible to the depot that has to load it the same afternoon.",
+      "model": "National order booking is run as five depot clusters feeding one central desk: reps capture orders on a fixed call cycle, the desk confirms stock, MOQ and credit, then releases a dispatch list to the nearest depot per route.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kilifi",
+        "Kericho"
+      ]
+    },
+    "fmcg-sales": {
+      "angle": "Kenya is not one market. Modern trade in Nairobi and Mombasa behaves differently from the dukas and kiosks that still carry most FMCG volume, and both behave differently from distributor-led trade in the counties. A national sales plan has to set separate coverage standards, pack sizes and trade terms for each channel, then hold one reporting standard across all of them. That is the work: route design, distributor terms and rep routines that survive contact with a real market.",
+      "model": "National sales programmes are built channel by channel — modern trade, traditional trade and distributor-led county coverage — with territory targets, pricing architecture and a monthly sell-in/sell-out review that the whole country reports into.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Bungoma",
+        "Trans Nzoia"
+      ]
+    },
+    "fmcg-supplier-sourcing": {
+      "angle": "Nationally, sourcing is a landed-cost question. Mombasa handles the containers, Nairobi's Industrial Area and Thika hold the manufacturers and importers, and Nakuru, Eldoret and Kisumu sit close to the processors and farms. Vetting a supplier across that spread means checking clearing timelines and port charges on the coast, capacity through a harvest upcountry, and quality consistency between batches — not simply comparing a price list.",
+      "model": "National sourcing runs as a shortlist, sample and audit cycle: landed cost is benchmarked for imported lines, capacity is tested through a peak season for local lines, and onboarding is batched by region so travel does not inflate the cost of diligence.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Nakuru",
+        "Uasin Gishu",
+        "Kisumu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Thika",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kilifi",
+        "Kericho"
+      ]
+    },
+    "fmcg-merchandizing": {
+      "angle": "Shelf standards are national until they meet a specific store. A Nairobi supermarket planogram has to survive a smaller Mombasa outlet with different fixtures, and a Kisumu kiosk needs a different visibility answer again. We set the standard centrally, then train merchandiser pods per city to execute it with photo evidence, so the report shows what is actually on shelf rather than what was planned in the office.",
+      "model": "Merchandising runs in city pods — Nairobi, Mombasa, Kisumu, Nakuru and Eldoret — with a shared planogram library, weekly photo audits and a national compliance summary for the brand owner.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kilifi",
+        "Kericho"
+      ]
+    },
+    "fmcg-product-promotion": {
+      "angle": "Promotion timing across Kenya follows money and calendar, not a brand's internal quarter. Paydays, school terms, planting and harvest, Ramadan and December trade all move volume in different counties at different times. A national promotion calendar has to stagger activations around those windows and measure lift per outlet, or the spend simply discounts sales that would have happened anyway.",
+      "model": "National promotions are planned on one calendar, then activated city by city with outlet-level redemption tracking, so lift is measured against a control group rather than assumed from volume.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Bungoma",
+        "Kilifi"
+      ]
+    },
+    "strategic-business-planning": {
+      "angle": "A national plan is mostly a set of choices about where not to compete. Kenyan businesses often want to be in Nairobi, the coast and the lake region at once; the plan has to say which market funds the next one, which costs are fixed versus route-dependent, and what has to be true before a second county is opened. We work from your actual numbers — margin by line, cost to serve by route — rather than a template deck.",
+      "model": "Planning engagements run remotely with working sessions, plus in-person workshops in Nairobi when the board needs them, and produce a written plan with numbers, owners and review dates.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kisii",
+        "Garissa"
+      ]
+    },
+    "cctv-surveillance-systems": {
+      "angle": "Nationwide CCTV is a logistics problem as much as an installation one. Equipment has to reach a site in Kilifi or Kisumu in the same condition it left Nairobi, installers on the ground need the same commissioning checklist, and someone has to own the maintenance call three months later. We design centrally, install through vetted local teams, and keep one record of every camera, cable run and warranty across the country.",
+      "model": "National rollouts use a standard site survey, a single equipment specification and local installation partners, with remote health checks and a maintenance rota agreed per region before the first drill goes in.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kilifi",
+        "Kericho"
+      ]
+    },
+    "ai-system-integration": {
+      "angle": "Kenyan AI projects live or die on the boring parts: where the data sits, who is allowed to see it, whether the system can take M-Pesa and whether staff will use it on a phone rather than a laptop. Integration work here has to respect the Data Protection Act, work over patchy connectivity, and hand over documentation a local IT person can actually maintain after we leave.",
+      "model": "National AI integration is delivered remotely with a Nairobi kick-off where needed: data mapping, a small pilot on one workflow, documented handover and a support window before anything is called live.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kisii",
+        "Kilifi"
+      ]
+    },
+    "custom-corporate-websites": {
+      "angle": "For most Kenyan organisations the website is the first credibility check a buyer makes, often on a phone and on mobile data. That changes the brief: light pages, fast first paint, clear contact routes, M-Pesa or bank details where payment matters, and content a non-technical administrator can update. County governments, SACCOs, schools and agri-businesses each need a different structure for the same underlying standard.",
+      "model": "National website work is delivered remotely: discovery calls, a staging link you can review, content and admin training over video, then launch and a support window. On-site sessions in Nairobi are available when a team needs them.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kisii",
+        "Kilifi"
+      ]
+    },
+    "marketplace-listings": {
+      "angle": "Selling on Jumia or Kilimall nationally is a catalogue and fulfilment discipline, not a listing. Titles, images, categories and pricing rules decide whether a product is found; stock accuracy and delivery promises decide whether it stays live. We build the listing structure, the pricing and promotion rules, and the reconciliation between marketplace orders and your own stock so oversells stop.",
+      "model": "Marketplace work runs remotely with a catalogue build, feed and pricing rules, then weekly reconciliation against stock and a review of returns and cancellation reasons by county.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kisii",
+        "Kilifi"
+      ]
+    },
+    "account-social-media-management": {
+      "angle": "A national social presence in Kenya is really several local conversations. Nairobi audiences argue about convenience and price, the coast responds to tourism seasonality, and county audiences engage heavily through WhatsApp groups and Facebook rather than the platforms a brand team uses daily. We run one brand voice with a local content calendar, English and Swahili where it is natural, and community replies handled within a working day.",
+      "model": "Social management is remote with a monthly content calendar, platform-specific formats, a WhatsApp channel where it fits the audience, and a monthly report on reach, replies and enquiries by region.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kisii",
+        "Kilifi"
+      ]
+    },
+    "ad-generation": {
+      "angle": "Nationally, paid media is wasted when it targets 'Kenya' as one audience. Cost per enquiry differs sharply between Nairobi, the coast and the lake region, and a campaign that works for a Nairobi service business can fail for an upcountry retailer. We build creative per audience, geo-target by county, and judge spend on qualified enquiries rather than impressions or likes.",
+      "model": "Ad programmes run remotely: audience and offer research, creative sets per region, Meta and Google campaigns, and a weekly report on spend, cost per qualified enquiry and the counties producing them.",
+      "primary": [
+        "Nairobi",
+        "Mombasa",
+        "Kisumu",
+        "Nakuru",
+        "Uasin Gishu"
+      ],
+      "secondary": [
+        "Kiambu",
+        "Machakos",
+        "Kajiado",
+        "Nyeri",
+        "Meru",
+        "Kakamega",
+        "Kisii",
+        "Kilifi"
+      ]
+    }
+  }
+}

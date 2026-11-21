@@ -15,6 +15,7 @@ import { ArrowRight, Loader2, Mail, ArrowLeft, RefreshCw, ShieldCheck } from "lu
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router";
 import PolicyConsent from "@/components/PolicyConsent";
+import YasirZayedLogo from "@/components/YasirZayedLogo";
 import StaffSignInChoice from "@/components/StaffSignInChoice";
 
 interface AuthProps {
@@ -194,9 +195,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           {/* Logo */}
           <div className="mb-8 text-center">
             <Link to="/" className="inline-flex items-center gap-3 group mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-electric to-electric-dark flex items-center justify-center">
-                <span className="text-white font-bold text-base">YZ</span>
-              </div>
+              <YasirZayedLogo height={46} />
               <div className="flex flex-col text-left">
                 <span className="text-white font-bold text-base tracking-tight leading-none">
                   YASIR ZAYED

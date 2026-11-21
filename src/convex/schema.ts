@@ -11,6 +11,7 @@ export const ROLES = {
   EDITOR: "editor",
   MARKETING: "marketing",
   SALES: "sales",
+  SUPPLIER: "supplier",
   SECURITY_MANAGER: "security_manager",
   TABLOID_EDITOR: "tabloid_editor",
 } as const;
@@ -23,6 +24,7 @@ export const roleValidator = v.union(
   v.literal(ROLES.EDITOR),
   v.literal(ROLES.MARKETING),
   v.literal(ROLES.SALES),
+  v.literal(ROLES.SUPPLIER),
   v.literal(ROLES.SECURITY_MANAGER),
   v.literal(ROLES.TABLOID_EDITOR),
 );
@@ -321,6 +323,8 @@ const schema = defineSchema(
       caseSize: v.number(),
       moq: v.number(),
       pricePerUnit: v.number(),
+      stockQuantity: v.optional(v.number()),
+      leadTime: v.optional(v.string()),
       currency: v.string(),
       paymentTerms: v.string(),
       imageUrl: v.optional(v.string()),
@@ -349,6 +353,31 @@ const schema = defineSchema(
       deliveryAddress: v.string(),
       preferredDate: v.optional(v.string()),
       notes: v.optional(v.string()),
+      // How the buyer takes the goods: delivered to the address above, or
+      // collected from a named point by a named person.
+      collectionMethod: v.optional(
+        v.union(v.literal("delivery"), v.literal("pickup")),
+      ),
+      collectionPoint: v.optional(v.string()),
+      collectionContactName: v.optional(v.string()),
+      collectionContactPhone: v.optional(v.string()),
+      collectionIdNumber: v.optional(v.string()),
+      collectionNotes: v.optional(v.string()),
+      // Sales desk ownership
+      salesRepEmail: v.optional(v.string()),
+      salesRepName: v.optional(v.string()),
+      internalNotes: v.optional(v.string()),
+      // Status history shown in the admin, customer and rep dashboards.
+      timeline: v.optional(
+        v.array(
+          v.object({
+            status: v.string(),
+            note: v.optional(v.string()),
+            author: v.string(),
+            createdAt: v.number(),
+          }),
+        ),
+      ),
       items: v.array(
         v.object({
           productId: v.optional(v.id("fmcgProducts")),
@@ -375,9 +404,70 @@ const schema = defineSchema(
     })
       .index("by_status", ["status"])
       .index("by_email", ["email"])
+      .index("by_sales_rep", ["salesRepEmail"])
       .index("by_created", ["createdAt"]),
 
-    // --- FMCG: Marketing enquiries from the FMCG page ---
+    // --- FMCG: Commission rules per product + MOQ threshold ---
+    commissionRules: defineTable({
+      productId: v.id("fmcgProducts"),
+      supplierEmail: v.string(),
+      currency: v.string(),
+      // Commission tiers ordered by the MOQ threshold at which the tier starts
+      // to apply. The first tier whose threshold <= order total quantity wins the
+      // rate used for that line, so a single threshold can gate a new rate.
+      tiers: v.array(
+        v.object({
+          thresholdQuantity: v.number(),
+          ratePercent: v.number(),
+        }),
+      ),
+      notes: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_product", ["productId"])
+      .index("by_supplier", ["supplierEmail"]),
+
+    // --- FMCG: Commission slips generated for sales reps on fulfilled orders ---
+    commissionSlips: defineTable({
+      referenceSlug: v.string(),
+      orderId: v.id("wholesaleOrders"),
+      salesRepEmail: v.string(),
+      salesRepName: v.optional(v.string()),
+      currency: v.string(),
+      orderTotal: v.number(),
+      // One row per product line that earns commission.
+      lines: v.array(
+        v.object({
+          productId: v.id("fmcgProducts"),
+          name: v.string(),
+          supplierName: v.string(),
+          quantity: v.number(),
+          unit: v.string(),
+          unitPrice: v.number(),
+          lineTotal: v.number(),
+          applicableRatePercent: v.number(),
+          commissionAmount: v.number(),
+          thresholdQuantity: v.number(),
+        }),
+      ),
+      totalCommission: v.number(),
+      triggeredByStatus: v.string(),
+      notes: v.optional(v.string()),
+      status: v.union(
+        v.literal("pending"),
+        v.literal("issued"),
+        v.literal("paid"),
+      ),
+      paidAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_order", ["orderId"])
+      .index("by_rep", ["salesRepEmail"])
+      .index("by_reference", ["referenceSlug"]),
+
+    // --- FMCG: Marketing enquiries from the FMCG services page ---
     fmcgEnquiries: defineTable({
       name: v.string(),
       businessName: v.string(),
@@ -393,7 +483,7 @@ const schema = defineSchema(
         v.literal("closed"),
       ),
       createdAt: v.number(),
-    }).index("by_created", ["createdAt"]),
+    }).index("by_status", ["status"]),
 
     // --- FAQs (site-facing) ---
     faqs: defineTable({
@@ -680,6 +770,31 @@ const schema = defineSchema(
     })
       .index("by_status", ["status"])
       .index("by_department", ["department"]),
+
+    // --- Market Data Cache ---
+    // Cached quotes for the tabloid market bar and the markets explorer. Rows
+    // are written by the `markets.quotes` action and expire after a few minutes.
+    marketQuotes: defineTable({
+      symbol: v.string(),
+      price: v.number(),
+      previousClose: v.number(),
+      change: v.number(),
+      changePercent: v.number(),
+      currency: v.string(),
+      exchange: v.string(),
+      name: v.optional(v.string()),
+      closes: v.array(v.number()),
+      marketTime: v.number(),
+      fetchedAt: v.number(),
+    }).index("by_symbol", ["symbol"]),
+
+    // Daily USD reference rates for the all-countries forex view.
+    marketFx: defineTable({
+      base: v.string(),
+      rates: v.record(v.string(), v.number()),
+      provider: v.string(),
+      fetchedAt: v.number(),
+    }).index("by_base", ["base"]),
 
     // --- Project Download Tracking ---
     projectDownloads: defineTable({

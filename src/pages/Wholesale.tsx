@@ -27,13 +27,29 @@ import {
   Truck,
 } from "lucide-react";
 import {
-  DEMO_WHOLESALE_PRODUCTS,
   FMCG_CATEGORIES,
   FMCG_CONTACT,
   WHOLESALE_COUNTIES,
   formatKes,
-  type WholesaleProduct,
 } from "@/data/fmcg";
+
+interface WholesaleProduct {
+  id: string;
+  backendId?: string;
+  name: string;
+  supplierName: string;
+  category: string;
+  unit: string;
+  caseSize: number;
+  moq: number;
+  pricePerUnit: number;
+  currency: string;
+  paymentTerms: string;
+  imageUrl: string;
+  stockNote: string;
+  stockQuantity?: number;
+  leadTime?: string;
+}
 
 interface CartLine {
   product: WholesaleProduct;
@@ -48,9 +64,15 @@ interface BookingPayload {
   email: string;
   phone: string;
   county: string;
-  deliveryAddress: string;
+  deliveryAddress?: string;
   preferredDate?: string;
   notes?: string;
+  collectionMethod?: "delivery" | "pickup";
+  collectionPoint?: string;
+  collectionContactName?: string;
+  collectionContactPhone?: string;
+  collectionIdNumber?: string;
+  collectionNotes?: string;
   items: Array<{
     productId?: string;
     name: string;
@@ -131,7 +153,7 @@ export default function Wholesale() {
       {isBackendConfigured ? (
         <LiveWholesale />
       ) : (
-        <WholesaleView products={DEMO_WHOLESALE_PRODUCTS} />
+        <WholesaleView products={[]} />
       )}
       <Footer />
       <FloatingWidgets />
@@ -158,15 +180,21 @@ function LiveWholesale() {
       currency: product.currency,
       paymentTerms: product.paymentTerms,
       imageUrl: product.resolvedImageUrl ?? product.imageUrl ?? "",
-      stockNote: "Approved supplier listing · stock confirmed on review",
+      stockNote:
+        product.stockQuantity === undefined
+          ? "Approved supplier listing · stock confirmed on review"
+          : product.stockQuantity > 0
+            ? `${product.stockQuantity} ${product.unit}s in stock`
+            : "Out of stock · ask the desk for the next delivery",
+      stockQuantity: product.stockQuantity,
+      leadTime: product.leadTime,
     }));
   }, [liveProducts]);
 
   return (
     <WholesaleView
-      products={products.length > 0 ? products : DEMO_WHOLESALE_PRODUCTS}
+      products={products}
       loading={liveProducts === undefined}
-      usingDemo={products.length === 0 && liveProducts !== undefined}
       onBook={async (payload) => {
         const result = await bookOrder({
           ...payload,
@@ -188,16 +216,15 @@ function LiveWholesale() {
 function WholesaleView({
   products,
   loading = false,
-  usingDemo = false,
   onBook,
 }: {
   products: WholesaleProduct[];
   loading?: boolean;
-  usingDemo?: boolean;
   onBook?: (payload: BookingPayload) => Promise<BookingResult>;
 }) {
   const [cart, setCart] = useState<Cart>({});
   const [category, setCategory] = useState("All categories");
+  const [collectionMethod, setCollectionMethod] = useState<"delivery" | "pickup">("delivery");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<BookingResult | null>(null);
@@ -225,11 +252,17 @@ function WholesaleView({
     }));
   }
 
+  /** Highest quantity the supplier can actually supply for this line. */
+  function maxQuantity(product: WholesaleProduct) {
+    return product.stockQuantity ?? Number.POSITIVE_INFINITY;
+  }
+
   function changeQuantity(productId: string, delta: number) {
     setCart((current) => {
       const line = current[productId];
       if (!line) return current;
-      const next = Math.max(line.product.moq, line.quantity + delta);
+      const ceiling = maxQuantity(line.product);
+      const next = Math.min(ceiling, Math.max(line.product.moq, line.quantity + delta));
       return { ...current, [productId]: { ...line, quantity: next } };
     });
   }
@@ -259,9 +292,33 @@ function WholesaleView({
         email: String(form.get("email") ?? ""),
         phone: String(form.get("phone") ?? ""),
         county: String(form.get("county") ?? ""),
-        deliveryAddress: String(form.get("deliveryAddress") ?? ""),
+        deliveryAddress:
+          collectionMethod === "delivery"
+            ? String(form.get("deliveryAddress") ?? "")
+            : undefined,
         preferredDate: String(form.get("preferredDate") ?? "") || undefined,
         notes: String(form.get("notes") ?? "") || undefined,
+        collectionMethod,
+        collectionPoint:
+          collectionMethod === "pickup"
+            ? String(form.get("collectionPoint") ?? "")
+            : undefined,
+        collectionContactName:
+          collectionMethod === "pickup"
+            ? String(form.get("collectionContactName") ?? "")
+            : undefined,
+        collectionContactPhone:
+          collectionMethod === "pickup"
+            ? String(form.get("collectionContactPhone") ?? "")
+            : undefined,
+        collectionIdNumber:
+          collectionMethod === "pickup"
+            ? String(form.get("collectionIdNumber") ?? "") || undefined
+            : undefined,
+        collectionNotes:
+          collectionMethod === "pickup"
+            ? String(form.get("collectionNotes") ?? "") || undefined
+            : undefined,
         items: lines.map((line) => ({
           productId: line.product.backendId,
           name: line.product.name,
@@ -351,38 +408,6 @@ function WholesaleView({
                 )}
               </div>
             </div>
-
-            {/* Hero collage */}
-            <div className="relative hidden lg:block">
-              <div className="grid grid-cols-2 gap-3">
-                {DEMO_WHOLESALE_PRODUCTS.slice(0, 4).map((product, index) => (
-                  <div
-                    key={product.id}
-                    className={`relative overflow-hidden rounded-2xl border border-white bg-white shadow-sm ${
-                      index === 0 ? "col-span-2 aspect-[16/8]" : "aspect-square"
-                    }`}
-                  >
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy/75 to-transparent p-3">
-                      <p className="text-[11px] font-semibold text-white">{product.name}</p>
-                      <p className="text-[10px] text-white/60">{formatKes(product.pricePerUnit)} / {product.unit}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="absolute -bottom-5 left-6 flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-navy/5">
-                <ClipboardCheck className="h-4 w-4 text-amber-600" />
-                <div>
-                  <p className="text-[11px] font-semibold text-navy">Reviewed by the order desk</p>
-                  <p className="text-[10px] text-slate-400">Stock · terms · delivery</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -426,14 +451,6 @@ function WholesaleView({
                 : `${visibleProducts.length} product${visibleProducts.length === 1 ? "" : "s"} · prices in KES`}
             </p>
           </div>
-
-          {usingDemo && (
-            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900/75">
-              No supplier listings are live yet, so these are sample products for the
-              booking experience. Submit a booking and the order desk will confirm
-              current availability and pricing.
-            </div>
-          )}
 
           <div className="grid gap-6 lg:grid-cols-[1fr,340px]">
             <div>
@@ -532,12 +549,20 @@ function WholesaleView({
                                 </span>
                                 <button
                                   onClick={() => changeQuantity(product.id, 1)}
-                                  className="flex h-8 w-8 items-center justify-center rounded-md text-navy transition-colors hover:bg-white"
+                                  disabled={line.quantity >= maxQuantity(product)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-md text-navy transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
                                   aria-label={`Increase ${product.name} quantity`}
                                 >
                                   <Plus className="h-3.5 w-3.5" />
                                 </button>
                               </div>
+                            ) : product.stockQuantity === 0 ? (
+                              <button
+                                disabled
+                                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-400"
+                              >
+                                Out of stock
+                              </button>
                             ) : (
                               <button
                                 onClick={() => addToCart(product)}
@@ -685,18 +710,19 @@ function WholesaleView({
                 No payment has been taken. Keep this reference for follow-up.
               </p>
               <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                <Link
+                  to="/portal"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-light"
+                >
+                  Track this booking
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
                 <a
                   href="#wholesale-catalog"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-light"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-navy hover:border-amber-400"
                 >
                   Book another order
                 </a>
-                <Link
-                  to="/fmcg"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-navy hover:border-amber-400"
-                >
-                  Back to FMCG services
-                </Link>
               </div>
             </div>
           ) : (
@@ -752,7 +778,7 @@ function WholesaleView({
                     </div>
                     <div>
                       <label htmlFor="ws-county" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Delivery county *
+                        County *
                       </label>
                       <select id="ws-county" name="county" required className={inputClass} defaultValue="Nairobi">
                         {WHOLESALE_COUNTIES.map((county) => (
@@ -774,18 +800,124 @@ function WholesaleView({
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="ws-address" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Delivery address *
-                    </label>
-                    <input
-                      id="ws-address"
-                      name="deliveryAddress"
-                      required
-                      className={inputClass}
-                      placeholder="Building, street, town / market and any delivery notes"
-                    />
-                  </div>
+                  <fieldset>
+                    <legend className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      How do you want the goods? *
+                    </legend>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        { value: "delivery" as const, label: "Deliver to us", hint: "We confirm the window and cost", icon: Truck },
+                        { value: "pickup" as const, label: "We collect", hint: "Named collector at a collection point", icon: Building2 },
+                      ].map((option) => (
+                        <label
+                          key={option.value}
+                          className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                            collectionMethod === option.value
+                              ? "border-amber-400 bg-amber-50/60"
+                              : "border-slate-200 bg-white hover:border-amber-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="collectionMethod"
+                            value={option.value}
+                            checked={collectionMethod === option.value}
+                            onChange={() => setCollectionMethod(option.value)}
+                            className="mt-1 h-3.5 w-3.5 accent-amber-500"
+                          />
+                          <span>
+                            <span className="flex items-center gap-1.5 text-xs font-semibold text-navy">
+                              <option.icon className="h-3.5 w-3.5 text-amber-600" />
+                              {option.label}
+                            </span>
+                            <span className="mt-0.5 block text-[10px] text-slate-400">{option.hint}</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  {collectionMethod === "delivery" ? (
+                    <div>
+                      <label htmlFor="ws-address" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        Delivery address *
+                      </label>
+                      <input
+                        id="ws-address"
+                        name="deliveryAddress"
+                        required
+                        className={inputClass}
+                        placeholder="Building, street, town / market and any delivery notes"
+                      />
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4">
+                      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                        Collection details
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                          <label htmlFor="ws-collection-point" className="mb-1.5 block text-xs font-semibold text-slate-500">
+                            Preferred collection point *
+                          </label>
+                          <input
+                            id="ws-collection-point"
+                            name="collectionPoint"
+                            required
+                            className={inputClass}
+                            placeholder="e.g. Nairobi depot, Industrial Area — or ask the desk to advise"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="ws-collector-name" className="mb-1.5 block text-xs font-semibold text-slate-500">
+                            Person collecting *
+                          </label>
+                          <input
+                            id="ws-collector-name"
+                            name="collectionContactName"
+                            required
+                            className={inputClass}
+                            placeholder="Full name on the ID"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="ws-collector-phone" className="mb-1.5 block text-xs font-semibold text-slate-500">
+                            Collector phone *
+                          </label>
+                          <input
+                            id="ws-collector-phone"
+                            name="collectionContactPhone"
+                            type="tel"
+                            required
+                            className={inputClass}
+                            placeholder="+254 7xx xxx xxx"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="ws-collector-id" className="mb-1.5 block text-xs font-semibold text-slate-500">
+                            ID / passport number
+                          </label>
+                          <input
+                            id="ws-collector-id"
+                            name="collectionIdNumber"
+                            className={inputClass}
+                            placeholder="Checked at handover"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="ws-collector-notes" className="mb-1.5 block text-xs font-semibold text-slate-500">
+                            Vehicle / collection notes
+                          </label>
+                          <input
+                            id="ws-collector-notes"
+                            name="collectionNotes"
+                            className={inputClass}
+                            placeholder="Pickup truck, gate access, timing"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label htmlFor="ws-notes" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">

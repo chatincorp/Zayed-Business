@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSEO } from "@/lib/seo";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -770,6 +771,13 @@ function CheckoutModal({
 }
 
 export default function DemoEcommerce() {
+  useSEO({
+    title: "E-commerce Store Demo — Interactive Prototype",
+    description:
+      "An interactive preview of an online store built by Yasir Zayed: catalogue, cart, checkout and fulfilment flows.",
+    path: "/demo/ecommerce",
+    noindex: true,
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartLine[]>([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);

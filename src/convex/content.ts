@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { requireAdmin } from "./adminGuard";
 import { query, mutation } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 
@@ -114,6 +115,7 @@ export const upsertService = mutation({
     status: serviceStatus,
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     if (args.id) {
       await ctx.db.patch(args.id, {
@@ -145,6 +147,7 @@ export const upsertService = mutation({
 export const setServiceStatus = mutation({
   args: { id: v.id("services"), status: serviceStatus },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
   },
 });
@@ -152,6 +155,7 @@ export const setServiceStatus = mutation({
 export const deleteService = mutation({
   args: { id: v.id("services") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -171,6 +175,7 @@ export const upsertPage = mutation({
     status: pageStatus,
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     if (args.id) {
       await ctx.db.patch(args.id, {
@@ -202,6 +207,7 @@ export const upsertPage = mutation({
 export const deletePage = mutation({
   args: { id: v.id("pages") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -220,6 +226,7 @@ export const upsertNavItem = mutation({
     menu: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.id) {
       await ctx.db.patch(args.id, {
         label: args.label,
@@ -243,6 +250,7 @@ export const upsertNavItem = mutation({
 export const deleteNavItem = mutation({
   args: { id: v.id("navigation") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -266,6 +274,7 @@ export const upsertPlan = mutation({
     order: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     const fields = {
       name: args.name,
@@ -291,6 +300,7 @@ export const upsertPlan = mutation({
 export const setPlanActive = mutation({
   args: { id: v.id("plans"), active: v.boolean() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { active: args.active, updatedAt: Date.now() });
   },
 });
@@ -298,6 +308,7 @@ export const setPlanActive = mutation({
 export const deletePlan = mutation({
   args: { id: v.id("plans") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -316,6 +327,7 @@ export const upsertFaq = mutation({
     order: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     if (args.id) {
       await ctx.db.patch(args.id, {
@@ -343,6 +355,7 @@ export const upsertFaq = mutation({
 export const toggleFaq = mutation({
   args: { id: v.id("faqs"), visible: v.boolean() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { visible: args.visible, updatedAt: Date.now() });
   },
 });
@@ -350,6 +363,7 @@ export const toggleFaq = mutation({
 export const deleteFaq = mutation({
   args: { id: v.id("faqs") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -370,6 +384,7 @@ export const upsertTestimonial = mutation({
     displayOrder: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.id) {
       await ctx.db.patch(args.id, {
         quote: args.quote,
@@ -398,6 +413,7 @@ export const upsertTestimonial = mutation({
 export const setTestimonialStatus = mutation({
   args: { id: v.id("testimonials"), status: testimonialStatus },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { status: args.status });
   },
 });
@@ -405,6 +421,7 @@ export const setTestimonialStatus = mutation({
 export const deleteTestimonial = mutation({
   args: { id: v.id("testimonials") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -425,6 +442,7 @@ export const upsertPartner = mutation({
     status: v.union(v.literal("active"), v.literal("archived")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     if (args.id) {
       await ctx.db.patch(args.id, {
@@ -457,6 +475,7 @@ export const upsertPartner = mutation({
 export const setPartnerStatus = mutation({
   args: { id: v.id("partners"), status: v.union(v.literal("active"), v.literal("archived")) },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
   },
 });
@@ -464,6 +483,7 @@ export const setPartnerStatus = mutation({
 export const deletePartner = mutation({
   args: { id: v.id("partners") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -483,6 +503,7 @@ export const upsertLandingPage = mutation({
     conversionRate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     if (args.id) {
       await ctx.db.patch(args.id, {
@@ -512,6 +533,7 @@ export const upsertLandingPage = mutation({
 export const deleteLandingPage = mutation({
   args: { id: v.id("landingPages") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -527,6 +549,7 @@ export const sectionFlags = query({
 export const setSectionFlag = mutation({
   args: { key: v.string(), enabled: v.boolean() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("settings")
       .withIndex("by_key", (q) => q.eq("key", FLAGS_KEY))
@@ -578,6 +601,7 @@ export const setHomepageSettings = mutation({
     notification: notificationValidator,
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("settings")
       .withIndex("by_key", (q) => q.eq("key", HOME_KEY))
@@ -712,6 +736,7 @@ function slugify(value: string) {
 
 export const seedDefaults = mutation({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     const created: Record<string, number> = {};
 

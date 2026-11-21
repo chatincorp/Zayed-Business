@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import { useSEO } from "@/lib/seo";
+import { bestPath, LOCAL_PLACES } from "@/data/localSeo";
 import {
   ArrowLeft,
   Check,
@@ -874,6 +875,22 @@ export default function ServiceDetail() {
                 >
                   Open an Account
                 </Link>
+              </div>
+
+              {/* Local coverage — links every location variant of this service */}
+              <div className="p-6 rounded-2xl bg-card border border-border">
+                <h3 className="font-semibold text-foreground text-sm mb-4">Where we deliver this</h3>
+                <div className="space-y-1">
+                  {LOCAL_PLACES.map((place) => (
+                    <Link
+                      key={place.slug}
+                      to={bestPath(slug ?? "", place.slug)}
+                      className="block p-2.5 rounded-lg hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {service.title} in {place.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
 
               {/* Related Services */}

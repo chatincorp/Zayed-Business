@@ -1,5 +1,6 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
+import BrandSplash, { BrandLoader } from "@/components/BrandSplash";
 import { RequireAuth } from "@/components/RequireAuth";
 import { SectionGate } from "@/components/SectionGate";
 import { BackendOnly } from "@/components/BackendOnly";
@@ -19,11 +20,14 @@ const routeLoaders = {
   Landing: () => import("./pages/Landing.tsx"),
   AuthPage: () => import("./pages/Auth.tsx"),
   Dashboard: () => import("./pages/Dashboard.tsx"),
+  OrderPortal: () => import("./pages/OrderPortal.tsx"),
   NotFound: () => import("./pages/NotFound.tsx"),
   Contact: () => import("./pages/Contact.tsx"),
   Admin: () => import("./pages/Admin.tsx"),
   Catalog: () => import("./pages/Catalog.tsx"),
   ServiceDetail: () => import("./pages/ServiceDetail.tsx"),
+  BestIndex: () => import("./pages/BestIndex.tsx"),
+  BestServiceInPlace: () => import("./pages/BestServiceInPlace.tsx"),
   Pricing: () => import("./pages/Pricing.tsx"),
   Checkout: () => import("./pages/Checkout.tsx"),
   About: () => import("./pages/About.tsx"),
@@ -39,6 +43,7 @@ const routeLoaders = {
   TabloidIndex: () => import("./pages/tabloid/TabloidIndex.tsx"),
   TabloidArticlePage: () => import("./pages/tabloid/TabloidArticlePage.tsx"),
   FinancialMarkets: () => import("./pages/tabloid/FinancialMarkets.tsx"),
+  MarketExplorer: () => import("./pages/tabloid/MarketExplorer.tsx"),
   LiveForex: () => import("./pages/tabloid/LiveForex.tsx"),
   EditorialDashboard: () => import("./pages/tabloid/EditorialDashboard.tsx"),
 };
@@ -47,11 +52,14 @@ const routeLoaders = {
 const Landing = lazy(routeLoaders.Landing);
 const AuthPage = lazy(routeLoaders.AuthPage);
 const Dashboard = lazy(routeLoaders.Dashboard);
+const OrderPortal = lazy(routeLoaders.OrderPortal);
 const NotFound = lazy(routeLoaders.NotFound);
 const Contact = lazy(routeLoaders.Contact);
 const Admin = lazy(routeLoaders.Admin);
 const Catalog = lazy(routeLoaders.Catalog);
 const ServiceDetail = lazy(routeLoaders.ServiceDetail);
+const BestIndex = lazy(routeLoaders.BestIndex);
+const BestServiceInPlace = lazy(routeLoaders.BestServiceInPlace);
 const Pricing = lazy(routeLoaders.Pricing);
 const Checkout = lazy(routeLoaders.Checkout);
 const About = lazy(routeLoaders.About);
@@ -67,6 +75,7 @@ const DemoEcommerce = lazy(routeLoaders.DemoEcommerce);
 const TabloidIndex = lazy(routeLoaders.TabloidIndex);
 const TabloidArticlePage = lazy(routeLoaders.TabloidArticlePage);
 const FinancialMarkets = lazy(routeLoaders.FinancialMarkets);
+const MarketExplorer = lazy(routeLoaders.MarketExplorer);
 const LiveForex = lazy(routeLoaders.LiveForex);
 const EditorialDashboard = lazy(routeLoaders.EditorialDashboard);
 
@@ -101,13 +110,9 @@ function RoutePrefetcher() {
   return null;
 }
 
-// Simple loading fallback for route transitions
+// Branded loading fallback for route transitions
 function RouteLoading() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
-    </div>
-  );
+  return <BrandLoader fullScreen label="Loading workspace" />;
 }
 
 /** Silent error boundary — if VlyToolbar crashes it renders nothing instead of
@@ -254,6 +259,8 @@ const routes = (
         <Route path="/contact" element={<SectionGate title="Contact" slug="/contact"><Contact /></SectionGate>} />
         <Route path="/services" element={<SectionGate title="Services" slug="/services"><Catalog /></SectionGate>} />
         <Route path="/services/:slug" element={<ServiceDetail />} />
+        <Route path="/best" element={<SectionGate title="Services by location" slug="/best"><BestIndex /></SectionGate>} />
+        <Route path="/best/:serviceSlug/:placeSlug" element={<BestServiceInPlace />} />
         <Route path="/fmcg" element={<SectionGate title="FMCG Services" section="fmcg" slug="/fmcg"><Fmcg /></SectionGate>} />
         <Route path="/fmcg/account" element={<FmcgAccountFlow />} />
         <Route path="/wholesale" element={<SectionGate title="Wholesale Ordering" section="wholesale" slug="/wholesale"><Wholesale /></SectionGate>} />
@@ -313,12 +320,26 @@ const routes = (
             </RequireAuth>
           }
         />
+        <Route
+          path="/portal"
+          element={
+            <RequireAuth>
+              <BackendOnly
+                title="The order portal runs on the live backend"
+                description="This static build has no Convex deployment attached, so order dashboards are unavailable. You can still browse the wholesale catalogue."
+              >
+                <OrderPortal />
+              </BackendOnly>
+            </RequireAuth>
+          }
+        />
         <Route path="/demo/corporate" element={<SectionGate title="Live Demos" section="ai_demos"><DemoCorporate /></SectionGate>} />
         <Route path="/demo/webapp" element={<SectionGate title="Live Demos" section="ai_demos"><DemoWebapp /></SectionGate>} />
         <Route path="/demo/ecommerce" element={<SectionGate title="Live Demos" section="ai_demos"><DemoEcommerce /></SectionGate>} />
         <Route path="/tabloid" element={<SectionGate title="Zayed Tabloid" section="tabloid" slug="/tabloid"><TabloidIndex /></SectionGate>} />
         <Route path="/tabloid/:id" element={<TabloidArticlePage />} />
         <Route path="/tabloid/markets" element={<FinancialMarkets />} />
+        <Route path="/markets" element={<MarketExplorer />} />
         <Route path="/tabloid/forex" element={<LiveForex />} />
         <Route path="/tabloid/editorial" element={<EditorialDashboard />} />
         <Route path="*" element={<NotFound />} />
@@ -333,6 +354,7 @@ const app = (
       <VlyToolbar />
     </ToolbarErrorBoundary>
     <AuthProvider>
+      <BrandSplash />
       {routes}
       <Toaster />
       {convex ? <BackendSessionBridge /> : null}

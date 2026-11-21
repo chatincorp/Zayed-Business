@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSEO } from "@/lib/seo";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight,
@@ -733,6 +734,15 @@ function Footer() {
 }
 
 export default function DemoCorporate() {
+  // Interactive portfolio prototype: kept out of the index so it never competes
+  // with the real service pages for brand queries.
+  useSEO({
+    title: "Corporate Website Demo — Interactive Prototype",
+    description:
+      "An interactive preview of a corporate website build by Yasir Zayed: strategy-led layout, performance-first front end and conversion-focused sections.",
+    path: "/demo/corporate",
+    noindex: true,
+  });
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

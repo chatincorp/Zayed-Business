@@ -10,6 +10,9 @@ import {
   Users,
   FileText,
   ArrowRight,
+  ClipboardList,
+  Store,
+  Truck,
 } from "lucide-react";
 import { useNavigate, Link } from "react-router";
 
@@ -60,6 +63,57 @@ export default function Dashboard() {
             </Button>
           </div>
         </header>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link to="/portal" className="block">
+            <Card className="h-full border-border/70 shadow-none transition-shadow hover:shadow-md">
+              <CardHeader className="pb-3">
+                <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+                  <ClipboardList className="size-5" />
+                </div>
+                <CardTitle className="text-base">Order portal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  Track bookings, collection details and despatch — customer, sales
+                  rep and order-desk dashboards.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/supplier/dashboard" className="block">
+            <Card className="h-full border-border/70 shadow-none transition-shadow hover:shadow-md">
+              <CardHeader className="pb-3">
+                <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                  <Store className="size-5" />
+                </div>
+                <CardTitle className="text-base">Supplier listings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  Publish products with pricing, stock, MOQ limits and payment terms.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/wholesale" className="block">
+            <Card className="h-full border-border/70 shadow-none transition-shadow hover:shadow-md">
+              <CardHeader className="pb-3">
+                <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600">
+                  <Truck className="size-5" />
+                </div>
+                <CardTitle className="text-base">Book wholesale</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  Build a bulk basket with live MOQs and submit it to the order desk.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="border-border/70 shadow-none hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/admin")}>

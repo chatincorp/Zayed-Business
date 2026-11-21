@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useMutation, useQuery } from "convex/react";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -18,7 +18,9 @@ import {
   Lock,
   Mail,
   Package,
+  Pencil,
   Plus,
+  Save,
   Store,
   Upload,
   XCircle,
@@ -63,14 +65,36 @@ export default function SupplierDashboard() {
     api.fmcg.listSupplierProducts,
     email ? { supplierEmail: email } : "skip",
   );
+  const access = useQuery(api.fmcg.portalAccess, email ? { email } : "skip");
+  // Posting products is limited to admins and to accounts holding the
+  // supplier role (granted by an admin when the application is approved).
+  const canList =
+    access === undefined ||
+    access.role === "supplier" ||
+    access.role === "admin" ||
+    access.role === "super_admin";
   const generateUploadUrl = useMutation(api.fmcg.generateUploadUrl);
   const createProduct = useMutation(api.fmcg.createProduct);
+  const updateProduct = useMutation(api.fmcg.updateProduct);
+  const claimListingRole = useMutation(api.fmcg.claimSupplierListingRole);
 
   const formRef = useRef<HTMLFormElement>(null);
   const [formKey, setFormKey] = useState(0);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editMoq, setEditMoq] = useState("");
+  const [editStock, setEditStock] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // An approved supplier who created their account after approval can claim
+  // the listing role once; the server only grants it to the matching account.
+  useEffect(() => {
+    if (!email || supplier?.status !== "approved" || canList) return;
+    void claimListingRole({ email }).catch(() => undefined);
+  }, [email, supplier?.status, canList, claimListingRole]);
 
   async function uploadImage(file: File): Promise<Id<"_storage">> {
     const uploadUrl = await generateUploadUrl();
@@ -83,6 +107,38 @@ export default function SupplierDashboard() {
     const payload = (await response.json()) as { storageId?: string };
     if (!payload.storageId) throw new Error("The image upload did not return a storage id.");
     return payload.storageId as Id<"_storage">;
+  }
+
+  function startEdit(product: {
+    _id: string;
+    pricePerUnit: number;
+    moq: number;
+    stockQuantity?: number;
+  }) {
+    setEditingId(product._id);
+    setEditPrice(String(product.pricePerUnit));
+    setEditMoq(String(product.moq));
+    setEditStock(product.stockQuantity === undefined ? "" : String(product.stockQuantity));
+  }
+
+  async function saveEdit(productId: Id<"fmcgProducts">) {
+    setSavingEdit(true);
+    try {
+      await updateProduct({
+        supplierEmail: email,
+        actorEmail: email,
+        productId,
+        pricePerUnit: Number(editPrice),
+        moq: Number(editMoq),
+        stockQuantity: editStock.trim() === "" ? undefined : Number(editStock),
+      });
+      toast.success("Listing updated and sent back for review.");
+      setEditingId(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not update the listing.");
+    } finally {
+      setSavingEdit(false);
+    }
   }
 
   async function handleAddProduct(event: React.FormEvent<HTMLFormElement>) {
@@ -100,12 +156,18 @@ export default function SupplierDashboard() {
       const imageStorageId = imageFile ? await uploadImage(imageFile) : undefined;
       await createProduct({
         supplierEmail: email,
+        actorEmail: email,
         name: String(form.get("name") ?? ""),
         description: String(form.get("description") ?? "") || undefined,
         unit: String(form.get("unit") ?? ""),
         caseSize: Number(form.get("caseSize") ?? 1),
         moq: Number(form.get("moq") ?? 1),
         pricePerUnit: Number(form.get("pricePerUnit") ?? 0),
+        stockQuantity:
+          String(form.get("stockQuantity") ?? "").trim() === ""
+            ? undefined
+            : Number(form.get("stockQuantity")),
+        leadTime: String(form.get("leadTime") ?? "") || undefined,
         paymentTerms: String(form.get("paymentTerms") ?? supplier.paymentTerms),
         imageStorageId,
       });
@@ -269,12 +331,13 @@ export default function SupplierDashboard() {
                     </div>
                   </div>
 
-                  {supplier.status !== "approved" ? (
+                  {supplier.status !== "approved" || !canList ? (
                     <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-[#fafbfc] px-4 py-8 text-center">
                       <Lock className="mx-auto mb-2 h-5 w-5 text-slate-300" />
                       <p className="text-xs leading-relaxed text-slate-500">
-                        Product listing is available once your supplier account is
-                        approved.
+                        {supplier.status !== "approved"
+                          ? "Product listing is available once your supplier account is approved."
+                          : "Listing access is not enabled on this account yet. Ask an admin to assign the supplier role under Users, then sign in again."}
                       </p>
                     </div>
                   ) : (
@@ -338,6 +401,18 @@ export default function SupplierDashboard() {
                             Price per unit (KES) *
                           </label>
                           <input id="product-price" name="pricePerUnit" type="number" min={1} step="0.01" required className={inputClass} placeholder="e.g. 2650" />
+                        </div>
+                        <div>
+                          <label htmlFor="product-stock" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Units available now
+                          </label>
+                          <input id="product-stock" name="stockQuantity" type="number" min={0} className={inputClass} placeholder="e.g. 480" />
+                        </div>
+                        <div>
+                          <label htmlFor="product-lead" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Lead time
+                          </label>
+                          <input id="product-lead" name="leadTime" className={inputClass} placeholder="e.g. 2–3 days from confirmation" />
                         </div>
                         <div>
                           <label htmlFor="product-terms" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -469,8 +544,77 @@ export default function SupplierDashboard() {
                               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
                                 <span className="font-semibold text-navy">{formatKes(product.pricePerUnit)} / {product.unit}</span>
                                 <span>MOQ {product.moq}</span>
+                                <span>
+                                  {product.stockQuantity === undefined
+                                    ? "Stock on request"
+                                    : `${product.stockQuantity} in stock`}
+                                </span>
+                                {product.leadTime && <span>{product.leadTime}</span>}
                                 <span>{product.paymentTerms}</span>
                               </div>
+
+                              {product.status !== "archived" && (
+                                editingId === product._id ? (
+                                  <div className="mt-3 grid gap-2 rounded-xl border border-amber-200 bg-amber-50/50 p-3 sm:grid-cols-3">
+                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                                      Price
+                                      <input
+                                        value={editPrice}
+                                        onChange={(event) => setEditPrice(event.target.value)}
+                                        type="number"
+                                        min={1}
+                                        className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy focus:border-amber-400 focus:outline-none"
+                                      />
+                                    </label>
+                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                                      MOQ
+                                      <input
+                                        value={editMoq}
+                                        onChange={(event) => setEditMoq(event.target.value)}
+                                        type="number"
+                                        min={1}
+                                        className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy focus:border-amber-400 focus:outline-none"
+                                      />
+                                    </label>
+                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                                      In stock
+                                      <input
+                                        value={editStock}
+                                        onChange={(event) => setEditStock(event.target.value)}
+                                        type="number"
+                                        min={0}
+                                        className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy focus:border-amber-400 focus:outline-none"
+                                      />
+                                    </label>
+                                    <div className="flex items-center gap-2 sm:col-span-3">
+                                      <button
+                                        onClick={() => saveEdit(product._id)}
+                                        disabled={savingEdit}
+                                        className="inline-flex items-center gap-1.5 rounded-md bg-navy px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-navy-light disabled:opacity-60"
+                                      >
+                                        {savingEdit ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                        Save changes
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingId(null)}
+                                        className="text-[11px] font-medium text-slate-500 hover:text-navy"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <span className="ml-auto text-[10px] text-slate-400">
+                                        Price, MOQ and stock edits are re-reviewed.
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => startEdit(product)}
+                                    className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 hover:underline"
+                                  >
+                                    <Pencil className="h-3 w-3" /> Update price, MOQ or stock
+                                  </button>
+                                )
+                              )}
                             </div>
                           </div>
                           {product.status === "rejected" && (

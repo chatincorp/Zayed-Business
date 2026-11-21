@@ -301,13 +301,29 @@
   animation-play-state: paused;
 }
 
-/* Stock ticker marquee */
+/* Market bar lanes — one slow, continuous flow per market type. */
+@keyframes marketScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.market-track {
+  animation-name: marketScroll;
+  animation-duration: 150s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+.market-track:hover {
+  animation-play-state: paused;
+}
+
+/* Stock ticker marquee (markets / forex pages) */
 @keyframes stockScroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 .stock-ticker {
-  animation: stockScroll 45s linear infinite;
+  animation: stockScroll 120s linear infinite;
 }
 .stock-ticker:hover {
   animation-play-state: paused;
@@ -319,8 +335,18 @@
   100% { transform: translateX(-50%); }
 }
 .forex-ticker {
-  animation: forexScroll 50s linear infinite;
+  animation: forexScroll 140s linear infinite;
 }
 .forex-ticker:hover {
   animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .market-track,
+  .stock-ticker,
+  .forex-ticker,
+  .partner-track {
+    animation: none;
+    transform: none;
+  }
 }

@@ -26,19 +26,11 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { isBackendConfigured } from "@/lib/backend";
 import { mockArticles, newsSources } from "@/data/tabloidData";
-import StockTicker from "@/components/tabloid/StockTicker";
-import ForexTicker from "@/components/tabloid/ForexTicker";
+import MarketBar from "@/components/tabloid/MarketBar";
+import StoryImage, { coverFor } from "@/components/tabloid/StoryImage";
 import Navigation from "@/components/Navigation";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import { useSEO, SEO_SITE_URL } from "@/lib/seo";
-
-const categoryImages: Record<string, string> = {
-  Africa: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1200&h=500&fit=crop",
-  "Global Finance": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200&h=500&fit=crop",
-  Technology: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=500&fit=crop",
-  Business: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=500&fit=crop",
-  Security: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=500&fit=crop",
-};
 
 function slugifySection(s: string): string {
   return s
@@ -178,8 +170,9 @@ function TabloidArticleView({
   };
 
   /* ── SEO + NewsArticle structured data ── */
-  const heroImage =
-    article?.image || (article ? categoryImages[article.category] : undefined) || categoryImages.Technology;
+  const heroImage = article
+    ? coverFor(article)
+    : "/images/tabloid/technology.jpg";
   const seoTitle = article?.seoTitle || article?.title || "Article";
   const seoDescription = article?.seoDescription || article?.excerpt || "";
   const seoKeywords = article?.seoKeywords || article?.tags.join(", ") || "";
@@ -232,8 +225,10 @@ function TabloidArticleView({
   if (!article) {
     return (
       <div className="min-h-screen bg-[#060a14]">
-        <StockTicker />
-        <ForexTicker />
+        <Navigation />
+        <div className="pt-[72px]">
+          <MarketBar />
+        </div>
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Article Not Found</h1>
           <p className="text-white/50 mb-6">
@@ -267,17 +262,17 @@ function TabloidArticleView({
   return (
     <div className="min-h-screen bg-[#060a14]">
       <Navigation />
-      <StockTicker />
-      <ForexTicker />
+      <div className="pt-[72px]">
+        <MarketBar />
+      </div>
 
       {/* Hero */}
       <div className="relative h-[380px] sm:h-[480px] overflow-hidden">
-        <img
-          src={heroImage}
-          alt={article.title}
-          className="w-full h-full object-cover"
-          loading="eager"
-          referrerPolicy="no-referrer"
+        <StoryImage
+          item={article}
+          variant="hero"
+          className="h-full w-full"
+          credit={article.image ? `Photo: ${article.sourceName}` : undefined}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#060a14] via-[#060a14]/60 to-transparent" />
 
@@ -553,12 +548,10 @@ function TabloidArticleView({
                     className="group p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
                   >
                     <div className="flex gap-4">
-                      <img
-                        src={rel.image || categoryImages[rel.category] || categoryImages.Technology}
-                        alt={rel.title}
-                        className="w-20 h-20 rounded-lg object-cover shrink-0"
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
+                      <StoryImage
+                        item={rel}
+                        variant="thumb"
+                        className="w-20 h-20 rounded-lg shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white/80 group-hover:text-white line-clamp-2 transition-colors">

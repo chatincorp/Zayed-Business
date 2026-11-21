@@ -36,7 +36,9 @@ const footerNav = [
       { label: "Merchandizing", href: "/services/fmcg-merchandizing" },
       { label: "Product Promotion", href: "/services/fmcg-product-promotion" },
       { label: "Wholesale Ordering", href: "/wholesale" },
+      { label: "Order Portal", href: "/portal" },
       { label: "Supplier Registration", href: "/supplier/register" },
+      { label: "Supplier Dashboard", href: "/supplier/dashboard" },
     ],
   },
   {

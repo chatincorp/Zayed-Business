@@ -191,8 +191,6 @@ export default function About() {
   const [ref6, inView6] = useInView({ threshold: 0.1, triggerOnce: true });
   const [ref7, inView7] = useInView({ threshold: 0.1, triggerOnce: true });
   const [ref8, inView8] = useInView({ threshold: 0.1, triggerOnce: true });
-  void ref7;
-  void ref8;
 
   return (
     <div className="min-h-screen bg-background">
@@ -546,25 +544,48 @@ export default function About() {
             ))}
           </motion.div>
 
-          {/* Philosophy quote */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={inView6 ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-16 max-w-3xl mx-auto text-center"
-          >
+          {/* Philosophy quote — always rendered at full opacity so the copy is
+              never left invisible when a scroll observer does not fire. */}
+          <div className="mt-16 max-w-3xl mx-auto text-center">
             <div className="p-8 sm:p-10 rounded-2xl bg-navy-dark border border-white/5">
               <Lightbulb className="w-8 h-8 text-electric/50 mx-auto mb-4" />
               <h3 className="font-display text-xl font-bold text-white mb-3">
                 Our Philosophy
               </h3>
+              <p className="text-white/50 leading-relaxed mb-4">
+                We believe technology should serve the business — not the other
+                way around. Every website, system, integration, automation, and
+                AI solution should have a purpose: to generate leads, increase
+                sales, improve customer service, automate operations, strengthen
+                security, establish credibility, or create new opportunities.
+              </p>
+              <p className="text-white/40 text-sm italic">
+                "Your business has the vision. We help build the systems that
+                bring it to life."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView7 ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          >
+      {/* ═══════════ FMCG CAPABILITIES ═══════════ */}
+      <section className="relative py-20 sm:py-24 bg-[#faf7f0] overflow-hidden">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" ref={ref7}>
+          <div className="mb-12 max-w-2xl">
+            <span className="text-amber-700 text-xs font-semibold uppercase tracking-[0.25em] mb-3 block">
+              FMCG desk
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-navy leading-tight mb-4">
+              Five services, one trade chain
+            </h2>
+            <p className="text-slate-600 leading-relaxed">
+              For manufacturers, importers, distributors and retailers, the FMCG
+              desk supports the whole chain — book the order, source the supply,
+              win the shelf and promote the product.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {fmcgCapabilities.map((cap) => {
               const Icon = cap.icon;
               return (
@@ -585,13 +606,14 @@ export default function About() {
                 </motion.div>
               );
             })}
-          </motion.div>
+          </div>
 
           <motion.div
+            ref={ref8}
             initial={{ opacity: 0, y: 20 }}
             animate={inView8 ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-16 max-w-3xl mx-auto text-center rounded-2xl bg-navy-dark border border-white/5 p-8 sm:p-10"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-12 rounded-2xl bg-navy-dark border border-white/5 p-8 sm:p-10"
           >
             <span className="text-amber-300 text-xs font-bold uppercase tracking-[0.2em] mb-3 block">
               FMCG business growth
@@ -599,12 +621,10 @@ export default function About() {
             <h3 className="font-display text-xl font-bold text-white mb-4">
               FMCG services turn distribution into a growth engine.
             </h3>
-            <p className="text-white/50 leading-relaxed">
-              For manufacturers, importers, distributors and retailers, the FMCG
-              desk supports the whole trade chain — book the order, source the
-              supply, win the shelf and promote the product. That means fewer
-              stock-outs, stronger sell-through, better coverage and more
-              predictable volume from depot to point of purchase.
+            <p className="text-white/50 leading-relaxed max-w-3xl">
+              Fewer stock-outs, stronger sell-through, better coverage and more
+              predictable volume from depot to point of purchase — with supplier
+              listings, MOQ controls and an order desk that confirms every booking.
             </p>
             <Link
               to="/fmcg"
@@ -613,19 +633,6 @@ export default function About() {
               Explore FMCG services
               <ArrowRight className="h-4 w-4" />
             </Link>
-          </motion.div>
-              <p className="text-white/50 leading-relaxed mb-4">
-                We believe technology should serve the business — not the other
-                way around. Every website, system, integration, automation, and
-                AI solution should have a purpose: to generate leads, increase
-                sales, improve customer service, automate operations, strengthen
-                security, establish credibility, or create new opportunities.
-              </p>
-              <p className="text-white/40 text-sm italic">
-                "Your business has the vision. We help build the systems that
-                bring it to life."
-              </p>
-            </div>
           </motion.div>
         </div>
       </section>

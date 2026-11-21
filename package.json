@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && node scripts/generate-sitemap.mjs && vite build && node scripts/prerender.mjs",
+    "build:cloudflare": "npm run build && rm -f dist/_redirects dist/.htaccess",
+    "cloudflare:dev": "npx --yes wrangler@4 dev",
+    "cloudflare:deploy": "npm run build:cloudflare && npx --yes wrangler@4 deploy",
+    "sitemap": "node scripts/generate-sitemap.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview"

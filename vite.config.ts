@@ -109,7 +109,10 @@ export default defineConfig({
   server: {
     // Bind to all interfaces so WebContainer's server-ready event fires.
     host: true,
-    port: 5173,
+    // Preview tunnels need port 3000 plus their own Host header; both are opt-in
+    // through the environment so the default dev setup stays on 5173.
+    port: process.env.VITE_PREVIEW_HOST ? 3000 : 5173,
+    allowedHosts: process.env.VITE_PREVIEW_HOST ? [process.env.VITE_PREVIEW_HOST] : undefined,
     // Keep HMR on, but disable full-screen error overlay
     hmr: {
       overlay: false,

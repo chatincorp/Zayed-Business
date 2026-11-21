@@ -3,7 +3,8 @@
  * Shows all global exchanges with real-time data display.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -25,6 +26,8 @@ import Navigation from "@/components/Navigation";
 import ForexTicker from "@/components/tabloid/ForexTicker";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import { useSEO } from "@/lib/seo";
+import { instrumentByLabel } from "@/data/marketCatalog";
+import { useLiveQuotes, type LiveQuote } from "@/lib/marketLive";
 
 type SortKey = "country" | "value" | "changePercent";
 
@@ -41,6 +44,18 @@ export default function FinancialMarkets() {
   const [sortKey, setSortKey] = useState<SortKey>("changePercent");
   const [sortDesc, setSortDesc] = useState(true);
   const [search, setSearch] = useState("");
+
+  const symbolByLabel = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const exchange of stockExchanges) {
+      const instrument = instrumentByLabel(exchange.index);
+      if (instrument?.symbol) map.set(exchange.index, instrument.symbol);
+    }
+    return map;
+  }, []);
+
+  const liveSymbols = useMemo(() => [...symbolByLabel.values()], [symbolByLabel]);
+  const { quotes, updatedAt, failed } = useLiveQuotes(liveSymbols);
 
   const filtered = stockExchanges
     .filter((s) => activeRegion === "all" || s.region.toLowerCase().replace(/\s+/g, "-") === activeRegion)
@@ -85,6 +100,13 @@ export default function FinancialMarkets() {
             </h1>
             <p className="text-white/50 text-lg">
               Real-time market data from exchanges across {regions.length} regions worldwide.
+            </p>
+            <p className="mt-2 text-[11px] text-white/35">
+              {updatedAt ? `Quotes refreshed ${new Date(updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.` : ""}{" "}
+              {failed ? "Upstream feed unreachable — reference levels shown." : "Exchanges without a published feed show their reference level."}{" "}
+              <Link to="/markets" className="text-emerald-400 hover:text-emerald-300">
+                Open the dropdown explorer →
+              </Link>
             </p>
           </motion.div>
         </div>
@@ -191,7 +213,12 @@ export default function FinancialMarkets() {
         {/* Rows */}
         <div className="divide-y divide-white/5">
           {filtered.map((exchange, i) => (
-            <ExchangeRow key={`${exchange.country}-${exchange.index}`} exchange={exchange} index={i} />
+            <ExchangeRow
+              key={`${exchange.country}-${exchange.index}`}
+              exchange={exchange}
+              index={i}
+              quote={quotes[symbolByLabel.get(exchange.index) ?? ""]}
+            />
           ))}
         </div>
 
@@ -208,8 +235,11 @@ export default function FinancialMarkets() {
   );
 }
 
-function ExchangeRow({ exchange, index }: { exchange: StockExchange; index: number }) {
+function ExchangeRow({ exchange, index, quote }: { exchange: StockExchange; index: number; quote?: LiveQuote }) {
   const regionMeta = regions.find((r) => r.name === exchange.region);
+  const value = quote?.price ?? exchange.value;
+  const change = quote?.change ?? exchange.change;
+  const changePercent = quote?.changePercent ?? exchange.changePercent;
 
   return (
     <motion.div
@@ -232,30 +262,31 @@ function ExchangeRow({ exchange, index }: { exchange: StockExchange; index: numb
       {/* Value */}
       <div className="col-span-2 text-right">
         <span className="text-sm font-semibold text-white/90">
-          {formatNumber(exchange.value)}
+          {formatNumber(value)}
         </span>
         <span className="text-[10px] text-white/30 ml-1">{exchange.currency}</span>
+        {!quote && <span className="ml-1 text-[9px] uppercase tracking-wider text-amber-300/70">ref</span>}
       </div>
 
       {/* Change */}
       <div className="col-span-2 text-right">
-        <span className={`text-sm ${getChangeColor(exchange.change)}`}>
-          {exchange.change > 0 ? "+" : ""}{formatNumber(exchange.change)}
+        <span className={`text-sm ${getChangeColor(change)}`}>
+          {change > 0 ? "+" : ""}{formatNumber(change)}
         </span>
       </div>
 
       {/* % Change */}
       <div className="col-span-2 text-right">
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-          exchange.changePercent > 0
+          changePercent > 0
             ? "bg-emerald-500/10 text-emerald-400"
-            : exchange.changePercent < 0
+            : changePercent < 0
             ? "bg-red-500/10 text-red-400"
             : "bg-white/5 text-white/40"
         }`}>
-          {getChangeArrow(exchange.changePercent)}
-          {exchange.changePercent > 0 ? "+" : ""}
-          {exchange.changePercent.toFixed(2)}%
+          {getChangeArrow(changePercent)}
+          {changePercent > 0 ? "+" : ""}
+          {changePercent.toFixed(2)}%
         </span>
       </div>
 

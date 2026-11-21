@@ -63,11 +63,24 @@ function absolutizeUrl(u: string, base: string): string {
   }
 }
 
+const IMAGE_HOST_RE =
+  /(googleusercontent|bbci|cloudfront|akamaized|cdn|img\.|images?\.|static\.|media\.|wp\.com|unsplash|reuters|bloomberg|cnn|forbes|nyt|wsj|ft\.com)/i;
+
+/**
+ * Is this URL an article photograph we can trust to render?
+ *
+ * Publishers serve images from extension-less CDN paths as often as from
+ * .jpg URLs, so an extension check alone silently discarded most source
+ * photography. Accept known image hosts and image-shaped paths, and reject
+ * the things that are never article art.
+ */
 function isArticleImage(u: string): boolean {
   if (!u) return false;
-  // Reject tracking pixels / tiny assets / logos.
-  if (/(1x1|pixel|spacer|blank|\.svg)(\?|$)/i.test(u)) return false;
-  return /\.(jpe?g|png|webp)(\?|$)/i.test(u) || /\/photo\//.test(u);
+  if (!/^https?:\/\//i.test(u)) return false;
+  if (/(1x1|pixel|spacer|blank|sprite|logo|favicon|\.svg)(\?|$)/i.test(u)) return false;
+  if (/\.(jpe?g|png|webp|avif)(\?|$)/i.test(u)) return true;
+  if (/\/(photo|image|images|media|thumb|thumbnail|resize|crop|picture)s?\//i.test(u)) return true;
+  return IMAGE_HOST_RE.test(u);
 }
 
 /**
@@ -394,7 +407,7 @@ async function openAiRewrite(
           {
             role: "system",
             content:
-              "You are the lead editor of Zayed Tabloid, a premium business publication. Write a FULL-LENGTH news article from the given material — not a summary. Requirements: a confident, human, journalistic voice; a magnetic headline; a hook lede; themed analysis sections; a forward-looking close. Return strict JSON: {\"title\": string (max 90 chars, no clickbait), \"body\": string (700-1100 words, 7-9 paragraphs separated by blank lines; optional section headings as '## Heading' on their own line; one blockquote line starting with '>' is welcome)}. Never copy source sentences verbatim; add context, implications and analysis while staying faithful to the facts.",
+              "You are the lead editor of Zayed Tabloid, a premium business publication with a tabloid's appetite and a broadsheet's standards. Write a FULL-LENGTH news article from the given material — not a summary. Voice: confident, human, punchy. Open with a hook lede that lands in one sentence, use concrete numbers and named players, and write section headings that say something rather than label something. Headline rules: catchy and specific, in the register of a good magazine cover — never clickbait, never a question, no 'you won't believe'. Return strict JSON: {\"title\": string (max 90 chars, catchy but honest), \"body\": string (700-1100 words, 7-9 paragraphs separated by blank lines; optional section headings as '## Heading' on their own line; one blockquote line starting with '>' is welcome)}. Never copy source sentences verbatim; add context, implications and analysis while staying faithful to the facts.",
           },
           {
             role: "user",
