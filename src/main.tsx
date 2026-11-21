@@ -22,6 +22,10 @@ const Contact = lazy(() => import("./pages/Contact.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail.tsx"));
+const BestIndex = lazy(() => import("./pages/BestIndex.tsx"));
+const BestServiceInPlace = lazy(() => import("./pages/BestServiceInPlace.tsx"));
+const OrderPortal = lazy(() => import("./pages/OrderPortal.tsx"));
+const MarketExplorer = lazy(() => import("./pages/tabloid/MarketExplorer.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
@@ -173,6 +177,8 @@ const routes = (
         <Route path="/contact" element={<SectionGate title="Contact" slug="/contact"><Contact /></SectionGate>} />
         <Route path="/services" element={<SectionGate title="Services" slug="/services"><Catalog /></SectionGate>} />
         <Route path="/services/:slug" element={<ServiceDetail />} />
+        <Route path="/best" element={<SectionGate title="Services by location" slug="/best"><BestIndex /></SectionGate>} />
+        <Route path="/best/:serviceSlug/:placeSlug" element={<BestServiceInPlace />} />
         <Route path="/fmcg" element={<SectionGate title="FMCG Services" section="fmcg" slug="/fmcg"><Fmcg /></SectionGate>} />
         <Route path="/fmcg/account" element={<FmcgAccountFlow />} />
         <Route path="/wholesale" element={<SectionGate title="Wholesale Ordering" section="wholesale" slug="/wholesale"><Wholesale /></SectionGate>} />
@@ -200,6 +206,19 @@ const routes = (
                 description="This static build has no Convex deployment attached, so supplier listings are unavailable. You can still explore FMCG services and the wholesale catalogue."
               >
                 <SupplierDashboard />
+              </BackendOnly>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/portal"
+          element={
+            <RequireAuth>
+              <BackendOnly
+                title="The order portal runs on the live backend"
+                description="This static build has no Convex deployment attached, so order dashboards are unavailable. You can still browse the wholesale catalogue."
+              >
+                <OrderPortal />
               </BackendOnly>
             </RequireAuth>
           }
@@ -240,6 +259,7 @@ const routes = (
         <Route path="/tabloid" element={<SectionGate title="Zayed Tabloid" section="tabloid" slug="/tabloid"><TabloidIndex /></SectionGate>} />
         <Route path="/tabloid/:id" element={<TabloidArticlePage />} />
         <Route path="/tabloid/markets" element={<FinancialMarkets />} />
+        <Route path="/markets" element={<MarketExplorer />} />
         <Route path="/tabloid/forex" element={<LiveForex />} />
         <Route path="/tabloid/editorial" element={<EditorialDashboard />} />
         <Route path="*" element={<NotFound />} />
