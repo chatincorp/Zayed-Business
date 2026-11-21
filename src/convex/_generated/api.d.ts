@@ -20,6 +20,7 @@ import type * as fmcg from "../fmcg.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
 import type * as markets from "../markets.js";
+import type * as pricing from "../pricing.js";
 import type * as privileges from "../privileges.js";
 import type * as projects from "../projects.js";
 import type * as settings from "../settings.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leads: typeof leads;
   markets: typeof markets;
+  pricing: typeof pricing;
   privileges: typeof privileges;
   projects: typeof projects;
   settings: typeof settings;

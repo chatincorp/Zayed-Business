@@ -1,5 +1,16 @@
 import { ConvexError, v } from "convex/values";
 import { requireStaff as requirePanelStaff } from "./authz";
+import {
+  applicableTier,
+  commissionAmount,
+  hasStockFor,
+  holdsStock,
+  lineTotal,
+  orderTotal,
+  quantitiesByProduct,
+  stockMovement,
+  totalCommission as pricingTotalCommission,
+} from "./pricing";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
@@ -29,26 +40,6 @@ async function requireOrderDesk(
   return user;
 }
 
-/** Order statuses that hold stock. Every other status releases it. */
-const STOCK_HOLDING_STATUSES = ["confirmed", "processing", "fulfilled"] as const;
-
-function holdsStock(status: string): boolean {
-  return (STOCK_HOLDING_STATUSES as readonly string[]).includes(status);
-}
-
-/**
- * Quantities per listing, summed before they are checked: the same product can
- * appear on two lines, and it is the total that has to be in stock.
- */
-function quantityByProduct(order: Doc<"wholesaleOrders">) {
-  const totals = new Map<Id<"fmcgProducts">, number>();
-  for (const item of order.items) {
-    if (!item.productId) continue;
-    totals.set(item.productId, (totals.get(item.productId) ?? 0) + item.quantity);
-  }
-  return totals;
-}
-
 /**
  * Take this order's quantities out of stock, or refuse the confirmation.
  *
@@ -58,15 +49,15 @@ function quantityByProduct(order: Doc<"wholesaleOrders">) {
  * `stockQuantity` are left alone.
  */
 async function commitStock(ctx: MutationCtx, order: Doc<"wholesaleOrders">) {
-  for (const [productId, quantity] of quantityByProduct(order)) {
-    const product = await ctx.db.get(productId);
+  for (const [productId, quantity] of quantitiesByProduct(order.items)) {
+    const product = await ctx.db.get(productId as Id<"fmcgProducts">);
     if (!product) {
       throw new ConvexError(
         `A product on order ${order.reference} no longer exists, so the order cannot be confirmed.`,
       );
     }
     if (product.stockQuantity === undefined) continue;
-    if (product.stockQuantity < quantity) {
+    if (!hasStockFor(product.stockQuantity, quantity)) {
       throw new ConvexError(
         `Only ${product.stockQuantity} ${product.unit}s of ${product.name} are left in stock, so ${order.reference} cannot be confirmed.`,
       );
@@ -80,8 +71,8 @@ async function commitStock(ctx: MutationCtx, order: Doc<"wholesaleOrders">) {
 
 /** Put back exactly what `commitStock` took for this order. */
 async function releaseStock(ctx: MutationCtx, order: Doc<"wholesaleOrders">) {
-  for (const [productId, quantity] of quantityByProduct(order)) {
-    const product = await ctx.db.get(productId);
+  for (const [productId, quantity] of quantitiesByProduct(order.items)) {
+    const product = await ctx.db.get(productId as Id<"fmcgProducts">);
     // A listing deleted since the order was confirmed has no stock to restore.
     if (!product || product.stockQuantity === undefined) continue;
     await ctx.db.patch(product._id, {
@@ -533,7 +524,7 @@ export const bookOrder = mutation({
 
         if (!item.productId) {
           const unitPrice = Math.max(0, item.unitPrice);
-          return { ...item, quantity, unitPrice, lineTotal: quantity * unitPrice };
+          return { ...item, quantity, unitPrice, lineTotal: lineTotal(quantity, unitPrice) };
         }
 
         const product = await ctx.db.get(item.productId);
@@ -562,12 +553,14 @@ export const bookOrder = mutation({
           unit: product.unit,
           caseSize: product.caseSize,
           unitPrice: product.pricePerUnit,
-          lineTotal: quantity * product.pricePerUnit,
+          lineTotal: lineTotal(quantity, product.pricePerUnit),
         };
       }),
     );
 
-    const estimatedTotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+    const estimatedTotal = orderTotal(
+      items.map((item) => ({ quantity: item.quantity, unitPrice: item.unitPrice })),
+    );
     const existing = await ctx.db.query("wholesaleOrders").collect();
     const highest = existing.reduce((max, order) => {
       const numeric = Number(order.reference.replace(/\D/g, ""));
@@ -840,22 +833,6 @@ export const setCollectionDetails = mutation({
  * dashboard.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-function applicableTier(
-  tiers: Array<{ thresholdQuantity: number; ratePercent: number }>,
-  quantity: number,
-) {
-  if (!tiers || tiers.length === 0) return null;
-  let best: (typeof tiers)[0] | null = null;
-  for (const tier of tiers) {
-    if (Number.isFinite(tier.thresholdQuantity) && quantity >= tier.thresholdQuantity) {
-      if (!best || tier.thresholdQuantity > best.thresholdQuantity) {
-        best = tier;
-      }
-    }
-  }
-  return best;
-}
-
 async function requireCommissionWrite(
   ctx: QueryCtx,
   actorEmail: string | undefined,
@@ -1039,12 +1016,12 @@ export const generateCommissionSlipForOrder = mutation({
       thresholdQuantity: number;
       commissionAmount: number;
     }> = [];
-    let totalCommission = 0;
+    const lineCommissions: number[] = [];
 
     for (const item of order.items) {
       let applicableRatePercent = 0;
       let thresholdQuantity = 0;
-      let commissionAmount = 0;
+      let lineCommission = 0;
 
       if (item.productId) {
         const productId = item.productId;
@@ -1057,7 +1034,7 @@ export const generateCommissionSlipForOrder = mutation({
           if (tier) {
             applicableRatePercent = tier.ratePercent;
             thresholdQuantity = tier.thresholdQuantity;
-            commissionAmount = Math.round((item.lineTotal * tier.ratePercent) / 100);
+            lineCommission = commissionAmount(item.lineTotal, tier.ratePercent);
           }
         }
       }
@@ -1077,12 +1054,12 @@ export const generateCommissionSlipForOrder = mutation({
         lineTotal: item.lineTotal,
         applicableRatePercent,
         thresholdQuantity,
-        commissionAmount,
+        commissionAmount: lineCommission,
       });
-      totalCommission += commissionAmount;
+      lineCommissions.push(lineCommission);
     }
 
-    totalCommission = Math.round(totalCommission);
+    const totalCommission = pricingTotalCommission(lineCommissions);
 
     const id = await ctx.db.insert("commissionSlips", {
       referenceSlug: order.reference.replace(/\W+/g, "_").toLowerCase(),
@@ -1330,10 +1307,10 @@ export const setOrderStatus = mutation({
     // (or later), and put back if the order is cancelled or reopened. Throws
     // before anything is written when the stock is no longer there.
     const nextHoldsStock = holdsStock(status);
-    const heldNow = order.stockCommitted === true;
-    if (nextHoldsStock && !heldNow) {
+    const movement = stockMovement(order.stockCommitted === true, status);
+    if (movement === "commit") {
       await commitStock(ctx, order);
-    } else if (!nextHoldsStock && heldNow) {
+    } else if (movement === "release") {
       await releaseStock(ctx, order);
     }
 
