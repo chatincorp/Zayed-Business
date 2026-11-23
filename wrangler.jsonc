@@ -18,7 +18,10 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Run worker.js before the asset cache so the www -> apex redirect and the
+    // http -> https redirect apply even to cached HTML at `/`.
+    "run_worker_first": true
   },
   // Both hostnames are Workers custom domains: Cloudflare manages the DNS
   // records and certificates, and worker.js folds www into the apex.
