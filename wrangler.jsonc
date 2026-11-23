@@ -20,19 +20,16 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
-  // `www` is a real Workers custom domain (Cloudflare manages its DNS record and
-  // certificate); the Worker 301s it to the apex.
-  // The apex still has a legacy DNS record of its own, so it is bound with a
-  // zone route. Once that record is deleted, replace it with
-  // `{ "pattern": "yasirzayed.com", "custom_domain": true }`.
+  // Both hostnames are Workers custom domains: Cloudflare manages the DNS
+  // records and certificates, and worker.js folds www into the apex.
   "routes": [
     {
-      "pattern": "www.yasirzayed.com",
+      "pattern": "yasirzayed.com",
       "custom_domain": true
     },
     {
-      "pattern": "yasirzayed.com/*",
-      "zone_name": "yasirzayed.com"
+      "pattern": "www.yasirzayed.com",
+      "custom_domain": true
     }
   ],
   "observability": {
