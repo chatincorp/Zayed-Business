@@ -13,11 +13,21 @@
   "name": "yasir-zayed",
   "main": "worker.js",
   "compatibility_date": "2026-11-01",
+  // Keep the direct worker URL available for smoke tests alongside the domain.
+  "workers_dev": true,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
+  // The apex already has a proxied DNS record, so a zone route (not a custom
+  // domain) is what binds https://yasirzayed.com to this Worker.
+  "routes": [
+    {
+      "pattern": "yasirzayed.com/*",
+      "zone_name": "yasirzayed.com"
+    }
+  ],
   "observability": {
     "enabled": true
   }
