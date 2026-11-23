@@ -8,13 +8,23 @@
  * Plain-HTTP requests are redirected to HTTPS here, so the production domain
  * serves secure traffic even without the zone's "Always Use HTTPS" toggle.
  * Loopback hosts are exempt so `wrangler dev` keeps working over http.
+ *
+ * `www.` is the same site, so it is folded into the apex host with a 301 to
+ * keep a single canonical origin for SEO and cookies.
  */
 
+const APEX_HOST = "yasirzayed.com";
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", "0.0.0.0"]);
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.hostname === `www.${APEX_HOST}`) {
+      url.protocol = "https:";
+      url.hostname = APEX_HOST;
+      return Response.redirect(url.toString(), 301);
+    }
 
     if (url.protocol === "http:" && !LOOPBACK_HOSTS.has(url.hostname)) {
       url.protocol = "https:";
