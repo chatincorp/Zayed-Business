@@ -633,7 +633,9 @@ client-side routes.
    production origin, not the workers.dev hostname: the canonical and `og:url`
    tags in `index.html` name the production domain regardless, so staging URLs
    must not reach the sitemap.
-3. First deploy prints the worker URL (`https://yasir-zayed.<subdomain>.workers.dev`).
+3. `workers_dev` is `false`, so the worker answers only on the two custom
+   domains below — there is no `*.workers.dev` copy and no per-deploy preview
+   URL. Smoke-test against `https://yasirzayed.com` after each deploy.
 
 #### Attach the custom domain
 
@@ -657,6 +659,32 @@ client-side routes.
   wrangler@4 dev` (serves on `http://localhost:8787`). `dist/` is gitignored, so
   the build step is required — `cloudflare:dev` on its own has no assets to
   serve.
+
+#### Lead notification emails
+
+Every public intake — the contact form, an FMCG enquiry, a supplier
+registration and a wholesale booking — schedules
+`leadNotifications:sendLeadNotification` (see
+`src/convex/leadNotifications.ts`). It reuses the provider configured for
+`emailHook`, so no extra dependency is needed. Set these on the Convex
+deployment (Dashboard → Settings → Environment Variables, or
+`npx convex env set <NAME> <value>`):
+
+| Variable | Meaning |
+| --- | --- |
+| `LEAD_NOTIFY_EMAIL` | Comma-separated business inbox(es). **Unset means the action is a no-op**, so a deployment without an inbox still accepts leads. |
+| `EMAIL_PROVIDER` | `resend` (recommended) or `sendgrid`. |
+| `RESEND_API_KEY` / `SENDGRID_API_KEY` | Provider key. |
+| `RESEND_FROM_EMAIL` / `SENDGRID_FROM_EMAIL` | Verified sender, e.g. `notifications@yasirzayed.com`. |
+
+The sending domain must be verified at the provider (SPF/DKIM DNS records,
+DNS-only in Cloudflare). The zone has no MX records, so `@yasirzayed.com`
+addresses do not receive mail — point `LEAD_NOTIFY_EMAIL` at a real inbox, and
+keep the provider key server-side (never in `VITE_*` variables).
+
+Smoke test without sending: `npx convex run
+leadNotifications:sendLeadNotification '{"kind":"Smoke test","subject":"test","lines":["no-op"]}'`
+returns `{"skipped":true}` while `LEAD_NOTIFY_EMAIL` is unset.
 
 ---
 

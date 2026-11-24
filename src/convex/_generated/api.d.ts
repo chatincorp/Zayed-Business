@@ -18,6 +18,7 @@ import type * as content from "../content.js";
 import type * as emailHook from "../emailHook.js";
 import type * as fmcg from "../fmcg.js";
 import type * as http from "../http.js";
+import type * as leadNotifications from "../leadNotifications.js";
 import type * as leads from "../leads.js";
 import type * as markets from "../markets.js";
 import type * as pricing from "../pricing.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   emailHook: typeof emailHook;
   fmcg: typeof fmcg;
   http: typeof http;
+  leadNotifications: typeof leadNotifications;
   leads: typeof leads;
   markets: typeof markets;
   pricing: typeof pricing;

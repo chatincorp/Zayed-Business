@@ -14,6 +14,7 @@ import {
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 /**
  * Order-desk writes.
@@ -187,6 +188,25 @@ export const registerSupplier = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    await ctx.scheduler.runAfter(
+      0,
+      internal.leadNotifications.sendLeadNotification,
+      {
+        kind: "New supplier registration",
+        subject: args.businessName.trim(),
+        replyTo: email,
+        lines: [
+          `Business: ${args.businessName.trim()}`,
+          `Contact: ${args.fullName.trim()}`,
+          `Email: ${email}`,
+          `Phone: ${args.personalPhone.trim()}`,
+          `Category: ${args.category}`,
+          `Payment terms: ${args.paymentTerms}`,
+          `Status: pending review (documents attached in the admin panel)`,
+        ],
+      },
+    );
 
     return { id, category: args.category };
   },
@@ -608,6 +628,27 @@ export const bookOrder = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    await ctx.scheduler.runAfter(
+      0,
+      internal.leadNotifications.sendLeadNotification,
+      {
+        kind: "New wholesale order",
+        subject: reference,
+        replyTo: args.email.trim().toLowerCase(),
+        lines: [
+          `Reference: ${reference}`,
+          `Contact: ${clientName}`,
+          `Business: ${args.businessName.trim()}`,
+          `Email: ${args.email.trim().toLowerCase()}`,
+          `Phone: ${args.phone.trim()}`,
+          `County: ${args.county.trim()}`,
+          `Method: ${method === "pickup" ? "Collection" : "Delivery"}`,
+          `Lines: ${items.length}`,
+          `Estimated total: ${BASE_CURRENCY} ${estimatedTotal.toLocaleString("en-KE")}`,
+        ],
+      },
+    );
 
     return { id, reference, estimatedTotal, currency: BASE_CURRENCY };
   },
@@ -1167,6 +1208,28 @@ export const createEnquiry = mutation({
       status: "new",
       createdAt: Date.now(),
     });
+
+    await ctx.scheduler.runAfter(
+      0,
+      internal.leadNotifications.sendLeadNotification,
+      {
+        kind: "New FMCG enquiry",
+        subject: `${args.service.trim()} — ${args.businessName.trim()}`,
+        replyTo: args.email.trim().toLowerCase(),
+        lines: [
+          `Name: ${args.name.trim()}`,
+          `Business: ${args.businessName.trim()}`,
+          `Email: ${args.email.trim().toLowerCase()}`,
+          `Phone: ${args.phone.trim()}`,
+          `Service: ${args.service.trim()}`,
+          ...(args.monthlyVolume?.trim()
+            ? [`Monthly volume: ${args.monthlyVolume.trim()}`]
+            : []),
+          `Message: ${args.message.trim()}`,
+        ],
+      },
+    );
+
     return { id };
   },
 });

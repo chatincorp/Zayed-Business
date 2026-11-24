@@ -13,8 +13,8 @@
   "name": "yasir-zayed",
   "main": "worker.js",
   "compatibility_date": "2026-11-01",
-  // Keep the direct worker URL available for smoke tests alongside the domain.
-  "workers_dev": true,
+  // Serve only on the custom domains below; no duplicate workers.dev copy.
+  "workers_dev": false,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
