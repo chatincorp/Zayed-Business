@@ -1238,7 +1238,7 @@ export const setSupplierStatus = mutation({
     reviewNotes: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
   },
-  handler: async (ctx, { id, status, reviewNotes, actorEmail }) => {
+  handler: async (ctx, { id, status, reviewNotes }) => {
     await requireOrderDesk(ctx, ["admin", "super_admin"]);
     const supplier = await ctx.db.get(id);
     await ctx.db.patch(id, {
@@ -1276,7 +1276,7 @@ export const setProductStatus = mutation({
     ),
     actorEmail: v.optional(v.string()),
   },
-  handler: async (ctx, { id, status, actorEmail }) => {
+  handler: async (ctx, { id, status }) => {
     await requireOrderDesk(ctx, ["admin", "super_admin"]);
     await ctx.db.patch(id, { status, updatedAt: Date.now() });
   },
@@ -1296,7 +1296,7 @@ export const setOrderStatus = mutation({
     author: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
   },
-  handler: async (ctx, { id, status, note, author, actorEmail }) => {
+  handler: async (ctx, { id, status, note, author }) => {
     await requireOrderDesk(ctx, ["admin", "super_admin", "sales"]);
     const order = await ctx.db.get(id);
     if (!order) throw new Error("That order no longer exists.");
@@ -1345,7 +1345,7 @@ export const setEnquiryStatus = mutation({
     ),
     actorEmail: v.optional(v.string()),
   },
-  handler: async (ctx, { id, status, actorEmail }) => {
+  handler: async (ctx, { id, status }) => {
     await requireOrderDesk(ctx, ["admin", "super_admin"]);
     await ctx.db.patch(id as Parameters<typeof ctx.db.patch>[0], { status });
   },

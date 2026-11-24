@@ -565,10 +565,10 @@ docker-compose up -d
 4. Configure:
    - **Build command**: `bun run build`
    - **Publish directory**: `dist`
-5. Add `_redirects` file in `dist/` for SPA routing:
-```
-/*    /index.html   200
-```
+5. SPA routing is already declared in `netlify.toml`; no extra file is needed.
+   Do not add `public/_redirects`: Cloudflare Workers reads that filename as
+   redirect rules and would rewrite every URL — including the prerendered
+   `/best/...` pages — to `index.html`.
 6. Deploy
 
 ### Convex Backend Deployments (preview vs production)
@@ -620,8 +620,8 @@ client-side routes.
 2. Build with the production backend URL and **the origin the site will be
    served from**. Both are baked in at build time. `VITE_CONVEX_URL` is not read
    from `.env.development.local` — Vite only loads that file in dev mode — so a
-   bare `npm run build:cloudflare` ships a site with no backend, where every
-   panel falls back to reference data. Export it or pass it inline:
+   bare `npm run build` ships a site with no backend, where every panel falls
+   back to reference data. Export it or pass it inline:
    ```bash
    VITE_CONVEX_URL=https://your-project.convex.cloud \
    SITE_ORIGIN=https://yasirzayed.com \
@@ -653,7 +653,7 @@ client-side routes.
 - `/sitemap.xml` lists the same origin you deployed to.
 - The market bar shows live quotes and `/portal` lists orders — both prove the
   build reached the Convex deployment.
-- Local parity check without publishing: `npm run build:cloudflare && npx --yes
+- Local parity check without publishing: `npm run build && npx --yes
   wrangler@4 dev` (serves on `http://localhost:8787`). `dist/` is gitignored, so
   the build step is required — `cloudflare:dev` on its own has no assets to
   serve.

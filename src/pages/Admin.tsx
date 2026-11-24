@@ -188,17 +188,18 @@ export default function Admin() {
   );
   const firstSection = sections[0]?.items[0]?.id ?? "";
 
-  const [activeSection, setActiveSection] = useState(firstSection);
+  // The selected panel is kept as-is; when permissions change (or on first
+  // render) and it is no longer reachable, fall back to the first allowed one
+  // during render instead of writing state from an effect.
+  const [selectedSection, setSelectedSection] = useState(firstSection);
+  const activeSection = sections
+    .flatMap((section) => section.items)
+    .some((item) => item.id === selectedSection)
+    ? selectedSection
+    : firstSection;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const content = useQuery(api.content.adminContent);
   const seedContent = useMutation(api.content.seedDefaults);
-
-  useEffect(() => {
-    const allowed = sections.some((section) =>
-      section.items.some((item) => item.id === activeSection),
-    );
-    if (!allowed && firstSection) setActiveSection(firstSection);
-  }, [sections, activeSection, firstSection]);
 
   // First run: mirror the bundled website content into Convex so every panel
   // (and the public site) starts populated and editable.
@@ -244,7 +245,7 @@ export default function Admin() {
                 {section.items.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => setSelectedSection(item.id)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${
                       activeSection === item.id
                         ? "bg-electric/10 text-electric"
@@ -307,7 +308,7 @@ export default function Admin() {
         {/* Dashboard content */}
         <div className="p-6">
           <AnimatePresence mode="wait">
-            {activeSection === "dashboard" && <DashboardContent key="dashboard" onNavigate={setActiveSection} />}
+            {activeSection === "dashboard" && <DashboardContent key="dashboard" onNavigate={setSelectedSection} />}
             {activeSection === "services" && <ServicesManager key="services" />}
             {activeSection === "leads" && <LeadsTable key="leads" />}
             {activeSection === "testimonials" && <TestimonialsPanel key="testimonials" />}

@@ -15,12 +15,20 @@ export default function Navigation() {
   const navLinks = useSiteNav();
 
   const handleScroll = useCallback(() => {
-    setScrolled(window.scrollY > 50);
+    const y = window.scrollY;
+    setScrolled(y > 50);
+    // The header hugs the bottom edge of the announcement bar while the bar is
+    // still on screen, then pins to the top once the bar scrolls away.
+    document.documentElement.style.setProperty("--yz-scroll-y", `${y}px`);
   }, []);
 
   useEffect(() => {
+    const frame = requestAnimationFrame(handleScroll);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [handleScroll]);
 
   // Close mobile menu on route change
@@ -35,8 +43,11 @@ export default function Navigation() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          top: "max(0px, calc(var(--yz-banner-height, 0px) - var(--yz-scroll-y, 0px)))",
+        }}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+          "fixed left-0 right-0 z-50 transition-[background-color,border-color,box-shadow] duration-500",
           scrolled
             ? "bg-navy/95 backdrop-blur-xl shadow-lg shadow-black/10 border-b border-white/5"
             : "bg-transparent"
@@ -114,7 +125,7 @@ export default function Navigation() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 lg:hidden"
+            className="fixed inset-0 z-[70] lg:hidden"
           >
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"

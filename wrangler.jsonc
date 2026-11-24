@@ -9,7 +9,7 @@
  *   npm run cloudflare:deploy
  */
 {
-  "$schema": "https://workers.cloudflare.com/schema",
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
   "name": "yasir-zayed",
   "main": "worker.js",
   "compatibility_date": "2026-11-01",
@@ -19,6 +19,11 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
+    // Prerendered pages live at <route>/index.html, but every canonical URL and
+    // sitemap entry is written without a trailing slash. Dropping trailing
+    // slashes keeps the served URL identical to the canonical one instead of
+    // spending a 307 on every /best/<service>/<place> hit.
+    "html_handling": "drop-trailing-slash",
     // Run worker.js before the asset cache so the www -> apex redirect and the
     // http -> https redirect apply even to cached HTML at `/`.
     "run_worker_first": true

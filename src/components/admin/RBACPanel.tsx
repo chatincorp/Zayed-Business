@@ -112,7 +112,6 @@ export default function RBACPanel() {
   );
   void roleOptions;
   const [newDept, setNewDept] = useState("Operations");
-  const [newResponsibilities, setNewResponsibilities] = useState("");
 
   // New department form
   const [newDeptName, setNewDeptName] = useState("");
@@ -162,7 +161,6 @@ export default function RBACPanel() {
       setNewEmail("");
       setNewPassword("");
       setNewPrivileges([]);
-      setNewResponsibilities("");
       setShowCreateStaff(false);
     } catch (error) {
       setCreateError(

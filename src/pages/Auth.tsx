@@ -75,18 +75,22 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPolicy, setShowPolicy] = useState(false);
+  // `open` covers the signup case (consent before the account exists) and
+  // `dismissed` hides the signed-in prompt for the rest of the visit.
+  const [policyPrompt, setPolicyPrompt] = useState<
+    "closed" | "open" | "dismissed"
+  >("closed");
   const [acceptedThisSession, setAcceptedThisSession] = useState(false);
   const [continueAfterPolicy, setContinueAfterPolicy] = useState(false);
 
   // Signed-in accounts whose policy acceptance is missing must accept it once;
-  // the acceptance is written to their user record in Convex.
-  useEffect(() => {
-    if (isLoading || !isAuthenticated) return;
-    if (!policyAccepted && !acceptedThisSession) {
-      setShowPolicy(true);
-    }
-  }, [isLoading, isAuthenticated, policyAccepted, acceptedThisSession]);
+  // the acceptance is written to their user record in Convex. Derived during
+  // render so no extra render pass is needed.
+  const policyRequired =
+    !isLoading && isAuthenticated && !policyAccepted && !acceptedThisSession;
+  const showPolicy =
+    policyPrompt === "open" ||
+    (policyRequired && policyPrompt !== "dismissed");
 
   useEffect(() => {
     if (isLoading || !isAuthenticated) return;
@@ -142,7 +146,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     }
     if (mode === "signup" && !acceptedThisSession && !policyAccepted) {
       setContinueAfterPolicy(true);
-      setShowPolicy(true);
+      setPolicyPrompt("open");
       return;
     }
     await authenticate();
@@ -150,7 +154,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
   const handlePolicyAccept = async () => {
     setAcceptedThisSession(true);
-    setShowPolicy(false);
+    setPolicyPrompt("closed");
     if (isAuthenticated) {
       try {
         await acceptPolicy();
@@ -165,7 +169,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   };
 
   const handlePolicyDecline = () => {
-    setShowPolicy(false);
+    setPolicyPrompt("dismissed");
     setContinueAfterPolicy(false);
     if (!isAuthenticated) {
       setError("You must accept the policies to create an account.");
