@@ -231,6 +231,15 @@ export default function Contact() {
               <Mail className="w-4 h-4" />
               info@yasirzayed.com
             </a>
+            <a
+              href="https://wa.me/254717227012?text=Hello%20Yasir%20Zayed%2C%20I%27d%20like%20to%20inquire%20about%20your%20services."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-white/60 hover:text-electric text-sm transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              WhatsApp
+            </a>
           </div>
         </div>
       </section>
@@ -322,7 +331,13 @@ export default function Contact() {
       </section>
 
       <Footer />
-      <FloatingWidgets />
+      {/* The floating chat bubbles are fixed to the viewport corner, where on
+          phones they sit on top of the request-type tabs and the submit
+          button. The quick-contact bar above already offers every channel, so
+          they are only shown from `sm` up on this page. */}
+      <div className="hidden sm:block">
+        <FloatingWidgets />
+      </div>
     </div>
   );
 }
