@@ -88,6 +88,18 @@ const appointmentTypes = [
 
 const meetingFormats = ["In Person", "Phone", "Video Conference", "Other"];
 
+/** Names used in the form's error summary for fields native validation can reject. */
+const FIELD_LABELS: Record<string, string> = {
+  "contact-subject": "Subject",
+  "contact-full-name": "Full name",
+  "contact-phone": "Mobile number",
+  "contact-email": "Email",
+  "contact-confirm-email": "Confirm email",
+  "contact-service": "Service required",
+  "contact-quotation-service": "Service required",
+  "contact-message": "Message",
+};
+
 export default function Contact() {
   useSEO({
     title: "Contact Yasir Zayed — Book a Business or Security Consultation",
@@ -328,6 +340,24 @@ function ContactForm({
   const currentCountry = countries.find((c) => c.code === selectedCountry) || countries[0];
   const office = getOfficeForCountry(selectedCountry);
 
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
+
+  // The form relies on native constraint validation, which blocks the submit
+  // and focuses the first invalid control. These props make that failure
+  // visible to assistive tech: aria-invalid on the field itself, and a shared
+  // live summary that each invalid field points at with aria-describedby.
+  const field = (id: string) => ({
+    id,
+    "aria-invalid": invalidFields.includes(id) || undefined,
+    "aria-describedby": invalidFields.includes(id)
+      ? "contact-form-error-summary"
+      : undefined,
+    onInvalid: () =>
+      setInvalidFields((prev) => (prev.includes(id) ? prev : [...prev, id])),
+    onInput: () =>
+      setInvalidFields((prev) => prev.filter((fieldId) => fieldId !== id)),
+  });
+
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       {/* Title */}
@@ -337,12 +367,26 @@ function ContactForm({
         </h2>
       </div>
 
+      {/* Native validation blocks the submit and moves focus to the first
+          invalid field; this announces every field that needs attention. */}
+      {invalidFields.length > 0 && (
+        <p
+          id="contact-form-error-summary"
+          role="alert"
+          className="text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-4 py-3"
+        >
+          Please complete:{" "}
+          {invalidFields.map((id) => FIELD_LABELS[id] ?? id).join(", ")}.
+        </p>
+      )}
+
       {/* Subject (all tabs) */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1.5">
+        <label htmlFor="contact-subject" className="block text-sm font-medium text-foreground mb-1.5">
           Subject <span className="text-destructive">*</span>
         </label>
         <input
+          {...field("contact-subject")}
           type="text"
           name="subject"
           required
@@ -362,17 +406,26 @@ function ContactForm({
       {/* Personal Info (all tabs) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-full-name" className="block text-sm font-medium text-foreground mb-1.5">
             Full Name <span className="text-destructive">*</span>
           </label>
-          <input type="text" name="fullName" required className={inputClass} placeholder="Your full name" />
+          <input
+            {...field("contact-full-name")}
+            type="text"
+            name="fullName"
+            required
+            className={inputClass}
+            placeholder="Your full name"
+          />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-phone" className="block text-sm font-medium text-foreground mb-1.5">
             Personal Mobile Number <span className="text-destructive">*</span>
           </label>
           <div className="flex gap-2">
             <select
+              id="contact-country-code"
+              aria-label="Country dialling code"
               value={selectedCountry}
               onChange={(e) => onCountryChange(e.target.value)}
               className="w-36 px-2 py-3 rounded-lg bg-card border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric transition-all appearance-none cursor-pointer"
@@ -383,36 +436,63 @@ function ContactForm({
                 </option>
               ))}
             </select>
-            <input type="tel" name="phone" required className={`${inputClass} flex-1`} placeholder="Phone number" />
+            <input
+              {...field("contact-phone")}
+              type="tel"
+              name="phone"
+              required
+              className={`${inputClass} flex-1`}
+              placeholder="Phone number"
+            />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-email" className="block text-sm font-medium text-foreground mb-1.5">
             Personal Email <span className="text-destructive">*</span>
           </label>
-          <input type="email" name="email" required className={inputClass} placeholder="you@example.com" />
+          <input
+            {...field("contact-email")}
+            type="email"
+            name="email"
+            required
+            className={inputClass}
+            placeholder="you@example.com"
+          />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-confirm-email" className="block text-sm font-medium text-foreground mb-1.5">
             Confirm Personal Email <span className="text-destructive">*</span>
           </label>
-          <input type="email" name="confirmEmail" required className={inputClass} placeholder="Confirm your email" />
+          <input
+            {...field("contact-confirm-email")}
+            type="email"
+            name="confirmEmail"
+            required
+            className={inputClass}
+            placeholder="Confirm your email"
+          />
         </div>
       </div>
 
       {/* Company Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-company" className="block text-sm font-medium text-foreground mb-1.5">
             Company / Business Name {type !== "inquiry" && <span className="text-destructive">*</span>}
           </label>
-          <input type="text" name="company" className={inputClass} placeholder="Company name" />
+          <input
+            {...field("contact-company")}
+            type="text"
+            name="company"
+            className={inputClass}
+            placeholder="Company name"
+          />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-formation-type" className="block text-sm font-medium text-foreground mb-1.5">
             Company Formation Type
           </label>
-          <select className={inputClass}>
+          <select id="contact-formation-type" className={inputClass}>
             <option value="">Select type</option>
             {formationTypes.map((t) => (
               <option key={t}>{t}</option>
@@ -420,12 +500,12 @@ function ContactForm({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Position in Company</label>
-          <input type="text" name="position" className={inputClass} placeholder="Your position" />
+          <label htmlFor="contact-position" className="block text-sm font-medium text-foreground mb-1.5">Position in Company</label>
+          <input id="contact-position" type="text" name="position" className={inputClass} placeholder="Your position" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Official Business Email</label>
-          <input type="email" name="businessEmail" className={inputClass} placeholder="you@company.com" />
+          <label htmlFor="contact-business-email" className="block text-sm font-medium text-foreground mb-1.5">Official Business Email</label>
+          <input id="contact-business-email" type="email" name="businessEmail" className={inputClass} placeholder="you@company.com" />
         </div>
       </div>
 
@@ -433,10 +513,10 @@ function ContactForm({
       {type === "appointment" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
+            <label htmlFor="contact-service" className="block text-sm font-medium text-foreground mb-1.5">
               Service Required
             </label>
-            <select className={inputClass}>
+            <select id="contact-service" className={inputClass}>
               <option value="">Select service</option>
               {appointmentTypes.map((s) => (
                 <option key={s}>{s}</option>
@@ -444,20 +524,20 @@ function ContactForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Preferred Contact Method</label>
-            <select className={inputClass}>
+            <label htmlFor="contact-preferred-method" className="block text-sm font-medium text-foreground mb-1.5">Preferred Contact Method</label>
+            <select id="contact-preferred-method" className={inputClass}>
               <option>Email</option>
               <option>Phone</option>
               <option>WhatsApp</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Preferred Date</label>
-            <input type="date" className={inputClass} />
+            <label htmlFor="contact-appointment-date" className="block text-sm font-medium text-foreground mb-1.5">Preferred Date</label>
+            <input id="contact-appointment-date" type="date" className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Preferred Time</label>
-            <input type="time" className={inputClass} />
+            <label htmlFor="contact-appointment-time" className="block text-sm font-medium text-foreground mb-1.5">Preferred Time</label>
+            <input id="contact-appointment-time" type="time" className={inputClass} />
           </div>
         </div>
       )}
@@ -465,20 +545,20 @@ function ContactForm({
       {type === "meeting" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-foreground mb-1.5">Meeting Purpose</label>
-            <input type="text" className={inputClass} placeholder="Brief purpose of the meeting" />
+            <label htmlFor="contact-meeting-purpose" className="block text-sm font-medium text-foreground mb-1.5">Meeting Purpose</label>
+            <input id="contact-meeting-purpose" type="text" className={inputClass} placeholder="Brief purpose of the meeting" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Preferred Date</label>
-            <input type="date" className={inputClass} />
+            <label htmlFor="contact-meeting-date" className="block text-sm font-medium text-foreground mb-1.5">Preferred Date</label>
+            <input id="contact-meeting-date" type="date" className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Preferred Time</label>
-            <input type="time" className={inputClass} />
+            <label htmlFor="contact-meeting-time" className="block text-sm font-medium text-foreground mb-1.5">Preferred Time</label>
+            <input id="contact-meeting-time" type="time" className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Meeting Format</label>
-            <select className={inputClass}>
+            <label htmlFor="contact-meeting-format" className="block text-sm font-medium text-foreground mb-1.5">Meeting Format</label>
+            <select id="contact-meeting-format" className={inputClass}>
               {meetingFormats.map((f) => (
                 <option key={f}>{f}</option>
               ))}
@@ -489,10 +569,10 @@ function ContactForm({
 
       {type === "inquiry" && (
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor="contact-inquiry-category" className="block text-sm font-medium text-foreground mb-1.5">
             Inquiry Category
           </label>
-          <select className={inputClass}>
+          <select id="contact-inquiry-category" className={inputClass}>
             <option value="">Select category</option>
             {inquiryCategories.map((c) => (
               <option key={c}>{c}</option>
@@ -504,10 +584,15 @@ function ContactForm({
       {type === "quotation" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
+            <label htmlFor="contact-quotation-service" className="block text-sm font-medium text-foreground mb-1.5">
               Service Required <span className="text-destructive">*</span>
             </label>
-            <select name="service" className={inputClass} required>
+            <select
+              {...field("contact-quotation-service")}
+              name="service"
+              className={inputClass}
+              required
+            >
               <option value="">Select service</option>
               {services.map((s) => (
                 <option key={s}>{s}</option>
@@ -515,23 +600,23 @@ function ContactForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Estimated Budget</label>
-            <input type="text" className={inputClass} placeholder="e.g. $5,000 - $15,000" />
+            <label htmlFor="contact-budget" className="block text-sm font-medium text-foreground mb-1.5">Estimated Budget</label>
+            <input id="contact-budget" type="text" className={inputClass} placeholder="e.g. $5,000 - $15,000" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Expected Start Date</label>
-            <input type="date" className={inputClass} />
+            <label htmlFor="contact-start-date" className="block text-sm font-medium text-foreground mb-1.5">Expected Start Date</label>
+            <input id="contact-start-date" type="date" className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Project Location / Region</label>
-            <input type="text" className={inputClass} placeholder="e.g. Nairobi, Kenya" />
+            <label htmlFor="contact-region" className="block text-sm font-medium text-foreground mb-1.5">Project Location / Region</label>
+            <input id="contact-region" type="text" className={inputClass} placeholder="e.g. Nairobi, Kenya" />
           </div>
         </div>
       )}
 
       {/* Message / Description (all tabs except quotation) */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1.5">
+        <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-1.5">
           {type === "quotation"
             ? "Project / Requirement Description *"
             : type === "meeting"
@@ -539,6 +624,7 @@ function ContactForm({
             : "Additional Information"}
         </label>
         <textarea
+          {...field("contact-message")}
           name="message"
           rows={5}
           required={type === "inquiry" || type === "quotation"}

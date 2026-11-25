@@ -2,6 +2,56 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, X, Settings, CheckCircle2 } from "lucide-react";
 
+/**
+ * A consent toggle. Rendered as a real button with `role="switch"` so it is
+ * tab-reachable, toggles with Space/Enter and reports its state to screen
+ * readers — the plain clickable `div`s it replaces were invisible to both.
+ */
+function ConsentSwitch({
+  id,
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
+      <div className="cursor-pointer" onClick={onChange}>
+        <p id={`${id}-label`} className="text-sm font-medium text-foreground">
+          {label}
+        </p>
+        <p id={`${id}-description`} className="text-xs text-muted-foreground">
+          {description}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={`${id}-label`}
+        aria-describedby={`${id}-description`}
+        onClick={onChange}
+        className={`relative w-11 h-6 shrink-0 rounded-full transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+          checked ? "bg-electric" : "bg-muted border border-border"
+        }`}
+      >
+        <span
+          aria-hidden="true"
+          className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-all ${
+            checked ? "left-[22px]" : "left-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
 export default function CookieNotice() {
   const [visible, setVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -112,43 +162,21 @@ export default function CookieNotice() {
                       </div>
                     </div>
 
-                    <label className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Analytics Cookies</p>
-                        <p className="text-xs text-muted-foreground">Help us understand how visitors use the site</p>
-                      </div>
-                      <div
-                        onClick={() => setAnalyticsConsent(!analyticsConsent)}
-                        className={`w-11 h-6 rounded-full transition-all cursor-pointer relative ${
-                          analyticsConsent ? "bg-electric" : "bg-muted border border-border"
-                        }`}
-                      >
-                        <div
-                          className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-all ${
-                            analyticsConsent ? "left-[22px]" : "left-0.5"
-                          }`}
-                        />
-                      </div>
-                    </label>
+                    <ConsentSwitch
+                      id="cookie-analytics"
+                      label="Analytics Cookies"
+                      description="Help us understand how visitors use the site"
+                      checked={analyticsConsent}
+                      onChange={() => setAnalyticsConsent(!analyticsConsent)}
+                    />
 
-                    <label className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Marketing Cookies</p>
-                        <p className="text-xs text-muted-foreground">Used for targeted advertising and remarketing</p>
-                      </div>
-                      <div
-                        onClick={() => setMarketingConsent(!marketingConsent)}
-                        className={`w-11 h-6 rounded-full transition-all cursor-pointer relative ${
-                          marketingConsent ? "bg-electric" : "bg-muted border border-border"
-                        }`}
-                      >
-                        <div
-                          className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-all ${
-                            marketingConsent ? "left-[22px]" : "left-0.5"
-                          }`}
-                        />
-                      </div>
-                    </label>
+                    <ConsentSwitch
+                      id="cookie-marketing"
+                      label="Marketing Cookies"
+                      description="Used for targeted advertising and remarketing"
+                      checked={marketingConsent}
+                      onChange={() => setMarketingConsent(!marketingConsent)}
+                    />
 
                     <div className="flex items-center gap-3 pt-2">
                       <button
