@@ -27,11 +27,37 @@
  *
  * `www.` is the same site, so it is folded into the apex host with a 301 to
  * keep a single canonical origin for SEO and cookies.
+ *
+ * HSTS is declared in `public/_headers`, but the assets layer only applies that
+ * to files it serves — and `www` never serves a file, because every request is
+ * this worker's 301. Without the header on that redirect, a browser has nothing
+ * pinning `www` to HTTPS and keeps opening `http://www…` first, which then costs
+ * two hops (zone HTTP→HTTPS, then this www→apex 301). So the worker emits the
+ * same HSTS policy on the responses it writes itself.
  */
 
 const APEX_HOST = "yasirzayed.com";
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", "0.0.0.0"]);
 const FILE_EXTENSION = /\.[a-z0-9]{1,10}$/i;
+const HSTS = "max-age=31536000; includeSubDomains";
+
+/**
+ * Pin the response's host to HTTPS, unless the assets layer already did.
+ * Response headers from `Response.redirect()` are immutable, hence the clone.
+ */
+function withHsts(response, url) {
+  if (url.protocol !== "https:" || LOOPBACK_HOSTS.has(url.hostname)) {
+    return response;
+  }
+  if (response.headers.has("Strict-Transport-Security")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Strict-Transport-Security", HSTS);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 /** Exact paths from the route table, plus the indexable statics around them. */
 const STATIC_ROUTES = new Set([
@@ -116,15 +142,15 @@ export default {
     if (url.hostname === `www.${APEX_HOST}`) {
       url.protocol = "https:";
       url.hostname = APEX_HOST;
-      return Response.redirect(url.toString(), 301);
+      return withHsts(Response.redirect(url.toString(), 301), url);
     }
 
     if (url.protocol === "http:" && !LOOPBACK_HOSTS.has(url.hostname)) {
       url.protocol = "https:";
-      return Response.redirect(url.toString(), 301);
+      return withHsts(Response.redirect(url.toString(), 301), url);
     }
 
-    const response = await env.ASSETS.fetch(request);
+    const response = withHsts(await env.ASSETS.fetch(request), url);
 
     const servedHtml =
       response.status === 200 &&
@@ -138,14 +164,17 @@ export default {
     // so a stale `/assets/…js` fails loudly instead of parsing as HTML.
     if (looksLikeFile) {
       if (wantsHtml) return response;
-      return notFound();
+      return withHsts(notFound(), url);
     }
 
     // The assets layer already returned the shell; only route-matching paths
     // may claim success. Unknown ones keep the shell (so the app renders its
     // own NotFound) but carry a 404 status.
     if (!isAppRoute(url.pathname)) {
-      return notFound({ html: await response.text(), statusText: "Not Found" });
+      return withHsts(
+        notFound({ html: await response.text(), statusText: "Not Found" }),
+        url,
+      );
     }
 
     return response;

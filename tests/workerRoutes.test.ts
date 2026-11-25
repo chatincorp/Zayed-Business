@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { isAppRoute } from "../worker.js";
+import worker, { isAppRoute } from "../worker.js";
 
 const mainSource = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
 
@@ -86,5 +86,56 @@ describe("unknown paths", () => {
     expect(isAppRoute("/admin")).toBe(true);
     expect(isAppRoute("/tabloid/some-article-slug")).toBe(true);
     expect(isAppRoute("/services/ai-automation")).toBe(true);
+  });
+});
+
+/** Assets stub: a 200 HTML shell, or the given response. */
+const env = (response = () => new Response("<!doctype html>", {
+  headers: { "content-type": "text/html; charset=utf-8" },
+})) => ({ ASSETS: { fetch: async () => response() } });
+
+const HSTS = "max-age=31536000; includeSubDomains";
+
+describe("HTTPS pinning", () => {
+  it("sends HSTS on the www -> apex 301, which never reaches the assets layer", async () => {
+    const response = await worker.fetch(
+      new Request("https://www.yasirzayed.com/pricing?x=1"),
+      env(),
+    );
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(
+      "https://yasirzayed.com/pricing?x=1",
+    );
+    expect(response.headers.get("strict-transport-security")).toBe(HSTS);
+  });
+
+  it("sends HSTS on an unknown-path 404", async () => {
+    const response = await worker.fetch(
+      new Request("https://yasirzayed.com/nonexistent-xyz"),
+      env(),
+    );
+    expect(response.status).toBe(404);
+    expect(response.headers.get("strict-transport-security")).toBe(HSTS);
+  });
+
+  it("keeps the assets layer's HSTS instead of duplicating it", async () => {
+    const response = await worker.fetch(
+      new Request("https://yasirzayed.com/pricing"),
+      env(() => new Response("<!doctype html>", {
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "strict-transport-security": "max-age=123",
+        },
+      })),
+    );
+    expect(response.headers.get("strict-transport-security")).toBe("max-age=123");
+  });
+
+  it("leaves loopback development free of HSTS", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost:8787/pricing"),
+      env(),
+    );
+    expect(response.headers.get("strict-transport-security")).toBeNull();
   });
 });
