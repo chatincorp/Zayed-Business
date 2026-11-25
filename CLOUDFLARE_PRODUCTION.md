@@ -34,7 +34,7 @@ production responses must not expose or redirect to them.
   origin `https://yasirzayed.com`.
 
 ## 5. Verified state of the live production domain
-Last verified from the production origin:
+Last verified from the production origin after the deploy of version `68a7ebfc`:
 
 - `https://yasirzayed.com/` → 200 `text/html`, HSTS present.
 - `https://yasirzayed.com/contact` → 200 `text/html`, HSTS present.
