@@ -118,7 +118,31 @@ describe("HTTPS pinning", () => {
     expect(response.headers.get("strict-transport-security")).toBe(HSTS);
   });
 
-  it("keeps the assets layer's HSTS instead of duplicating it", async () => {
+  it("sends HSTS on the http -> https 301", async () => {
+    const response = await worker.fetch(
+      new Request("http://yasirzayed.com/pricing?x=1"),
+      env(),
+    );
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(
+      "https://yasirzayed.com/pricing?x=1",
+    );
+    expect(response.headers.get("strict-transport-security")).toBe(HSTS);
+  });
+
+  it("sends HSTS on the plain-text 404 for a stale asset URL", async () => {
+    const response = await worker.fetch(
+      new Request("https://yasirzayed.com/assets/app-123.js"),
+      env(),
+    );
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe(
+      "text/plain; charset=utf-8",
+    );
+    expect(response.headers.get("strict-transport-security")).toBe(HSTS);
+  });
+
+  it("leaves the assets layer's response and its own HSTS untouched", async () => {
     const response = await worker.fetch(
       new Request("https://yasirzayed.com/pricing"),
       env(() => new Response("<!doctype html>", {
@@ -128,6 +152,8 @@ describe("HTTPS pinning", () => {
         },
       })),
     );
+    // Assets responses keep the `public/_headers` policy; the worker must not
+    // overwrite it with its own copy.
     expect(response.headers.get("strict-transport-security")).toBe("max-age=123");
   });
 

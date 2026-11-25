@@ -28,12 +28,12 @@
  * `www.` is the same site, so it is folded into the apex host with a 301 to
  * keep a single canonical origin for SEO and cookies.
  *
- * HSTS is declared in `public/_headers`, but the assets layer only applies that
- * to files it serves — and `www` never serves a file, because every request is
- * this worker's 301. Without the header on that redirect, a browser has nothing
- * pinning `www` to HTTPS and keeps opening `http://www…` first, which then costs
- * two hops (zone HTTP→HTTPS, then this www→apex 301). So the worker emits the
- * same HSTS policy on the responses it writes itself.
+ * HSTS is declared in `public/_headers`, which the assets layer applies to the
+ * responses it serves. The responses this worker writes itself — the two
+ * redirects and both 404s — never reach that layer, so they carry no HSTS and a
+ * browser has nothing pinning `www` to HTTPS; it keeps opening `http://www…`
+ * first, costing two hops (zone HTTP→HTTPS, then this www→apex 301). Those four
+ * responses therefore repeat the same policy.
  */
 
 const APEX_HOST = "yasirzayed.com";
@@ -42,14 +42,13 @@ const FILE_EXTENSION = /\.[a-z0-9]{1,10}$/i;
 const HSTS = "max-age=31536000; includeSubDomains";
 
 /**
- * Pin the response's host to HTTPS, unless the assets layer already did.
- * Response headers from `Response.redirect()` are immutable, hence the clone.
+ * Pin a response this worker wrote itself to HTTPS. It is only ever called with
+ * an `https:` URL (or a loopback one, which is exempt), and those responses are
+ * built here, so they cannot already carry the header. `Response.redirect()`
+ * headers are immutable, hence the new Response.
  */
 function withHsts(response, url) {
-  if (url.protocol !== "https:" || LOOPBACK_HOSTS.has(url.hostname)) {
-    return response;
-  }
-  if (response.headers.has("Strict-Transport-Security")) return response;
+  if (LOOPBACK_HOSTS.has(url.hostname)) return response;
   const headers = new Headers(response.headers);
   headers.set("Strict-Transport-Security", HSTS);
   return new Response(response.body, {
@@ -150,7 +149,9 @@ export default {
       return withHsts(Response.redirect(url.toString(), 301), url);
     }
 
-    const response = withHsts(await env.ASSETS.fetch(request), url);
+    // The assets layer applies `public/_headers`, HSTS included, to its own
+    // responses; wrapping them here would only re-stream every byte.
+    const response = await env.ASSETS.fetch(request);
 
     const servedHtml =
       response.status === 200 &&
