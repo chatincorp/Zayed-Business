@@ -557,6 +557,8 @@ export default function LiveDemoPreviews() {
                   onClick={() => setActiveDemo(demo.id)}
                   onMouseEnter={() => {}}
                   onMouseLeave={() => {}}
+                  aria-label={demo.label}
+                  aria-pressed={activeDemo === demo.id}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                     activeDemo === demo.id
                       ? "bg-navy text-white shadow-lg shadow-navy/20"
@@ -580,12 +582,14 @@ export default function LiveDemoPreviews() {
                 <button
                   key={mode.id}
                   onClick={() => setViewMode(mode.id)}
+                  aria-label={mode.label}
+                  aria-pressed={viewMode === mode.id}
+                  title={mode.label}
                   className={`p-2 rounded-md transition-all ${
                     viewMode === mode.id
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
-                  title={mode.label}
                 >
                   <Icon className="w-4 h-4" />
                 </button>
@@ -619,10 +623,14 @@ export default function LiveDemoPreviews() {
                   yasirzayed.com{current.url}
                 </div>
               </div>
-              <ExternalLink
-                className="w-3.5 h-3.5 text-muted-foreground cursor-pointer hover:text-electric transition-colors"
+              <button
+                type="button"
+                aria-label="Open demo in new tab"
                 onClick={() => window.open(current.url, "_blank")}
-              />
+                className="p-1 rounded text-muted-foreground hover:text-electric transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {/* Scrollable preview */}

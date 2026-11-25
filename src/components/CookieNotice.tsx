@@ -59,6 +59,22 @@ export default function CookieNotice() {
   const [analyticsConsent, setAnalyticsConsent] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
 
+  // Allow the notice to be reopened from elsewhere (e.g. the footer's
+  // "Cookie settings" link) after it has been dismissed.
+  useEffect(() => {
+    const reopen = () => {
+      try {
+        localStorage.removeItem("yz-cookie-notice-dismissed");
+      } catch {
+        /* ignore */
+      }
+      setVisible(true);
+      setShowSettings(false);
+    };
+    window.addEventListener("yz:reopen-cookies", reopen);
+    return () => window.removeEventListener("yz:reopen-cookies", reopen);
+  }, []);
+
   useEffect(() => {
     const dismissed = localStorage.getItem("yz-cookie-notice-dismissed");
     if (!dismissed) {
@@ -107,7 +123,7 @@ export default function CookieNotice() {
           className="fixed bottom-0 left-0 right-0 z-[90] p-4"
         >
           <div className="mx-auto max-w-4xl">
-            <div className="rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-2xl shadow-black/10 overflow-hidden">
+            <div className="rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-2xl shadow-black/10 overflow-hidden max-h-[calc(100dvh-2rem)] overflow-y-auto">
               {/* Top notification bar */}
               <div className="flex items-center gap-3 px-5 py-3 bg-electric/5 border-b border-border">
                 <Shield className="w-4 h-4 text-electric shrink-0" />
@@ -116,6 +132,7 @@ export default function CookieNotice() {
                 </p>
                 <button
                   onClick={handleDismiss}
+                  aria-label="Dismiss cookie notice"
                   className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <X className="w-4 h-4" />

@@ -366,12 +366,14 @@ export default function YasBot() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setIsMinimized(!isMinimized)}
+                  aria-label={isMinimized ? "Expand chat" : "Minimize chat"}
                   className="p-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors"
                 >
                   {isMinimized ? <ChevronDown className="w-4 h-4 rotate-180" /> : <Minus className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
+                  aria-label="Close chat"
                   className="p-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -455,6 +457,7 @@ export default function YasBot() {
                     <button
                       onClick={handleSend}
                       disabled={!input.trim()}
+                      aria-label="Send message"
                       className="w-9 h-9 rounded-xl bg-electric text-white flex items-center justify-center hover:bg-electric-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                     >
                       <Send className="w-4 h-4" />

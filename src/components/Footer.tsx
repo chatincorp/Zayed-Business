@@ -167,6 +167,20 @@ export default function Footer() {
             <Link to="/cookies" className="text-white/30 hover:text-white/50 text-xs transition-colors">
               Cookie Policy
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.removeItem("yz-cookie-notice-dismissed");
+                } catch {
+                  /* ignore */
+                }
+                window.dispatchEvent(new Event("yz:reopen-cookies"));
+              }}
+              className="text-white/30 hover:text-white/50 text-xs transition-colors"
+            >
+              Cookie settings
+            </button>
           </div>
         </div>
       </div>

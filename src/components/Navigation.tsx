@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
@@ -9,6 +9,7 @@ import YasirZayedLogo from "./YasirZayedLogo";
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   // Menu items come from the admin Navigation panel; bundled defaults are
   // used until a Convex deployment is attached.
@@ -36,6 +37,56 @@ export default function Navigation() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
   }, [location]);
+
+  // Mobile drawer: Escape to close + focus trap inside the panel.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const focusFirst = () => {
+      const panel = panelRef.current;
+      const first = panel?.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      first?.focus();
+    };
+    const t = window.setTimeout(focusFirst, 50);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMobileOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusables.length === 0) return;
+      const firstEl = focusables[0];
+      const lastEl = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else if (document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
+    };
+    // Stop the page behind the drawer from scrolling while it is open.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    document.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(t);
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
 
   return (
     <>
@@ -110,6 +161,8 @@ export default function Navigation() {
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className="lg:hidden p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 aria-label="Toggle menu"
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-main-menu"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -135,17 +188,23 @@ export default function Navigation() {
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
+              ref={panelRef}
+              id="mobile-main-menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Main menu"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-[300px] bg-navy-dark/98 backdrop-blur-xl border-l border-white/10 overflow-y-auto"
+              className="absolute right-0 top-0 bottom-0 w-[300px] max-h-[100dvh] bg-navy-dark/98 backdrop-blur-xl border-l border-white/10 overflow-y-auto overscroll-contain"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
                   <YasirZayedLogo variant="icon" height={36} />
                   <button
                     onClick={() => setMobileOpen(false)}
+                    aria-label="Close menu"
                     className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
                   >
                     <X className="w-5 h-5" />
