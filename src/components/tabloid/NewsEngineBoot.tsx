@@ -48,12 +48,6 @@ const RSS_FEEDS: Array<{ name: string; url: string; pageUrl: string; category: s
     category: "finance",
   },
   {
-    name: "CNN Business",
-    url: "http://rss.cnn.com/rss/money_news_international.rss",
-    pageUrl: "https://edition.cnn.com/business",
-    category: "global",
-  },
-  {
     name: "TechCrunch",
     url: "https://techcrunch.com/feed/",
     pageUrl: "https://techcrunch.com",

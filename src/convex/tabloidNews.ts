@@ -128,6 +128,14 @@ export const setFeedActive = mutation({
   },
 });
 
+/** Remove a feed entirely (admin) — for endpoints that are dead or insecure. */
+export const deleteFeed = mutation({
+  args: { id: v.id("newsFeeds") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});
+
 /* ══════════════════════════════════════════════════════════════
  *  EDITORIAL PIPELINE
  * ══════════════════════════════════════════════════════════════ */

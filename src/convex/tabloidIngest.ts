@@ -454,13 +454,21 @@ function buildTags(title: string, excerpt: string, category: string): string[] {
   return [...new Set([category, ...top])].slice(0, 5);
 }
 
+/**
+ * Secure URLs only. An http endpoint cannot be trusted to serve the same bytes
+ * over TLS, so a plaintext link is upgraded and never stored or linked as-is.
+ */
+const secureUrl = (value: string | undefined) =>
+  value?.startsWith("http://")
+    ? `https://${value.slice("http://".length)}`
+    : value;
+
 /* ── The ingest action ──────────────────────────────────────── */
 
 const DEFAULT_FEEDS = [
   { name: "Google News Kenya – Business", url: "https://news.google.com/rss/search?q=Kenya+business&hl=en-KE&gl=KE&ceid=KE:en", category: "africa" },
   { name: "Google News Kenya – Technology", url: "https://news.google.com/rss/search?q=Kenya+technology&hl=en-KE&gl=KE&ceid=KE:en", category: "tech" },
   { name: "CNBC", url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114", category: "finance" },
-  { name: "CNN Business", url: "http://rss.cnn.com/rss/money_news_international.rss", category: "global" },
   { name: "BBC Business (fallback)", url: "https://feeds.bbci.co.uk/news/business/rss.xml", category: "global" },
 ];
 
@@ -487,6 +495,10 @@ export const ingestNews = action({
       sources = DEFAULT_FEEDS;
       feeds = [];
     }
+
+    // An http feed would store and link plaintext article URLs, so it is never
+    // fetched; https-only feeds are the invariant this pipeline maintains.
+    sources = sources.filter((s) => s.url.startsWith("https://"));
 
     const target = args.feedName
       ? sources.filter((s) => s.name === args.feedName)
@@ -547,14 +559,14 @@ export const ingestNews = action({
           prepared.push({
             dedupeKey,
             sourceName: source.name,
-            sourceUrl: item.link || source.url,
+            sourceUrl: secureUrl(item.link) || source.url,
             originalTitle: item.title,
             originalExcerpt: item.description.slice(0, 400) || undefined,
             title: rewrite.title,
             excerpt: rewrite.excerpt,
             aiRewrite: rewrite.aiRewrite,
             body: rewrite.body,
-            image: item.image,
+            image: secureUrl(item.image),
             category,
             tags,
             seoTitle,
