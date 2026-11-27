@@ -158,26 +158,20 @@ export default {
       (response.headers.get("content-type") ?? "").includes("text/html");
     if (!servedHtml) return response;
 
-    const looksLikeFile = FILE_EXTENSION.test(normalisePath(url.pathname));
+    const path = normalisePath(url.pathname);
+    const looksLikeFile = FILE_EXTENSION.test(path);
+
+    // Only a path shaped like a page and matching a route may keep the shell,
+    // with its 200. A file-shaped path is never a page, even when it happens to
+    // fit a parameterised route like `/tabloid/:id`.
+    if (!looksLikeFile && isAppRoute(path)) return response;
+
+    // Everything else is a miss. A stale asset URL fetched by a script or a
+    // stylesheet gets plain text so it fails loudly instead of parsing as HTML;
+    // a navigation keeps the shell, so the app renders its own NotFound, but
+    // carries the 404 status crawlers need.
     const wantsHtml = (request.headers.get("accept") ?? "").includes("text/html");
-
-    // A miss on a file-shaped URL is never a navigation: answer in plain text
-    // so a stale `/assets/…js` fails loudly instead of parsing as HTML.
-    if (looksLikeFile) {
-      if (wantsHtml) return response;
-      return withHsts(notFound(), url);
-    }
-
-    // The assets layer already returned the shell; only route-matching paths
-    // may claim success. Unknown ones keep the shell (so the app renders its
-    // own NotFound) but carry a 404 status.
-    if (!isAppRoute(url.pathname)) {
-      return withHsts(
-        notFound({ html: await response.text(), statusText: "Not Found" }),
-        url,
-      );
-    }
-
-    return response;
+    const html = looksLikeFile && !wantsHtml ? undefined : await response.text();
+    return withHsts(notFound({ html }), url);
   },
 };

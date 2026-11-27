@@ -165,3 +165,95 @@ describe("HTTPS pinning", () => {
     expect(response.headers.get("strict-transport-security")).toBeNull();
   });
 });
+
+/**
+ * Real traffic shapes. A browser sends the full `text/html...` list only for a
+ * navigation; scripts and other subresources send Accept lists without it.
+ */
+const NAVIGATION = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
+const SCRIPT = "*/*";
+const STYLESHEET = "text/css,*/*;q=0.1";
+
+const shell = "<!doctype html><html><body>app shell</body></html>";
+const shellResponse = () =>
+  new Response(shell, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "strict-transport-security": "max-age=31536000; includeSubDomains",
+    },
+  });
+
+const request = (path: string, accept?: string) =>
+  new Request(`https://yasirzayed.com${path}`, accept ? { headers: { accept } } : undefined);
+
+describe("miss classification", () => {
+  it("passes a real asset through untouched", async () => {
+    const asset = () =>
+      new Response("export default 1;", {
+        headers: { "content-type": "text/javascript" },
+      });
+    const response = await worker.fetch(request("/assets/index-BZ6JZS-v.js", SCRIPT), env(asset));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("text/javascript");
+    expect(await response.text()).toBe("export default 1;");
+  });
+
+  it("passes the assets layer's own 404 through untouched", async () => {
+    const response = await worker.fetch(
+      request("/assets/gone-123.js", SCRIPT),
+      env(() => new Response("Not Found", { status: 404, headers: { "content-type": "text/plain" } })),
+    );
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("text/plain");
+  });
+
+  it("serves a navigation to a real route with the shell and a 200", async () => {
+    for (const path of ["/", "/contact", "/tabloid", "/services/ai-automation", "/best/fmcg-sales/mombasa"]) {
+      const response = await worker.fetch(request(path, NAVIGATION), env(shellResponse));
+      expect(response.status, path).toBe(200);
+      expect(await response.text(), path).toBe(shell);
+    }
+  });
+
+  it("answers an unknown navigation with the shell and a 404", async () => {
+    const response = await worker.fetch(request("/nonexistent-xyz", NAVIGATION), env(shellResponse));
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("text/html; charset=utf-8");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(await response.text()).toBe(shell);
+  });
+
+  it("answers an unknown path fetched as data with the shell and a 404", async () => {
+    const response = await worker.fetch(request("/api/health", SCRIPT), env(shellResponse));
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("text/html; charset=utf-8");
+  });
+
+  it("answers a stale asset URL as a script or stylesheet with a plain-text 404", async () => {
+    for (const accept of [SCRIPT, STYLESHEET]) {
+      const response = await worker.fetch(request("/assets/index-OLDHASH.js", accept), env(shellResponse));
+      expect(response.status, accept).toBe(404);
+      expect(response.headers.get("content-type"), accept).toBe("text/plain; charset=utf-8");
+      expect(await response.text(), accept).toBe("Not Found");
+    }
+  });
+
+  it("answers a stale asset URL opened as a navigation with a 404, not the 200 shell", async () => {
+    const response = await worker.fetch(request("/assets/index-OLDHASH.js", NAVIGATION), env(shellResponse));
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("text/html; charset=utf-8");
+  });
+
+  it("treats a file-shaped path as a file even when it fits a route pattern", async () => {
+    const response = await worker.fetch(request("/tabloid/news.js", SCRIPT), env(shellResponse));
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+  });
+
+  it("still classifies a trailing-slash stale asset as a file", async () => {
+    const response = await worker.fetch(request("/assets/index-OLDHASH.js/", SCRIPT), env(shellResponse));
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+  });
+});
