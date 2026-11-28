@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   freshPublishTime,
   MAX_ITEM_AGE_MS,
+  parseFeed,
 } from "../src/convex/tabloidIngest";
 
 const NOW = Date.parse("2026-11-28T12:00:00.000Z");
@@ -43,5 +44,43 @@ describe("ingest freshness cutoff", () => {
   it("rejects a non-finite date rather than inventing one", () => {
     expect(freshPublishTime(Number.NaN, NOW)).toBeNull();
     expect(freshPublishTime(Number.POSITIVE_INFINITY, NOW)).toBeNull();
+  });
+});
+
+const feedWith = (dateTag: string) => `<?xml version="1.0"?>
+<rss version="2.0"><channel><title>Feed</title>
+  <item>
+    <title>Archive story resurfaced by a stale feed</title>
+    <link>https://example.com/archive-story?a=1&amp;b=2</link>
+    <description>An old story the feed republished.</description>
+    ${dateTag}
+  </item>
+</channel></rss>`;
+
+describe("parseFeed publish dates", () => {
+  it("keeps the publisher's own timestamp", () => {
+    const xml = feedWith(`<pubDate>Sat, 28 Nov 2026 09:00:00 GMT</pubDate>`);
+    const [item] = parseFeed(xml, "https://example.com/rss");
+    expect(item.pubDate).toBe(Date.parse("2026-11-28T09:00:00.000Z"));
+  });
+
+  it("reports an undated item as NaN so it is dropped, not dated as now", () => {
+    const xml = feedWith("");
+    const [item] = parseFeed(xml, "https://example.com/rss");
+    expect(Number.isFinite(item.pubDate)).toBe(false);
+    expect(freshPublishTime(item.pubDate, NOW)).toBeNull();
+  });
+
+  it("reports an unparseable date as NaN instead of the fetch time", () => {
+    const xml = feedWith(`<pubDate>sometime last week</pubDate>`);
+    const [item] = parseFeed(xml, "https://example.com/rss");
+    expect(Number.isFinite(item.pubDate)).toBe(false);
+    expect(freshPublishTime(item.pubDate, NOW)).toBeNull();
+  });
+
+  it("drops a genuinely old dated item without re-dating it", () => {
+    const xml = feedWith(`<pubDate>Tue, 03 Nov 2026 09:00:00 GMT</pubDate>`);
+    const [item] = parseFeed(xml, "https://example.com/rss");
+    expect(freshPublishTime(item.pubDate, NOW)).toBeNull();
   });
 });

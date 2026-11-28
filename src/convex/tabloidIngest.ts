@@ -123,10 +123,10 @@ function extractImage(block: string, feedUrl: string): string | undefined {
 
   // Widest media:content first; ties resolved by encounter order.
   candidates.sort((a, b) => Number(b.split("|")[0]) - Number(a.split("|")[0]));
-  return absolutizeUrl(candidates[0].split("|").slice(1).join("|"), feedUrl);
+  return absolutizeUrl(decodeEntities(candidates[0].split("|").slice(1).join("|")), feedUrl);
 }
 
-function parseFeed(xml: string, feedUrl: string): RawItem[] {
+export function parseFeed(xml: string, feedUrl: string): RawItem[] {
   const items: RawItem[] = [];
   const blocks =
     xml.match(/<item[\s>][\s\S]*?<\/item>/gi) ??
@@ -148,15 +148,22 @@ function parseFeed(xml: string, feedUrl: string): RawItem[] {
     const title = stripTags(titleMatch?.[1] ?? "");
     if (!title) continue;
 
-    const link = (linkMatch?.[1] ?? "").trim();
+    // RSS escapes query separators as &amp;; storing them raw breaks the URL.
+    const link = decodeEntities((linkMatch?.[1] ?? "").trim());
     const description = stripTags(descMatch?.[1] ?? "").slice(0, 2000);
-    const pubDate = dateMatch?.[1] ? new Date(stripTags(dateMatch[1])).getTime() : Date.now();
+
+    // A missing or unreadable date is not evidence of freshness. Report it as
+    // NaN so the ingest drops the item; stamping it with the fetch time is how
+    // an archive item ends up displayed as today's news.
+    const parsedDate = dateMatch?.[1]
+      ? new Date(stripTags(dateMatch[1])).getTime()
+      : Number.NaN;
 
     items.push({
       title,
       link,
       description,
-      pubDate: Number.isFinite(pubDate) ? pubDate : Date.now(),
+      pubDate: Number.isFinite(parsedDate) ? parsedDate : Number.NaN,
       image: extractImage(block, feedUrl),
     });
   }
@@ -462,12 +469,13 @@ function buildTags(title: string, excerpt: string, category: string): string[] {
 export const MAX_ITEM_AGE_MS = 3 * 24 * 60 * 60 * 1000;
 
 /**
- * The publish time to store for a feed item, or null when the item is stale.
+ * The publish time to store for a feed item, or null when the item must be
+ * dropped.
  *
  * The publisher's own date is kept as-is; the only correction is a future
  * date (a broken feed clock), which is pulled back to `now` so it cannot sit
- * above every real story. An unparseable date never reaches here — parseFeed
- * substitutes the fetch time.
+ * above every real story. An item with no usable date (parseFeed reports it as
+ * NaN) is dropped rather than dated with the fetch time.
  */
 export function freshPublishTime(pubDate: number, now: number): number | null {
   if (!Number.isFinite(pubDate)) return null;
@@ -478,11 +486,13 @@ export function freshPublishTime(pubDate: number, now: number): number | null {
 /**
  * Secure URLs only. An http endpoint cannot be trusted to serve the same bytes
  * over TLS, so a plaintext link is upgraded and never stored or linked as-is.
+ * Only a leading scheme is rewritten; the rest of the URL is left untouched.
  */
-const secureUrl = (value: string | undefined) =>
-  value?.startsWith("http://")
-    ? `https://${value.slice("http://".length)}`
-    : value;
+export const secureUrl = (value: string | undefined) =>
+  value?.replace(/^http:\/\//, "https://");
+
+/** Feeds are fetched exactly as stored, so they must already be https. */
+export const isHttpsFeed = (url: string) => url.startsWith("https://");
 
 /* ── The ingest action ──────────────────────────────────────── */
 
@@ -503,7 +513,12 @@ export const ingestNews = action({
   handler: async (
     ctx,
     args
-  ): Promise<{ feedsProcessed: number; inserted: number; staleSkipped: number }> => {
+  ): Promise<{
+    feedsProcessed: number;
+    inserted: number;
+    staleSkipped: number;
+    undatedSkipped: number;
+  }> => {
     const maxPerFeed = Math.min(args.maxPerFeed ?? 8, 15);
     const autoPublish = args.autoPublish ?? true;
     const useAI = args.useAI ?? true;
@@ -522,7 +537,11 @@ export const ingestNews = action({
 
     // An http feed would store and link plaintext article URLs, so it is never
     // fetched; https-only feeds are the invariant this pipeline maintains.
-    sources = sources.filter((s) => s.url.startsWith("https://"));
+    const droppedFeeds = sources.filter((s) => !isHttpsFeed(s.url));
+    if (droppedFeeds.length > 0) {
+      console.warn(`[tabloidIngest] skipping non-https feed(s): ${droppedFeeds.map((s) => s.name).join(", ")}`);
+    }
+    sources = sources.filter((s) => isHttpsFeed(s.url));
 
     const target = args.feedName
       ? sources.filter((s) => s.name === args.feedName)
@@ -530,6 +549,7 @@ export const ingestNews = action({
 
     let totalInserted = 0;
     let staleSkipped = 0;
+    let undatedSkipped = 0;
     const now = Date.now();
 
     for (const source of target) {
@@ -555,7 +575,8 @@ export const ingestNews = action({
           // Checked before the AI rewrite: a stale item is dropped, not paid for.
           const publishedAt = freshPublishTime(item.pubDate, now);
           if (publishedAt === null) {
-            staleSkipped += 1;
+            if (Number.isFinite(item.pubDate)) staleSkipped += 1;
+            else undatedSkipped += 1;
             continue;
           }
 
@@ -635,7 +656,12 @@ export const ingestNews = action({
         `[tabloidIngest] skipped ${staleSkipped} stale item(s) older than ${MAX_ITEM_AGE_MS / 86_400_000} days`
       );
     }
+    if (undatedSkipped > 0) {
+      console.log(
+        `[tabloidIngest] skipped ${undatedSkipped} item(s) with no usable publish date`
+      );
+    }
 
-    return { feedsProcessed: target.length, inserted: totalInserted, staleSkipped };
+    return { feedsProcessed: target.length, inserted: totalInserted, staleSkipped, undatedSkipped };
   },
 });
