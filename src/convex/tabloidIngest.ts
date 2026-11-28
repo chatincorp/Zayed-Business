@@ -455,6 +455,27 @@ function buildTags(title: string, excerpt: string, category: string): string[] {
 }
 
 /**
+ * How old a feed item may be and still count as news. A feed that stops
+ * updating (or republishes its archive) must not push week-old stories into
+ * today's feed, so anything older than this is skipped instead of re-dated.
+ */
+export const MAX_ITEM_AGE_MS = 3 * 24 * 60 * 60 * 1000;
+
+/**
+ * The publish time to store for a feed item, or null when the item is stale.
+ *
+ * The publisher's own date is kept as-is; the only correction is a future
+ * date (a broken feed clock), which is pulled back to `now` so it cannot sit
+ * above every real story. An unparseable date never reaches here — parseFeed
+ * substitutes the fetch time.
+ */
+export function freshPublishTime(pubDate: number, now: number): number | null {
+  if (!Number.isFinite(pubDate)) return null;
+  if (pubDate < now - MAX_ITEM_AGE_MS) return null;
+  return Math.min(pubDate, now);
+}
+
+/**
  * Secure URLs only. An http endpoint cannot be trusted to serve the same bytes
  * over TLS, so a plaintext link is upgraded and never stored or linked as-is.
  */
@@ -479,7 +500,10 @@ export const ingestNews = action({
     autoPublish: v.optional(v.boolean()),
     useAI: v.optional(v.boolean()),
   },
-  handler: async (ctx, args): Promise<{ feedsProcessed: number; inserted: number }> => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ feedsProcessed: number; inserted: number; staleSkipped: number }> => {
     const maxPerFeed = Math.min(args.maxPerFeed ?? 8, 15);
     const autoPublish = args.autoPublish ?? true;
     const useAI = args.useAI ?? true;
@@ -505,6 +529,7 @@ export const ingestNews = action({
       : sources;
 
     let totalInserted = 0;
+    let staleSkipped = 0;
     const now = Date.now();
 
     for (const source of target) {
@@ -527,6 +552,13 @@ export const ingestNews = action({
         const prepared: Array<Record<string, unknown>> = [];
 
         for (const item of rawItems) {
+          // Checked before the AI rewrite: a stale item is dropped, not paid for.
+          const publishedAt = freshPublishTime(item.pubDate, now);
+          if (publishedAt === null) {
+            staleSkipped += 1;
+            continue;
+          }
+
           const dedupeKey = hashString(`${item.link || item.title}`.slice(0, 300));
           const category = inferCategory(item.title, item.description, source.category);
           const tags = buildTags(item.title, item.description, category);
@@ -576,7 +608,7 @@ export const ingestNews = action({
             author: "Zayed News Desk",
             editor: "News Desk",
             status: autoPublish ? "published" : "rewritten",
-            publishedAt: Math.max(item.pubDate, now - 48 * 60 * 60 * 1000),
+            publishedAt,
           });
         }
 
@@ -598,6 +630,12 @@ export const ingestNews = action({
       }
     }
 
-    return { feedsProcessed: target.length, inserted: totalInserted };
+    if (staleSkipped > 0) {
+      console.log(
+        `[tabloidIngest] skipped ${staleSkipped} stale item(s) older than ${MAX_ITEM_AGE_MS / 86_400_000} days`
+      );
+    }
+
+    return { feedsProcessed: target.length, inserted: totalInserted, staleSkipped };
   },
 });
